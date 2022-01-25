@@ -1,0 +1,7 @@
+# Dependencies
+elm-stuff/
+node_modules/
+
+# Parcel
+.parcel-cache/
+dist/

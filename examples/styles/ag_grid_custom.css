@@ -1,0 +1,16 @@
+#ag-grid {
+  width: 100%;
+}
+.ag-header-cell {
+  display: block;
+}
+
+.ag-theme-balham .ag-header-cell-label .ag-header-cell-text {
+  white-space: normal !important;
+  line-height: 2;
+}
+
+.ag-theme-balham .ag-header-cell::after,
+.ag-theme-balham .ag-header-group-cell::after {
+  height: 32px;
+}
