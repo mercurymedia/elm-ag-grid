@@ -1,7 +1,8 @@
 module AgGrid exposing
     ( ColumnDef, FilterType(..), PinningType(..), Renderer(..), SidebarType(..)
-    , defaultGridConfig, defaultSettings, grid
-    , onCellChanged, onCellDoubleClicked, onRowDeleted
+    , grid
+    , defaultGridConfig, defaultSettings
+    , onCellChanged, onCellDoubleClicked
     )
 
 {-| AgGrid integration for elm.
@@ -12,19 +13,19 @@ module AgGrid exposing
 @docs ColumnDef, FilterType, PinningType, Renderer, SidebarType
 
 
-# Create
+# Grid
 
-@docs defaultGridConfig, defaultSettings, grid
+@docs grid
 
 
-# Manipulate
+# Defaults
 
-@docs alwaysEditable, assignDateFilter, assignSetFilter, cellStyle, changeWidth, disableEditing, groupRenderer, hide, neverEditable, noFilter, pinColumn, restrictEditing, rowGroup, suppressToolPanel
+@docs defaultGridConfig, defaultSettings
 
 
 # Events
 
-@docs onCellChanged, onCellDoubleClicked, onRowDeleted
+@docs onCellChanged, onCellDoubleClicked
 
 -}
 
@@ -147,6 +148,8 @@ type alias ColumnDef dataType =
     }
 
 
+{-| Column configuration settings.
+-}
 type alias ColumnSettings =
     { editable : Bool
     , enablePivot : Bool
@@ -164,6 +167,8 @@ type alias ColumnSettings =
     }
 
 
+{-| Grid configurations.
+-}
 type alias GridConfig =
     { allowColResize : Bool
     , autoSizeColumns : Bool
@@ -176,12 +181,6 @@ type alias GridConfig =
     , size : String
     , suppressMenuHide : Bool
     , themeClasses : Maybe String
-    }
-
-
-type alias RowClickedEvent =
-    { data : Decode.Value
-    , actionType : String
     }
 
 
@@ -268,6 +267,40 @@ defaultGridConfig =
 
 
 {-| Defines the data grid.
+
+
+## Example
+
+    let
+        gridConfig =
+            AgGrid.defaultGridConfig
+                |> (\config -> { config | themeClasses = Just "ag-theme-balham ag-basic" })
+
+        events =
+            [ onCellChanged rowDecoder UpdateProduct ]
+
+        defaultSettings =
+            AgGrid.defaultSettings
+                |> (\settings -> { settings | editable = True })
+
+        columns =
+            [ { field = "id"
+              , renderer = IntRenderer .id
+              , headerName = "Id"
+              , settings = { defaultSettings | enablePivot = False }
+              }
+            , { field = "title"
+              , renderer = StringRenderer .title
+              , headerName = "Product"
+              , settings = { defaultSettings | filter = StringFilter }
+              }
+            ]
+
+        data =
+            model.products
+    in
+    grid gridConfig events columns data
+
 -}
 grid : GridConfig -> List (Html.Attribute msg) -> List (ColumnDef dataType) -> List dataType -> Html msg
 grid gridConfig events columnDefs data =
@@ -323,6 +356,14 @@ prepareColumns gridConfig columnDefs =
 -- Eventhandler
 
 
+{-| Detect change events on cells.
+
+Decodes the changed row according to the provided `dataDecoder` and passes the result to
+the message `toMsg`.
+
+Handles the `cellValueChanged` event from Ag Grid.
+
+-}
 onCellChanged : Decoder dataType -> (Result Decode.Error dataType -> msg) -> Html.Attribute msg
 onCellChanged dataDecoder toMsg =
     cellUpdateDecoder
@@ -331,6 +372,14 @@ onCellChanged dataDecoder toMsg =
         |> Html.Events.on "cellvaluechanged"
 
 
+{-| Detect doubleclick events on cells.
+
+Decodes the row of the clicked cell according to the provided `dataDecoder` and the field
+name of the clicked cells as tuple and passes the result to the message `toMsg`.
+
+Handles the `cellDoubleClicked` event from Ag Grid.
+
+-}
 onCellDoubleClicked : Decoder dataType -> (( Result Decode.Error dataType, String ) -> msg) -> Html.Attribute msg
 onCellDoubleClicked dataDecoder toMsg =
     let
@@ -345,23 +394,6 @@ onCellDoubleClicked dataDecoder toMsg =
             Decode.map2 (\v e -> toMsg <| Tuple.pair v e) valueDecoder elementDecoder
     in
     Html.Events.on "celldoubleclicked" event
-
-
-onRowDeleted : Decoder dataType -> (Result Decode.Error dataType -> msg) -> Html.Attribute msg
-onRowDeleted dataDecoder toMsg =
-    rowClickedEventDecoder
-        |> Decode.map
-            (\value ->
-                case value.actionType of
-                    "delete" ->
-                        Decode.decodeValue dataDecoder value.data
-
-                    _ ->
-                        -- this intentionally fails so no message gets send
-                        Decode.decodeString dataDecoder "666"
-            )
-        |> Decode.map toMsg
-        |> Html.Events.on "rowclicked"
 
 
 
@@ -590,10 +622,3 @@ encodeData columns data =
 cellUpdateDecoder : Decoder Decode.Value
 cellUpdateDecoder =
     Decode.at [ "agGridDetails", "data" ] Decode.value
-
-
-rowClickedEventDecoder : Decoder RowClickedEvent
-rowClickedEventDecoder =
-    Decode.map2 RowClickedEvent
-        (Decode.at [ "agGridDetails", "data" ] Decode.value)
-        (Decode.at [ "agGridDetails", "event", "target", "dataset", "actionType" ] Decode.string)
