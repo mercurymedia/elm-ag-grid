@@ -14,13 +14,13 @@ It's also required to make the webcomponent from the package available to your p
 
 ```json
   "devDependencies": {
-    "ag-grid-webcomponent": "git@github.com:mercurymedia/elm-ag-grid.git",
+    "elm-ag-grid": "git@github.com:mercurymedia/elm-ag-grid.git",
     ...
   }
 ```
 
 ```js
-import from "ag-grid-webcomponent";
+import from "elm-ag-grid";
 import { Elm } from "./src/Main.elm";
 
 Elm.Main.init({ node: document.getElementById('app') });
@@ -28,17 +28,17 @@ Elm.Main.init({ node: document.getElementById('app') });
 
 ## Ag Grid Enterprise
 
-The LicenseManager for Ag Grid Enterprise is exported and can be called to set the license key to enable the enterprise version.
+The `elm-ag-grid` package uses Ag Grid Enterprise features. To enable them install the `ag-grid-enterprise` package and activate it by setting the license key. See the [official Ag Grid documentation](http://54.222.217.254/javascript-grid-set-license/) for further details.
 
 ```js
-import * as AgGridElm from "ag-grid-webcomponent";
+import * as AgGridEnterprise from "ag-grid-enterprise";
 
-AgGridElm.licenseManager.setLicenseKey("YOUR-LICENSE-KEY");
+AgGridEnterprise.LicenseManager.setLicenseKey("YOUR-LICENSE-KEY");
 ```
 
 ## Themes
 
-To use a theme, add the theme class name to the `config` argument for your grid. For example when using the
+To use a theme, add the theme class name to the `config` argument for your grid. For example when using the "balham" theme:
 
 ```elm
 viewGrid : Model -> Html Msg

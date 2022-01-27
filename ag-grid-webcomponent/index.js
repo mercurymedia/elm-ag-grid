@@ -1,8 +1,4 @@
 import * as agGrid from "ag-grid-community";
-import * as agGridEnterprise from "ag-grid-enterprise";
-
-const licenseManager = agGridEnterprise.LicenseManager;
-export { licenseManager };
 
 import cellRenderer from "./cell_renderer";
 import cellEditor from "./cell_editor";
