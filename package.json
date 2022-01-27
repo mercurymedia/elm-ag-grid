@@ -1,5 +1,5 @@
 {
-  "name": "elm-ag-grid",
+  "name": "@mercurymedia/elm-ag-grid",
   "version": "1.0.0",
   "description": "",
   "main": "ag-grid-webcomponent/index.js",
@@ -11,6 +11,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
+  "repository": "git://github.com/mercurymedia/elm-ag-grid.git",
   "license": "MIT",
   "peerDependencies": {
     "ag-grid-community": "^26.2.1",
