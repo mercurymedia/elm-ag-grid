@@ -89,10 +89,10 @@ type Renderer dataType
 {-| Possible options for displayed sidebars.
 -}
 type SidebarType
-    = Both
-    | Columns
-    | Filters
-    | None
+    = BothSidebars
+    | ColumnSidebar
+    | FilterSidebar
+    | NoSidebar
 
 
 type alias CellEditorParams =
@@ -239,7 +239,7 @@ Can be used when implementing the grid.
         , pagination = False
         , rowHeight = Nothing
         , quickFilterText = ""
-        , sideBar = None
+        , sideBar = NoSidebar
         , size = "65vh"
         , suppressMenuHide = False
         , themeClasses = Nothing
@@ -255,7 +255,7 @@ defaultGridConfig =
     , pagination = False
     , rowHeight = Nothing
     , quickFilterText = ""
-    , sideBar = None
+    , sideBar = NoSidebar
     , size = "65vh"
     , suppressMenuHide = False
     , themeClasses = Nothing
@@ -531,16 +531,16 @@ generateGridConfigAttributes gridConfig =
               )
             , ( "sideBar"
               , case gridConfig.sideBar of
-                    Both ->
+                    BothSidebars ->
                         Json.Encode.bool True
 
-                    Columns ->
+                    ColumnSidebar ->
                         Json.Encode.string "columns"
 
-                    Filters ->
+                    FilterSidebar ->
                         Json.Encode.string "filters"
 
-                    None ->
+                    NoSidebar ->
                         Json.Encode.bool False
               )
             , ( "stopEditingWhenCellsLoseFocus", Json.Encode.bool True )

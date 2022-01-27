@@ -129,7 +129,7 @@ view model =
             AgGrid.defaultGridConfig
                 |> (\config ->
                         { config
-                            | sideBar = AgGrid.Both
+                            | sideBar = AgGrid.BothSidebars
                             , pagination = True
                             , quickFilterText = model.searchInput
                             , cacheQuickFilter = True
