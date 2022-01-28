@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "setup": "cd .. && npm pack",
+    "build-webcomponent-dev": "cd .. && npm pack",
     "start": "parcel serve index.html",
     "build": "parcel build index.html"
   },
