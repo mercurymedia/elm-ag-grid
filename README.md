@@ -10,17 +10,14 @@ An example can be found in the [`examples/`](https://github.com/mercurymedia/elm
 
 Elm component: `elm install mercurymedia/elm-ag-grid`
 
-It's also required to make the webcomponent from the package available to your project. For example, this can be done by downloading the package from GitHub with `npm` and importing it into the Javascript pipeline.
+It's also required to make the webcomponent from the package available to your project. This can be done by installing the package from NPM and importing it into the Javascript pipeline.
 
-```json
-  "devDependencies": {
-    "elm-ag-grid": "git@github.com:mercurymedia/elm-ag-grid.git",
-    ...
-  }
+```sh
+  npm i @mercurymedia/elm-ag-grid
 ```
 
 ```js
-import from "elm-ag-grid";
+import from "@mercurymedia/elm-ag-grid";
 import { Elm } from "./src/Main.elm";
 
 Elm.Main.init({ node: document.getElementById('app') });
@@ -63,5 +60,5 @@ To support browsers that don't have built-in support for the Web Components API,
 
 ```js
 import "@webcomponents/custom-elements";
-import "ag-grid-webcomponent";
+import "@mercurymedia/elm-ag-grid";
 ```

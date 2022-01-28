@@ -1,7 +1,7 @@
 import "@webcomponents/custom-elements";
 // import * as AgGridEnterprise from "ag-grid-enterprise";
 
-import "elm-ag-grid";
+import "@mercurymedia/elm-ag-grid";
 import { Elm } from "./src/Main.elm";
 
 import "ag-grid-community/dist/styles/ag-grid.css";
