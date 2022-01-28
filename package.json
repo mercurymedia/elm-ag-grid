@@ -8,7 +8,8 @@
     "LICENSE"
   ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "publish": "npm publish --access public"
   },
   "author": "",
   "repository": "git://github.com/mercurymedia/elm-ag-grid.git",
