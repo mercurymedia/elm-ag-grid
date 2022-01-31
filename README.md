@@ -8,13 +8,15 @@ An example can be found in the [`examples/`](https://github.com/mercurymedia/elm
 
 ## Install
 
-Elm component: `elm install mercurymedia/elm-ag-grid`
+**Elm component:** `elm install mercurymedia/elm-ag-grid`
 
-It's also required to make the webcomponent from the package available to your project. This can be done by installing the package from NPM and importing it into the Javascript pipeline.
+It's also required to make the webcomponent from the package available to your project. This can be done by installing the package from NPM.
 
 ```sh
   npm i @mercurymedia/elm-ag-grid
 ```
+
+And then importing it into the Javascript pipeline.
 
 ```js
 import from "@mercurymedia/elm-ag-grid";
@@ -22,6 +24,8 @@ import { Elm } from "./src/Main.elm";
 
 Elm.Main.init({ node: document.getElementById('app') });
 ```
+
+**Note:** The package requires at least `ag-grid-community` to be available in the project.
 
 ## Ag Grid Enterprise
 
