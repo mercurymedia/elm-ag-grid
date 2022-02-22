@@ -2,6 +2,7 @@ import * as agGrid from "ag-grid-community";
 
 import cellRenderer from "./cell_renderer";
 import cellEditor from "./cell_editor";
+import appRenderer from "./app_renderer";
 
 const elmProperties = [
   "disableResizeOnScroll",
@@ -29,7 +30,7 @@ class AgGrid extends HTMLElement {
   }
 
   loadAttribute(attr) {
-    let gridElement = document.querySelector("ag-grid").getAttribute(attr);
+    let gridElement = this.getAttribute(attr);
     return gridElement ? JSON.parse(gridElement) : undefined;
   }
 
@@ -105,11 +106,12 @@ class AgGrid extends HTMLElement {
   }
 
   _process_grid_config() {
-    const agGrid = document.querySelector("ag-grid");
+    const agGrid = this;
     const gridOptions = {
       components: {
         ...cellRenderer,
         ...cellEditor,
+        appRenderer,
       },
 
       onFirstDataRendered: function () {
@@ -126,7 +128,7 @@ class AgGrid extends HTMLElement {
       },
     };
 
-    agGrid.gridOptions = gridOptions;
+    this.gridOptions = gridOptions;
 
     if (gridOptions.rowData === null) {
       this.api.showNoRowsOverlay();
