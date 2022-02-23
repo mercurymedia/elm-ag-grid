@@ -1,12 +1,14 @@
 import "@webcomponents/custom-elements";
 // import * as AgGridEnterprise from "ag-grid-enterprise";
 
-import "@mercurymedia/elm-ag-grid";
+// This would usually be the pacakge import
+// import "@mercurymedia/elm-ag-grid";
+import "../ag-grid-webcomponent";
 import { Elm } from "./src/Main.elm";
 
 import "ag-grid-community/dist/styles/ag-grid.css";
 import "ag-grid-community/dist/styles/ag-theme-balham.css";
-import "/styles/ag_grid_custom.css";
+import "./styles/ag_grid_custom.css";
 
 // For AG Grid Enterprise you can set license key by calling:
 // AgGridEnterprise.LicenseManager.setLicenseKey("YOUR-LICENSE-KEY");
