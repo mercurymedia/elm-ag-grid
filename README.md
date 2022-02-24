@@ -69,7 +69,7 @@ import "@mercurymedia/elm-ag-grid";
 
 ## Custom views for cells
 
-Custom cell content (such as a button or link) can be created and used as a separate Elm application. This application must be defined as `Browser.element` in load it into the table cell.
+A custom view for the cell (such as a button or link) can be defined with a separate Elm application which gets rendered into the cell. The application must therefore be defined as `Browser.element`.
 
 FYI, there are two components in the [example application](https://github.com/mercurymedia/elm-ag-grid/tree/main/examples) used that you might find very useful.
 
