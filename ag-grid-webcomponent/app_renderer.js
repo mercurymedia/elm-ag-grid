@@ -12,13 +12,33 @@ class AppRenderer {
   init(params) {
     this.eGui = new DocumentFragment();
 
-    const component = window.ElmAgGridComponentRegistry[params.componentName];
+    const component = this.component(params);
     const mountedElement = document.createElement("div");
 
     this.eGui.appendChild(mountedElement);
 
     // Initialize application after the node has been appended to the `DocumentFragment`
-    this.application = component.init({ node: mountedElement, flags: params });
+    if (component) {
+      this.application = component.init({
+        node: mountedElement,
+        flags: params,
+      });
+    }
+  }
+
+  /**
+   * Retrieve the component by name from the `ElmAgGridComponentRegistry`.
+   * @param {*} params cellRenderer params
+   * @returns component object
+   */
+  component(params) {
+    const component = window.ElmAgGridComponentRegistry[params.componentName];
+    if (component) return component;
+
+    throw `
+        \nCouldn't find component '${params.componentName}'.
+        \nCheck https://github.com/mercurymedia/elm-ag-grid/tree/main#register-component for further details on registering components.
+      `;
   }
 
   /**
