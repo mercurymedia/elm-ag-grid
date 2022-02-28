@@ -77,7 +77,8 @@ the `title` might be defined as:
 
 -}
 type Renderer dataType
-    = BoolRenderer (dataType -> Bool)
+    = AppRenderer { componentName : String, componentParams : Maybe Json.Encode.Value } (dataType -> String)
+    | BoolRenderer (dataType -> Bool)
     | IntRenderer (dataType -> Int)
     | MaybeIntRenderer (dataType -> Maybe Int)
     | MaybeStringRenderer (dataType -> Maybe String)
@@ -412,8 +413,22 @@ columnDefEncoder gridConfig columnDef =
     Json.Encode.object
         [ ( "cellRenderer"
           , case columnDef.renderer of
+                AppRenderer _ _ ->
+                    Json.Encode.string "appRenderer"
+
                 BoolRenderer _ ->
                     Json.Encode.string "booleanCellRenderer"
+
+                _ ->
+                    Json.Encode.null
+          )
+        , ( "cellRendererParams"
+          , case columnDef.renderer of
+                AppRenderer params _ ->
+                    Json.Encode.object
+                        [ ( "componentName", Json.Encode.string params.componentName )
+                        , ( "componentParams", Maybe.withDefault Json.Encode.null params.componentParams )
+                        ]
 
                 _ ->
                     Json.Encode.null
@@ -575,6 +590,9 @@ encoder : dataType -> ColumnDef dataType -> ( String, Json.Encode.Value )
 encoder data column =
     ( column.field
     , case column.renderer of
+        AppRenderer _ valueGetter ->
+            Json.Encode.string (valueGetter data)
+
         BoolRenderer valueGetter ->
             Json.Encode.bool (valueGetter data)
 

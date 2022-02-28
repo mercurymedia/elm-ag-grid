@@ -1,4 +1,4 @@
-module Main exposing (main)
+port module Main exposing (main)
 
 import AgGrid exposing (Renderer(..))
 import Browser
@@ -7,7 +7,12 @@ import Html exposing (Html, div, input)
 import Html.Attributes exposing (placeholder, style, value)
 import Html.Events exposing (onInput)
 import Json.Decode
+import Json.Decode.Pipeline as DecodePipeline
+import Json.Encode
 import Result exposing (Result)
+
+
+port buttonClicked : (Int -> msg) -> Sub msg
 
 
 
@@ -38,6 +43,7 @@ initialModel =
             [ { amountLeft = Nothing
               , category = Fruit
               , description = Nothing
+              , detailsUrl = "#/apple"
               , favorite = False
               , id = 1
               , offerUntil = "01/01/2022"
@@ -52,6 +58,7 @@ initialModel =
               , offerUntil = "31/12/2022"
               , price = 2
               , title = "Cucumber"
+              , detailsUrl = "#/cucumber"
               }
             ]
                 |> List.repeat 150
@@ -62,6 +69,7 @@ initialModel =
     in
     { searchInput = ""
     , products = products
+    , variant = "variant-1"
     }
 
 
@@ -72,12 +80,14 @@ initialModel =
 type alias Model =
     { searchInput : String
     , products : Dict Int Product
+    , variant : String
     }
 
 
 type Msg
     = UpdateSearchInput String
     | UpdateProduct (Result Json.Decode.Error Product)
+    | ClickedCellButton Int
 
 
 type Category
@@ -89,6 +99,7 @@ type alias Product =
     { amountLeft : Maybe Int
     , category : Category
     , description : Maybe String
+    , detailsUrl : String
     , favorite : Bool
     , id : Int
     , offerUntil : String
@@ -116,6 +127,18 @@ update msg model =
 
         UpdateProduct (Err _) ->
             ( model, Cmd.none )
+
+        ClickedCellButton id ->
+            let
+                updatedVariant =
+                    case model.variant of
+                        "variant-1" ->
+                            "variant-2"
+
+                        _ ->
+                            "variant-1"
+            in
+            ( { model | variant = updatedVariant }, Cmd.none )
 
 
 
@@ -152,6 +175,11 @@ view model =
               , headerName = "Product"
               , settings = { defaultSettings | editable = False, pinned = AgGrid.PinnedToLeft }
               }
+            , { field = "details"
+              , renderer = AppRenderer { componentName = "linkRenderer", componentParams = Nothing } encodeDetails
+              , headerName = "Details"
+              , settings = { defaultSettings | editable = False }
+              }
             , { field = "category"
               , renderer = SelectionRenderer (.category >> categoryToString) (List.map categoryToString [ Fruit, Vegetable ])
               , headerName = "Category"
@@ -182,6 +210,11 @@ view model =
               , headerName = "Amount Left"
               , settings = defaultSettings
               }
+            , { field = "table-button-column"
+              , renderer = AppRenderer (buttonConfig model) (always "")
+              , headerName = ""
+              , settings = {defaultSettings | editable = False }
+              }
             ]
     in
     div []
@@ -192,8 +225,77 @@ view model =
             , style "margin-bottom" "8px"
             ]
             []
-        , AgGrid.grid gridConfig [ AgGrid.onCellChanged rowDecoder UpdateProduct ] columns (Dict.values model.products)
+        , AgGrid.grid gridConfig
+            [ AgGrid.onCellChanged rowDecoder UpdateProduct
+
+            -- Eventlistener is not attached. Communication happens through ports.
+            -- , onCellClicked ClickedCellButton
+            ]
+            columns
+            (Dict.values model.products)
         ]
+
+
+encodeDetails : Product -> String
+encodeDetails product =
+    Json.Encode.object
+        [ ( "url", Json.Encode.string product.detailsUrl )
+        , ( "linkName", Json.Encode.string product.title )
+        ]
+        |> Json.Encode.encode 0
+
+
+buttonConfig : Model -> { componentName : String, componentParams : Maybe Json.Encode.Value }
+buttonConfig model =
+    let
+        params =
+            Json.Encode.object
+                [ ( "variant", Json.Encode.string model.variant )
+                ]
+    in
+    { componentName = "buttonRenderer"
+    , componentParams = Just params
+    }
+
+
+{-| Possible event listener for button click events.
+
+Attempts to read the Product Id of from the the clicked element ID that has
+a format of `button-123`.
+
+It's probably easiert to just use ports for communication with the components,
+as this doesn't require to listen for all click events, filtering them, and
+parsing a potential ID from a string.
+
+The port provides more accuracy to only receive a message event when the actual
+element was clicked and allows to send information much easier.
+
+-}
+onCellClicked : (Int -> Msg) -> Html.Attribute Msg
+onCellClicked toMsg =
+    let
+        parseElementId elementId =
+            case String.split "-" elementId of
+                _ :: idString :: _ ->
+                    String.toInt idString
+
+                _ ->
+                    Nothing
+
+        valueDecoder =
+            Json.Decode.at [ "target", "id" ] Json.Decode.string
+                |> Json.Decode.andThen
+                    (\elementId ->
+                        case parseElementId elementId of
+                            Just id ->
+                                Json.Decode.succeed id
+
+                            Nothing ->
+                                Json.Decode.fail "invalid value"
+                    )
+                |> Json.Decode.map toMsg
+    in
+    Html.Events.on "click" valueDecoder
 
 
 
@@ -202,7 +304,7 @@ view model =
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    Sub.none
+    buttonClicked ClickedCellButton
 
 
 
@@ -234,12 +336,13 @@ decodeCategory categoryString =
 
 rowDecoder : Json.Decode.Decoder Product
 rowDecoder =
-    Json.Decode.map8 Product
-        (Json.Decode.field "amount-left" (Json.Decode.nullable Json.Decode.int))
-        (Json.Decode.field "category" (Json.Decode.string |> Json.Decode.andThen decodeCategory))
-        (Json.Decode.field "description" (Json.Decode.nullable Json.Decode.string))
-        (Json.Decode.field "favorite" Json.Decode.bool)
-        (Json.Decode.field "id" Json.Decode.int)
-        (Json.Decode.field "offer-until" Json.Decode.string)
-        (Json.Decode.field "price" Json.Decode.int)
-        (Json.Decode.field "title" Json.Decode.string)
+    Json.Decode.succeed Product
+        |> DecodePipeline.required "amount-left" (Json.Decode.nullable Json.Decode.int)
+        |> DecodePipeline.required "category" (Json.Decode.string |> Json.Decode.andThen decodeCategory)
+        |> DecodePipeline.required "description" (Json.Decode.nullable Json.Decode.string)
+        |> DecodePipeline.required "detailsUrl" Json.Decode.string
+        |> DecodePipeline.required "favorite" Json.Decode.bool
+        |> DecodePipeline.required "id" Json.Decode.int
+        |> DecodePipeline.required "offer-until" Json.Decode.string
+        |> DecodePipeline.required "price" Json.Decode.int
+        |> DecodePipeline.required "title" Json.Decode.string
