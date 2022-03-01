@@ -1,5 +1,9 @@
 # NPM Changelog
 
+## [1.1.1]
+
+- Updated README
+
 ## [1.1.0]
 
 **Requires at least version 2.0.0 of the `elm-ag-grid` [Elm package](https://package.elm-lang.org/packages/mercurymedia/elm-ag-grid/2.0.0/).**
