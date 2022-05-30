@@ -133,6 +133,9 @@ class AgGrid extends HTMLElement {
     if (gridOptions.rowData === null) {
       this.api.showNoRowsOverlay();
     }
+
+    // Use autoHeight if no height was specified on the DOM element otherwise.
+    if (!this.style.height) this.api.setDomLayout("autoHeight");
   }
 
   globalEventListener(eventType, event) {

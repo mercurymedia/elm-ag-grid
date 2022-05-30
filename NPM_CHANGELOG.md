@@ -1,5 +1,9 @@
 # NPM Changelog
 
+## [1.2.0]
+
+- Added AgGrid's `autoHeight` usage when no `size` is set for the table (by default the table still uses `65vh`)
+
 ## [1.1.1]
 
 - Updated README
