@@ -79,7 +79,9 @@ the `title` might be defined as:
 type Renderer dataType
     = AppRenderer { componentName : String, componentParams : Maybe Json.Encode.Value } (dataType -> String)
     | BoolRenderer (dataType -> Bool)
+    | FloatRenderer (dataType -> Float)
     | IntRenderer (dataType -> Int)
+    | MaybeFloatRenderer (dataType -> Maybe Float)
     | MaybeIntRenderer (dataType -> Maybe Int)
     | MaybeStringRenderer (dataType -> Maybe String)
     | NoRenderer
@@ -596,8 +598,19 @@ encoder data column =
         BoolRenderer valueGetter ->
             Json.Encode.bool (valueGetter data)
 
+        FloatRenderer valueGetter ->
+            Json.Encode.float (valueGetter data)
+
         IntRenderer valueGetter ->
             Json.Encode.int (valueGetter data)
+
+        MaybeFloatRenderer valueGetter ->
+            case valueGetter data of
+                Just value ->
+                    Json.Encode.float value
+
+                Nothing ->
+                    Json.Encode.null
 
         MaybeIntRenderer valueGetter ->
             case valueGetter data of
