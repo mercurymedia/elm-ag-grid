@@ -47,7 +47,7 @@ initialModel =
               , favorite = False
               , id = 1
               , offerUntil = "01/01/2022"
-              , price = 3
+              , price = 3.2
               , title = "Apple"
               }
             , { amountLeft = Just 15
@@ -56,7 +56,7 @@ initialModel =
               , favorite = True
               , id = 2
               , offerUntil = "31/12/2022"
-              , price = 2
+              , price = 2.5
               , title = "Cucumber"
               , detailsUrl = "#/cucumber"
               }
@@ -103,7 +103,7 @@ type alias Product =
     , favorite : Bool
     , id : Int
     , offerUntil : String
-    , price : Int
+    , price : Float
     , title : String
     }
 
@@ -125,7 +125,7 @@ update msg model =
             in
             ( { model | products = updatedProducts }, Cmd.none )
 
-        UpdateProduct (Err _) ->
+        UpdateProduct (Err err) ->
             ( model, Cmd.none )
 
         ClickedCellButton id ->
@@ -180,6 +180,11 @@ view model =
               , headerName = "Details"
               , settings = { defaultSettings | editable = False }
               }
+            , { field = "detailsUrl"
+              , renderer = StringRenderer .detailsUrl
+              , headerName = ""
+              , settings = { defaultSettings | hide = True }
+              }
             , { field = "category"
               , renderer = SelectionRenderer (.category >> categoryToString) (List.map categoryToString [ Fruit, Vegetable ])
               , headerName = "Category"
@@ -201,7 +206,7 @@ view model =
               , settings = defaultSettings
               }
             , { field = "price"
-              , renderer = IntRenderer .price
+              , renderer = FloatRenderer .price
               , headerName = "Price"
               , settings = { defaultSettings | filter = AgGrid.NumberFilter }
               }
@@ -213,7 +218,7 @@ view model =
             , { field = "table-button-column"
               , renderer = AppRenderer (buttonConfig model) (always "")
               , headerName = ""
-              , settings = {defaultSettings | editable = False }
+              , settings = { defaultSettings | editable = False }
               }
             ]
     in
@@ -344,5 +349,10 @@ rowDecoder =
         |> DecodePipeline.required "favorite" Json.Decode.bool
         |> DecodePipeline.required "id" Json.Decode.int
         |> DecodePipeline.required "offer-until" Json.Decode.string
-        |> DecodePipeline.required "price" Json.Decode.int
+        |> DecodePipeline.required "price"
+            (Json.Decode.oneOf
+                [ Json.Decode.float
+                , Json.Decode.map (String.toFloat >> Maybe.withDefault 0) Json.Decode.string
+                ]
+            )
         |> DecodePipeline.required "title" Json.Decode.string
