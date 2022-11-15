@@ -4,29 +4,31 @@ import cellRenderer from "./cell_renderer";
 import cellEditor from "./cell_editor";
 import appRenderer from "./app_renderer";
 
-const elmProperties = [
-  "disableResizeOnScroll",
-  "sizeToFitAfterFirstDataRendered",
-];
-
-const agGridProperties = agGrid.ComponentUtil.ALL_PROPERTIES.filter(
-  (property) => property !== "gridOptions"
-);
-
-const observedProperties = agGridProperties.concat(elmProperties);
-
 class AgGrid extends HTMLElement {
   constructor() {
     super();
-    this._attributes = {};
+    this._preInitAgGridAttributes = {};
+    this._preInitCustomAttributes = {};
     this._propertyMap = this._createPropertyMap();
+    this._events = {};
   }
 
   _createPropertyMap() {
-    return observedProperties.reduce((map, property) => {
-      map[property.toLowerCase()] = property;
-      return map;
-    }, {});
+    return agGrid.ComponentUtil.ALL_PROPERTIES.concat(setterProperties).reduce(
+      (map, property) => {
+        map[property.toLowerCase()] = property;
+        return map;
+      },
+      {}
+    );
+  }
+
+  _definesSetter(attribute) {
+    const descriptor = Object.getOwnPropertyDescriptor(
+      AgGrid.prototype,
+      attribute
+    );
+    return descriptor && typeof descriptor.set === "function";
   }
 
   loadAttribute(attr) {
@@ -39,17 +41,23 @@ class AgGrid extends HTMLElement {
 
     this._gridOptions = agGrid.ComponentUtil.copyAttributesToGridOptions(
       options,
-      this._attributes
+      this._preInitAgGridAttributes
     );
 
-    // prevent instantiating multiple grids
+    // Can only be instantiated once
     if (!this._initialised) {
+      // prevent instantiating multiple grids
       let gridParams = { globalEventListener };
       this._agGrid = new agGrid.Grid(this, this._gridOptions, gridParams);
 
       this.api = options.api;
       this.columnApi = options.columnApi;
       this._initialised = true;
+
+      Object.entries(this._preInitCustomAttributes).map(
+        // Call setter for the custom attributes
+        ([key, value]) => (this[key] = value)
+      );
     }
   }
 
@@ -68,71 +76,109 @@ class AgGrid extends HTMLElement {
   }
 
   static get observedAttributes() {
-    return observedProperties.map((property) => property.toLowerCase());
+    return agGrid.ComponentUtil.ALL_PROPERTIES.concat(setterProperties).map(
+      (property) => property.toLowerCase()
+    );
   }
 
-  _isElmProperty(name) {
-    elmProperties.some((property) => property === name);
+  set columnState(state) {
+    this.columnApi.applyColumnState({ state: state, applyOrder: true });
+  }
+
+  set disableResizeOnScroll(disabled) {
+    this._addEventHandler(
+      "onBodyScroll",
+      "disableResizeOnScroll",
+      function (params) {
+        if (!disabled) params.api.sizeColumnsToFit();
+      }
+    );
+  }
+
+  set filterState(state) {
+    this.api.setFilterModel(state);
+  }
+
+  set sizeToFitAfterFirstDataRendered(sizeToFit) {
+    this._addEventHandler(
+      "onFirstDataRendered",
+      "sizeToFitAfterFirstDataRendered",
+      function (params) {
+        if (sizeToFit) params.api.sizeColumnsToFit();
+      }
+    );
+  }
+
+  set rowData(data) {
+    this._applyChange("rowData", data);
+
+    if (this._agGrid.gridOptions.rowData === null) {
+      this.api.showNoRowsOverlay();
+    }
+  }
+
+  _applyChange(propertyName, newValue) {
+    let changeObject = {};
+    changeObject[propertyName] = { currentValue: newValue };
+
+    agGrid.ComponentUtil.processOnChange(
+      changeObject,
+      this._gridOptions,
+      this.api,
+      this.columnApi
+    );
+  }
+
+  _addEventHandler(eventName, type, callback) {
+    let collection = this._events[eventName] || {};
+    collection[type] = callback;
+
+    this._events = collection;
+
+    this._gridOptions[eventName] = function (args) {
+      Object.values(collection).map((event) => event(args));
+    };
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
     // Re-Process GridConfig when an "Elm" property changed.
-    if (this._isElmProperty(name)) return this._process_grid_config();
-
     let gridPropertyName = this._propertyMap[name];
     let parsedNewValue = newValue ? JSON.parse(newValue) : newValue;
 
-    // for properties set before gridOptions is called
-    this._attributes[gridPropertyName] = parsedNewValue;
-
-    if (this._initialised) {
-      // for subsequent (post gridOptions) changes
-      let changeObject = {};
-      changeObject[gridPropertyName] = {
-        currentValue: parsedNewValue,
-      };
-
-      agGrid.ComponentUtil.processOnChange(
-        changeObject,
-        this._gridOptions,
-        this.api,
-        this.columnApi
-      );
+    if (this._definesSetter(gridPropertyName)) {
+      if (this._initialised) {
+        // for subsequent (post gridOptions) changes
+        this[gridPropertyName] = parsedNewValue;
+      } else {
+        // for properties set before gridOptions is called
+        this._preInitCustomAttributes[gridPropertyName] = parsedNewValue;
+      }
+    } else {
+      if (this._initialised) {
+        // for subsequent (post gridOptions) changes
+        this._applyChange(name, parsedNewValue);
+      } else {
+        // for properties set before gridOptions is called
+        this._preInitAgGridAttributes[gridPropertyName] = parsedNewValue;
+      }
     }
   }
 
   connectedCallback() {
-    this._process_grid_config();
+    this._initializeGrid();
+
+    this._broadcastColumnState();
+    this._broadcastFilterState();
   }
 
-  _process_grid_config() {
-    const agGrid = this;
-    const gridOptions = {
+  _initializeGrid() {
+    this.gridOptions = {
       components: {
         ...cellRenderer,
         ...cellEditor,
         appRenderer,
       },
-
-      onFirstDataRendered: function () {
-        if (!!agGrid.loadAttribute("sizeToFitAfterFirstDataRendered"))
-          gridOptions.api.sizeColumnsToFit();
-      },
-
-      onBodyScroll: function () {
-        // Triggers the resize for the last space-filling column.
-        // onColumnResized didn't worked here unfortunately, since it kept firing events..
-        // Probably the called resize does re-trigger this ...
-        if (!agGrid.loadAttribute("disableresizeonscroll"))
-          gridOptions.api.sizeColumnsToFit();
-      },
     };
-
-    this.gridOptions = gridOptions;
-
-    if (gridOptions.rowData === null) {
-      this.api.showNoRowsOverlay();
-    }
 
     // Use autoHeight if no height was specified on the DOM element otherwise.
     if (!this.style.height) this.api.setDomLayout("autoHeight");
@@ -154,6 +200,51 @@ class AgGrid extends HTMLElement {
       this[callbackMethod](browserEvent);
     }
   }
+
+  _broadcastColumnState() {
+    const columnEvents = [
+      "onSortChanged",
+      "onColumnMoved",
+      "onGridColumnsChanged",
+      "onColumnResized",
+    ];
+    const _this = this;
+
+    columnEvents.map((event) =>
+      this._addEventHandler(event, "columnEvents", function (params) {
+        const stateChangeEvent = new CustomEvent("columnStateChanged", {
+          detail: {
+            event: params,
+            columnState: params.columnApi.getColumnState(),
+          },
+        });
+        _this.dispatchEvent(stateChangeEvent);
+      })
+    );
+  }
+
+  _broadcastFilterState() {
+    const filterEvents = ["onFilterChanged"];
+    const _this = this;
+
+    filterEvents.map((event) =>
+      this._addEventHandler(event, "filterEvents", function (params) {
+        const stateChangeEvent = new CustomEvent("filterStateChanged", {
+          detail: {
+            event: params,
+            filterState: params.api.getFilterModel(),
+          },
+        });
+        _this.dispatchEvent(stateChangeEvent);
+      })
+    );
+  }
 }
+
+const setterProperties = Object.entries(
+  Object.getOwnPropertyDescriptors(AgGrid.prototype)
+)
+  .filter(([_key, descriptor]) => typeof descriptor.set === "function")
+  .map(([key]) => key);
 
 customElements.define("ag-grid", AgGrid);

@@ -46,5 +46,13 @@ window.ElmAgGridComponentRegistry = {
 window.AgGrid = {
   init: function ({ node }) {
     app = Elm.Main.init({ node: node });
+
+    app.ports.setItem.subscribe(function (args) {
+      localStorage.setItem(args[0], JSON.stringify(args[1]));
+    });
+
+    app.ports.requestItem.subscribe(function (key) {
+      app.ports.receivedItem.send([key, JSON.parse(localStorage.getItem(key))]);
+    });
   },
 };
