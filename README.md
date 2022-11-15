@@ -149,3 +149,31 @@ To respond to component updates while the component is already initialized, you 
 ```elm
 port componentRefresh : (Flags -> msg) -> Sub msg
 ```
+
+## Saving/Restoring grid columns and filters
+
+The current column state is sent whenever a column changes.
+
+Callbacks listened for column state updates:
+
+- `onSortChanged`
+- `onColumnMoved`
+- `onGridColumnsChanged`
+- `onColumnResized`
+
+The changes can be retrieved and evaluated via the `onColumnStateChanged` event. This returns the event that led to the change and a list of column states.
+The column state list can be used to restore the column state in the table (e.g. when loaded from local storage).
+
+```elm
+type Msg = ColumnStateChanged { event : { type_ : String }, states : List ColumnState }
+
+AgGrid.grid { gridConfig | columnState = model.columnState } [ onColumnStateChanged ColumnStateChanged ] [] []
+```
+
+Similar can be done for the filter state using the `onFilterStateChanged` event.
+
+```elm
+type Msg = FilterStateChanged { event : { type_ : String }, states : Dict String FilterState }
+
+AgGrid.grid { gridConfig | filterState = model.filterState } [ onFilterStateChanged FilterStateChanged ] [] []
+```
