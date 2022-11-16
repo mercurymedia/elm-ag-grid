@@ -1,5 +1,10 @@
 # NPM Changelog
 
+
+## [1.3.0]
+
+- Added `columnStateChanged` event to send table state changes to the Elm app
+
 ## [1.2.0]
 
 - Added AgGrid's `autoHeight` usage when no `size` is set for the table (by default the table still uses `65vh`)
