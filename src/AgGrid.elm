@@ -111,6 +111,7 @@ type Renderer dataType
     | NoRenderer
     | SelectionRenderer (dataType -> String) (List String)
     | StringRenderer (dataType -> String)
+    | GroupRenderer (dataType -> String)
 
 
 {-| Possible options for displayed sidebars.
@@ -251,6 +252,8 @@ type alias GridConfig =
     , size : String
     , suppressMenuHide : Bool
     , themeClasses : Maybe String
+    , detailRenderer : Maybe { componentName : String, componentParams : Maybe Json.Encode.Value }
+    , detailRowHeight : Maybe Int
     }
 
 
@@ -339,6 +342,8 @@ defaultGridConfig =
     , size = "65vh"
     , suppressMenuHide = False
     , themeClasses = Nothing
+    , detailRenderer = Nothing
+    , detailRowHeight = Nothing
     }
 
 
@@ -531,6 +536,9 @@ columnDefEncoder gridConfig columnDef =
 
                 BoolRenderer _ ->
                     Json.Encode.string "booleanCellRenderer"
+
+                GroupRenderer _ ->
+                    Json.Encode.string "agGroupCellRenderer"
 
                 _ ->
                     Json.Encode.null
@@ -752,6 +760,35 @@ generateGridConfigAttributes gridConfig =
     let
         encodedConfigValues =
             [ ( "animateRows", Json.Encode.bool True )
+            , ( "detailCellRenderer"
+              , case gridConfig.detailRenderer of
+                    Just _ ->
+                        Json.Encode.string "appRenderer"
+
+                    Nothing ->
+                        Json.Encode.null
+              )
+            , ( "detailCellRendererParams"
+              , case gridConfig.detailRenderer of
+                    Just { componentName, componentParams } ->
+                        Json.Encode.object
+                            [ ( "componentName", Json.Encode.string componentName )
+                            , ( "componentParams", Maybe.withDefault Json.Encode.null componentParams )
+                            ]
+
+                    Nothing ->
+                        Json.Encode.null
+              )
+            , ( "detailRowHeight", encodeMaybe Json.Encode.int gridConfig.detailRowHeight )
+            , ( "masterDetail"
+              , Json.Encode.bool <|
+                    case gridConfig.detailRenderer of
+                        Just _ ->
+                            True
+
+                        Nothing ->
+                            False
+              )
             , ( "columnState", columnStatesEncoder gridConfig.columnStates )
             , ( "filterState", filterStatesEncoder gridConfig.filterStates )
             , ( "headerHeight", Json.Encode.int 48 )
@@ -833,6 +870,9 @@ encoder data column =
     ( column.field
     , case column.renderer of
         AppRenderer _ valueGetter ->
+            Json.Encode.string (valueGetter data)
+
+        GroupRenderer valueGetter ->
             Json.Encode.string (valueGetter data)
 
         BoolRenderer valueGetter ->
