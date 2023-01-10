@@ -2,7 +2,7 @@
 
 ## [3.2.0]
 
-- Added a new `GroupRenderer` for groping rows
+- Added a new `GroupRenderer` for grouping rows, allowing usage of MasterDetail
 - Added a `detailCellRenderer` to the `GridConfig` to render a row's detailed view
 - Added a `detailRowHeight` to the `GridConfig` to define the height of the detailed view
 
