@@ -1,6 +1,6 @@
 # Elm Changelog
 
-## [3.2.0]
+## [4.0.0]
 
 - Added a new `GroupRenderer` for grouping rows, allowing usage of MasterDetail
 - Added a `detailRenderer` to the `GridConfig` to render a row's detailed view
