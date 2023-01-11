@@ -178,3 +178,21 @@ type Msg = FilterStateChanged { event : { type_ : String }, states : Dict String
 
 AgGrid.grid { gridConfig | filterState = model.filterState } [ onFilterStateChanged FilterStateChanged ] [] []
 ```
+
+# Master-Detail
+
+**Requires AgGrid Enterprise**
+
+Custom Detail views can be defined similar to the [custom cell views](https://github.com/mercurymedia/elm-ag-grid/tree/main/#custom-views-for-cells) by defining the component on the `GridConfig`.
+
+```elm
+  { gridConfig | detailRenderer = Just { componentName = "detailRenderer", componentParams = Nothing, rowHeight = Nothing } }
+```
+
+As with the custom cell views, the `componentName` refers to the [component](https://github.com/mercurymedia/elm-ag-grid/tree/main/#register-component) and the `componentParams` can be used to pass information from the main application to the detail application (e.g. auth tokens). The AgGrid default detail height can be overridden by specifying a new fixed `rowHeight` value, which applies equally to all detail views.
+
+To see the actual MasterDetail view the `GroupRenderer` can be used on a column to group the row.
+
+```elm
+  { renderer = AgGrid.GroupRenderer (.id >> String.fromInt), ... }
+```

@@ -1,6 +1,6 @@
 module AgGrid exposing
     ( ColumnDef, FilterType(..), PinningType(..), Renderer(..), SidebarType(..), StateChange
-    , grid
+    , GridConfig, grid
     , defaultGridConfig, defaultSettings
     , onCellChanged, onCellDoubleClicked
     , ColumnState, onColumnStateChanged, columnStatesDecoder, columnStatesEncoder
@@ -17,7 +17,7 @@ module AgGrid exposing
 
 # Grid
 
-@docs grid
+@docs GridConfig, grid
 
 
 # Defaults
@@ -104,6 +104,7 @@ type Renderer dataType
     = AppRenderer { componentName : String, componentParams : Maybe Json.Encode.Value } (dataType -> String)
     | BoolRenderer (dataType -> Bool)
     | FloatRenderer (dataType -> Float)
+    | GroupRenderer (dataType -> String)
     | IntRenderer (dataType -> Int)
     | MaybeFloatRenderer (dataType -> Maybe Float)
     | MaybeIntRenderer (dataType -> Maybe Int)
@@ -242,11 +243,17 @@ type alias GridConfig =
     , autoSizeColumns : Bool
     , cacheQuickFilter : Bool
     , columnStates : List ColumnState
+    , detailRenderer :
+        Maybe
+            { componentName : String
+            , componentParams : Maybe Json.Encode.Value
+            , rowHeight : Maybe Int
+            }
     , disableResizeOnScroll : Bool
     , filterStates : Dict.Dict String FilterState
     , pagination : Bool
-    , rowHeight : Maybe Int
     , quickFilterText : String
+    , rowHeight : Maybe Int
     , sideBar : SidebarType
     , size : String
     , suppressMenuHide : Bool
@@ -330,11 +337,12 @@ defaultGridConfig =
     , autoSizeColumns = False
     , cacheQuickFilter = False
     , columnStates = []
+    , detailRenderer = Nothing
     , disableResizeOnScroll = False
     , filterStates = Dict.empty
     , pagination = False
-    , rowHeight = Nothing
     , quickFilterText = ""
+    , rowHeight = Nothing
     , sideBar = NoSidebar
     , size = "65vh"
     , suppressMenuHide = False
@@ -531,6 +539,9 @@ columnDefEncoder gridConfig columnDef =
 
                 BoolRenderer _ ->
                     Json.Encode.string "booleanCellRenderer"
+
+                GroupRenderer _ ->
+                    Json.Encode.string "agGroupCellRenderer"
 
                 _ ->
                     Json.Encode.null
@@ -752,7 +763,32 @@ generateGridConfigAttributes gridConfig =
     let
         encodedConfigValues =
             [ ( "animateRows", Json.Encode.bool True )
+            , ( "cacheQuickFilter", Json.Encode.bool gridConfig.cacheQuickFilter )
             , ( "columnState", columnStatesEncoder gridConfig.columnStates )
+            , ( "detailCellRenderer"
+              , case gridConfig.detailRenderer of
+                    Just _ ->
+                        Json.Encode.string "appRenderer"
+
+                    Nothing ->
+                        Json.Encode.null
+              )
+            , ( "detailCellRendererParams"
+              , case gridConfig.detailRenderer of
+                    Just { componentName, componentParams } ->
+                        Json.Encode.object
+                            [ ( "componentName", Json.Encode.string componentName )
+                            , ( "componentParams", Maybe.withDefault Json.Encode.null componentParams )
+                            ]
+
+                    Nothing ->
+                        Json.Encode.null
+              )
+            , ( "detailRowHeight"
+              , gridConfig.detailRenderer
+                    |> Maybe.andThen .rowHeight
+                    |> encodeMaybe Json.Encode.int
+              )
             , ( "filterState", filterStatesEncoder gridConfig.filterStates )
             , ( "headerHeight", Json.Encode.int 48 )
             , ( "quickFilterText"
@@ -776,7 +812,17 @@ generateGridConfigAttributes gridConfig =
                     , ( "resizable", Json.Encode.bool gridConfig.allowColResize )
                     ]
               )
+            , ( "disableResizeOnScroll", Json.Encode.bool gridConfig.disableResizeOnScroll )
             , ( "enableRangeSelection", Json.Encode.bool True )
+            , ( "masterDetail"
+              , Json.Encode.bool <|
+                    case gridConfig.detailRenderer of
+                        Just _ ->
+                            True
+
+                        Nothing ->
+                            False
+              )
             , ( "pagination", Json.Encode.bool gridConfig.pagination )
             , ( "rowHeight"
               , case gridConfig.rowHeight of
@@ -800,11 +846,9 @@ generateGridConfigAttributes gridConfig =
                     NoSidebar ->
                         Json.Encode.bool False
               )
+            , ( "sizeToFitAfterFirstDataRendered", Json.Encode.bool True )
             , ( "stopEditingWhenCellsLoseFocus", Json.Encode.bool True )
             , ( "suppressMenuHide", Json.Encode.bool gridConfig.suppressMenuHide )
-            , ( "disableResizeOnScroll", Json.Encode.bool gridConfig.disableResizeOnScroll )
-            , ( "sizeToFitAfterFirstDataRendered", Json.Encode.bool True )
-            , ( "cacheQuickFilter", Json.Encode.bool gridConfig.cacheQuickFilter )
             ]
 
         createConfigAttribute ( key, value ) =
@@ -840,6 +884,9 @@ encoder data column =
 
         FloatRenderer valueGetter ->
             Json.Encode.float (valueGetter data)
+
+        GroupRenderer valueGetter ->
+            Json.Encode.string (valueGetter data)
 
         IntRenderer valueGetter ->
             Json.Encode.int (valueGetter data)
