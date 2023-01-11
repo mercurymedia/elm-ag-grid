@@ -1,6 +1,6 @@
 module AgGrid exposing
     ( ColumnDef, FilterType(..), PinningType(..), Renderer(..), SidebarType(..), StateChange
-    , grid
+    , GridConfig, grid
     , defaultGridConfig, defaultSettings
     , onCellChanged, onCellDoubleClicked
     , ColumnState, onColumnStateChanged, columnStatesDecoder, columnStatesEncoder
@@ -17,7 +17,7 @@ module AgGrid exposing
 
 # Grid
 
-@docs grid
+@docs GridConfig, grid
 
 
 # Defaults
@@ -243,8 +243,12 @@ type alias GridConfig =
     , autoSizeColumns : Bool
     , cacheQuickFilter : Bool
     , columnStates : List ColumnState
-    , detailRenderer : Maybe { componentName : String, componentParams : Maybe Json.Encode.Value }
-    , detailRowHeight : Maybe Int
+    , detailRenderer :
+        Maybe
+            { componentName : String
+            , componentParams : Maybe Json.Encode.Value
+            , rowHeight : Maybe Int
+            }
     , disableResizeOnScroll : Bool
     , filterStates : Dict.Dict String FilterState
     , pagination : Bool
@@ -334,7 +338,6 @@ defaultGridConfig =
     , cacheQuickFilter = False
     , columnStates = []
     , detailRenderer = Nothing
-    , detailRowHeight = Nothing
     , disableResizeOnScroll = False
     , filterStates = Dict.empty
     , pagination = False
@@ -781,7 +784,11 @@ generateGridConfigAttributes gridConfig =
                     Nothing ->
                         Json.Encode.null
               )
-            , ( "detailRowHeight", encodeMaybe Json.Encode.int gridConfig.detailRowHeight )
+            , ( "detailRowHeight"
+              , gridConfig.detailRenderer
+                    |> Maybe.andThen .rowHeight
+                    |> encodeMaybe Json.Encode.int
+              )
             , ( "filterState", filterStatesEncoder gridConfig.filterStates )
             , ( "headerHeight", Json.Encode.int 48 )
             , ( "quickFilterText"

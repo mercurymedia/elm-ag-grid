@@ -183,17 +183,15 @@ AgGrid.grid { gridConfig | filterState = model.filterState } [ onFilterStateChan
 
 **Requires AgGrid Enterprise**
 
-Custom Detail views can be defined similarly to the [custom cell views](https://github.com/mercurymedia/elm-ag-grid/tree/main/#custom-views-for-cells) by defining the component on the `GridConfig`.
+Custom Detail views can be defined similar to the [custom cell views](https://github.com/mercurymedia/elm-ag-grid/tree/main/#custom-views-for-cells) by defining the component on the `GridConfig`.
 
 ```elm
-  { gridConfig | detailRenderer = Just { componentName = "detailRenderer", componentParams = Nothing } }
+  { gridConfig | detailRenderer = Just { componentName = "detailRenderer", componentParams = Nothing, rowHeight = Nothing } }
 ```
 
-Same deal as with the custom cell views, the `componentName` references the [component](https://github.com/mercurymedia/elm-ag-grid/tree/main/#register-component) and the `componentParams` can used to share information from the main application to the detail application (e.g. auth tokens).
+As with the custom cell views, the `componentName` refers to the [component](https://github.com/mercurymedia/elm-ag-grid/tree/main/#register-component) and the `componentParams` can be used to pass information from the main application to the detail application (e.g. auth tokens). The AgGrid default detail height can be overridden by specifying a new fixed `rowHeight` value, which applies equally to all detail views.
 
-AgGrid defines a default detail row height. A custom height can be defined by setting the `detailRowHeight` attribute on the `GridConfig`.
-
-To see the actual MasterDetail view the `GroupRenderer` can be used for a column.
+To see the actual MasterDetail view the `GroupRenderer` can be used on a column to group the row.
 
 ```elm
   { renderer = AgGrid.GroupRenderer (.id >> String.fromInt), ... }
