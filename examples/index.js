@@ -6,8 +6,8 @@ import "@webcomponents/custom-elements";
 import "../ag-grid-webcomponent";
 import { Elm } from "./src/Main.elm";
 
-import "ag-grid-community/dist/styles/ag-grid.css";
-import "ag-grid-community/dist/styles/ag-theme-balham.css";
+import "ag-grid-community/styles/ag-grid.css";
+import "ag-grid-community/styles/ag-theme-balham.css";
 import "./styles/ag_grid_custom.css";
 
 // For AG Grid Enterprise you can set license key by calling:
