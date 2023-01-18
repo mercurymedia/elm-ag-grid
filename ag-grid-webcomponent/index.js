@@ -121,12 +121,7 @@ class AgGrid extends HTMLElement {
     let changeObject = {};
     changeObject[propertyName] = { currentValue: newValue };
 
-    agGrid.ComponentUtil.processOnChange(
-      changeObject,
-      this._gridOptions,
-      this.api,
-      this.columnApi
-    );
+    agGrid.ComponentUtil.processOnChange(changeObject, this.api);
   }
 
   _addEventHandler(eventName, type, callback) {

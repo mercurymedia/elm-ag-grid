@@ -65,7 +65,7 @@ viewGrid model =
 You just need to make sure that the classes are available to you. For example, you can import pre-built bundles from the `ag-grid-community` package.
 
 ```js
-import "ag-grid-community/dist/styles/ag-theme-balham.css";
+import "ag-grid-community/styles/ag-theme-balham.css";
 ```
 
 ## Polyfill
