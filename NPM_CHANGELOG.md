@@ -1,5 +1,8 @@
 # NPM Changelog
 
+## [2.0.0]
+
+- BREAKING CHANGE: Updated `ag-grid-community` and `ag-grid-enterprise` peer-dependency to 29.0.0 and dropping support for versions before 29.0.0
 
 ## [1.3.0]
 
