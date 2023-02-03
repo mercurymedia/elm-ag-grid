@@ -41,6 +41,7 @@ module AgGrid exposing
 
 -}
 
+import AgGrid.ValueFormat as ValueFormat
 import Dict
 import Html exposing (Html, node)
 import Html.Attributes exposing (attribute, class, id, style)
@@ -116,6 +117,8 @@ the `title` might be defined as:
 type Renderer dataType
     = AppRenderer { componentName : String, componentParams : Maybe Json.Encode.Value } (dataType -> String)
     | BoolRenderer (dataType -> Bool)
+    | CurrencyRenderer { countryCode : String, currency : String } (dataType -> Maybe String)
+    | DecimalRenderer { countryCode : String, decimalPlaces : Int } (dataType -> Maybe String)
     | FloatRenderer (dataType -> Float)
     | GroupRenderer (dataType -> String)
     | IntRenderer (dataType -> Int)
@@ -123,6 +126,7 @@ type Renderer dataType
     | MaybeIntRenderer (dataType -> Maybe Int)
     | MaybeStringRenderer (dataType -> Maybe String)
     | NoRenderer
+    | PercentRenderer { countryCode : String, decimalPlaces : Int } (dataType -> Maybe String)
     | SelectionRenderer (dataType -> String) (List String)
     | StringRenderer (dataType -> String)
 
@@ -198,6 +202,7 @@ type alias ColumnSettings =
     , enableRowGroup : Bool
     , enableValue : Bool
     , filter : FilterType
+    , filterValueGetter : Maybe String
     , hide : Bool
     , minWidth : Maybe Int
     , pinned : PinningType
@@ -270,6 +275,7 @@ type alias GridConfig =
             }
     , disableResizeOnScroll : Bool
     , filterStates : Dict.Dict String FilterState
+    , groupIncludeFooter : Bool
     , groupIncludeTotalFooter : Bool
     , pagination : Bool
     , quickFilterText : String
@@ -323,6 +329,7 @@ defaultSettings =
     , enableRowGroup = True
     , enableValue = True
     , filter = SetFilter
+    , filterValueGetter = Nothing
     , hide = False
     , minWidth = Nothing
     , pinned = Unpinned
@@ -366,6 +373,7 @@ defaultGridConfig =
     , detailRenderer = Nothing
     , disableResizeOnScroll = False
     , filterStates = Dict.empty
+    , groupIncludeFooter = False
     , groupIncludeTotalFooter = False
     , pagination = False
     , quickFilterText = ""
@@ -612,17 +620,44 @@ columnDefEncoder gridConfig columnDef =
           )
         , ( "cellEditor"
           , case columnDef.renderer of
-                SelectionRenderer _ _ ->
-                    Json.Encode.string "agRichSelectCellEditor"
-
                 BoolRenderer _ ->
                     Json.Encode.string "booleanCellEditor"
+
+                CurrencyRenderer _ _ ->
+                    Json.Encode.string "decimalEditor"
+
+                DecimalRenderer _ _ ->
+                    Json.Encode.string "decimalEditor"
+
+                PercentRenderer _ _ ->
+                    Json.Encode.string "decimalEditor"
+
+                SelectionRenderer _ _ ->
+                    Json.Encode.string "agRichSelectCellEditor"
 
                 _ ->
                     Json.Encode.null
           )
         , ( "cellEditorParams"
           , case columnDef.renderer of
+                CurrencyRenderer { countryCode } _ ->
+                    Json.Encode.object
+                        [ ( "countryCode", Json.Encode.string countryCode )
+                        , ( "decimalPlaces", Json.Encode.int 2 )
+                        ]
+
+                DecimalRenderer { countryCode, decimalPlaces } _ ->
+                    Json.Encode.object
+                        [ ( "countryCode", Json.Encode.string countryCode )
+                        , ( "decimalPlaces", Json.Encode.int decimalPlaces )
+                        ]
+
+                PercentRenderer { countryCode, decimalPlaces } _ ->
+                    Json.Encode.object
+                        [ ( "countryCode", Json.Encode.string countryCode )
+                        , ( "decimalPlaces", Json.Encode.int decimalPlaces )
+                        ]
+
                 SelectionRenderer _ collection ->
                     cellEditorParamsEncoder { values = collection }
 
@@ -647,6 +682,23 @@ columnDefEncoder gridConfig columnDef =
 
                 NoFilter ->
                     Json.Encode.bool False
+          )
+        , ( "filterValueGetter"
+          , case ( columnDef.settings.filterValueGetter, columnDef.renderer ) of
+                ( Just overwrittenGetter, _ ) ->
+                    Json.Encode.string overwrittenGetter
+
+                ( Nothing, CurrencyRenderer { currency, countryCode } _ ) ->
+                    Json.Encode.string (ValueFormat.currencyFilterValueGetter { currency = currency, countryCode = countryCode, field = columnDef.field })
+
+                ( Nothing, DecimalRenderer { countryCode, decimalPlaces } _ ) ->
+                    Json.Encode.string (ValueFormat.decimalFilterValueGetter { countryCode = countryCode, decimalPlaces = decimalPlaces, field = columnDef.field })
+
+                ( Nothing, PercentRenderer { countryCode } _ ) ->
+                    Json.Encode.string (ValueFormat.percentFilterValueGetter { countryCode = countryCode, field = columnDef.field })
+
+                ( Nothing, _ ) ->
+                    Json.Encode.null
           )
         , ( "headerName", Json.Encode.string columnDef.headerName )
         , ( "hide", Json.Encode.bool columnDef.settings.hide )
@@ -674,9 +726,42 @@ columnDefEncoder gridConfig columnDef =
                     columnDef.settings.suppressSizeToFit
           )
         , ( "suppressMenu", Json.Encode.bool columnDef.settings.suppressMenu )
-        , ( "valueFormatter", encodeMaybe Json.Encode.string columnDef.settings.valueFormatter )
-        , ( "valueGetter", encodeMaybe Json.Encode.string columnDef.settings.valueGetter )
-        , ( "valueParser", encodeMaybe Json.Encode.string columnDef.settings.valueParser )
+        , ( "valueFormatter"
+          , case ( columnDef.settings.valueFormatter, columnDef.renderer ) of
+                ( Just overwrittenFormatter, _ ) ->
+                    Json.Encode.string overwrittenFormatter
+
+                ( Nothing, CurrencyRenderer config _ ) ->
+                    Json.Encode.string (ValueFormat.currencyValueFormatter config)
+
+                ( Nothing, DecimalRenderer config _ ) ->
+                    Json.Encode.string (ValueFormat.decimalValueFormatter config)
+
+                ( Nothing, PercentRenderer config _ ) ->
+                    Json.Encode.string (ValueFormat.percentValueFormatter config)
+
+                ( Nothing, _ ) ->
+                    Json.Encode.null
+          )
+        , ( "valueGetter"
+          , case ( columnDef.settings.valueGetter, columnDef.renderer ) of
+                ( Just overwrittenFormatter, _ ) ->
+                    Json.Encode.string overwrittenFormatter
+
+                ( Nothing, CurrencyRenderer _ _ ) ->
+                    Json.Encode.string (ValueFormat.numberValueGetter columnDef.field)
+
+                ( Nothing, _ ) ->
+                    Json.Encode.null
+          )
+        , ( "valueParser"
+          , case ( columnDef.settings.valueParser, columnDef.renderer ) of
+                ( Just overwrittenFormatter, _ ) ->
+                    Json.Encode.string overwrittenFormatter
+
+                ( Nothing, _ ) ->
+                    Json.Encode.null
+          )
         , ( "valueSetter", encodeMaybe Json.Encode.string columnDef.settings.valueSetter )
         , ( "width"
           , case columnDef.settings.width of
@@ -872,6 +957,7 @@ generateGridConfigAttributes gridConfig =
               )
             , ( "disableResizeOnScroll", Json.Encode.bool gridConfig.disableResizeOnScroll )
             , ( "enableRangeSelection", Json.Encode.bool True )
+            , ( "groupIncludeFooter", Json.Encode.bool gridConfig.groupIncludeFooter )
             , ( "groupIncludeTotalFooter", Json.Encode.bool gridConfig.groupIncludeTotalFooter )
             , ( "masterDetail"
               , Json.Encode.bool <|
@@ -941,6 +1027,12 @@ encoder data column =
         BoolRenderer valueGetter ->
             Json.Encode.bool (valueGetter data)
 
+        CurrencyRenderer _ valueGetter ->
+            encodeMaybe Json.Encode.string (valueGetter data)
+
+        DecimalRenderer _ valueGetter ->
+            encodeMaybe Json.Encode.string (valueGetter data)
+
         FloatRenderer valueGetter ->
             Json.Encode.float (valueGetter data)
 
@@ -976,6 +1068,9 @@ encoder data column =
 
         NoRenderer ->
             Json.Encode.null
+
+        PercentRenderer _ valueGetter ->
+            encodeMaybe Json.Encode.string (valueGetter data)
 
         SelectionRenderer valueGetter _ ->
             Json.Encode.string (valueGetter data)
