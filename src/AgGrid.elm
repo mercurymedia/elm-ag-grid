@@ -191,6 +191,10 @@ type alias ColumnSettings =
     , suppressFiltersToolPanel : Bool
     , suppressMenu : Bool
     , suppressSizeToFit : Bool
+    , valueFormatter : Maybe String
+    , valueGetter : Maybe String
+    , valueParser : Maybe String
+    , valueSetter : Maybe String
     , width : Maybe Int
     }
 
@@ -309,6 +313,10 @@ defaultSettings =
     , suppressFiltersToolPanel = False
     , suppressMenu = False
     , suppressSizeToFit = True
+    , valueFormatter = Nothing
+    , valueGetter = Nothing
+    , valueParser = Nothing
+    , valueSetter = Nothing
     , width = Nothing
     }
 
@@ -620,6 +628,10 @@ columnDefEncoder gridConfig columnDef =
                     columnDef.settings.suppressSizeToFit
           )
         , ( "suppressMenu", Json.Encode.bool columnDef.settings.suppressMenu )
+        , ( "valueFormatter", encodeMaybe Json.Encode.string columnDef.settings.valueFormatter )
+        , ( "valueGetter", encodeMaybe Json.Encode.string columnDef.settings.valueGetter )
+        , ( "valueParser", encodeMaybe Json.Encode.string columnDef.settings.valueParser )
+        , ( "valueSetter", encodeMaybe Json.Encode.string columnDef.settings.valueSetter )
         , ( "width"
           , case columnDef.settings.width of
                 Just width ->
