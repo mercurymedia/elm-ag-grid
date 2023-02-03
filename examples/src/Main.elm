@@ -1,125 +1,74 @@
-port module Main exposing (main)
+module Main exposing (main)
 
-import AgGrid exposing (Renderer(..))
-import Browser
-import Dict exposing (Dict)
-import Html exposing (Html, div, input)
-import Html.Attributes exposing (placeholder, style, value)
-import Html.Events exposing (onInput)
-import Json.Decode
-import Json.Decode.Pipeline as DecodePipeline
-import Json.Encode
-import Result exposing (Result)
-
-
-port buttonClicked : (Int -> msg) -> Sub msg
-
-
-port setItem : ( String, Json.Encode.Value ) -> Cmd msg
-
-
-port requestItem : String -> Cmd msg
-
-
-port receivedItem : (( String, Json.Encode.Value ) -> msg) -> Sub msg
+import Basic
+import Browser exposing (Document)
+import Browser.Navigation as Nav
+import Css
+import Css.Global
+import Html.Styled exposing (Html, a, div, span, text)
+import Html.Styled.Attributes exposing (css, href, target)
+import Url exposing (Url)
+import Url.Parser as Parser
 
 
 
--- INIT
+-- MAIN
 
 
 main : Program () Model Msg
 main =
-    Browser.element
+    Browser.application
         { init = init
-        , view = view
-        , update = update
+        , onUrlChange = ChangedUrl
+        , onUrlRequest = ClickedLink
         , subscriptions = subscriptions
+        , update = update
+        , view = view
         }
 
 
-init : () -> ( Model, Cmd Msg )
-init _ =
-    ( initialModel, requestItem gridColumnStorageKey )
-
-
-initialModel : Model
-initialModel =
-    let
-        -- List of the same two elements repeated several times
-        -- to create a representable long lists for the AgGrid table.
-        products =
-            [ { amountLeft = Nothing
-              , category = Fruit
-              , description = Nothing
-              , detailsUrl = "#/apple"
-              , favorite = False
-              , id = 1
-              , offerUntil = "01/01/2022"
-              , price = 3.2
-              , title = "Apple"
-              }
-            , { amountLeft = Just 15
-              , category = Vegetable
-              , description = Just "It's a pickle"
-              , favorite = True
-              , id = 2
-              , offerUntil = "31/12/2022"
-              , price = 2.5
-              , title = "Cucumber"
-              , detailsUrl = "#/cucumber"
-              }
-            ]
-                |> List.repeat 150
-                |> List.concat
-                -- Provide unique index to simplify table updates
-                |> List.indexedMap (\index product -> ( index, { product | id = index } ))
-                |> Dict.fromList
-    in
-    { searchInput = ""
-    , products = products
-    , variant = "variant-1"
-    , initialColumnStates = Nothing
+type alias Model =
+    { page : Page
+    , navKey : Nav.Key
     }
+
+
+type Page
+    = Basic Basic.Model
+    | NotFound
+
+
+type Msg
+    = ChangedUrl Url
+    | ClickedLink Browser.UrlRequest
+    | BasicMsg Basic.Msg
 
 
 
 -- MODEL
 
 
-type alias Model =
-    { searchInput : String
-    , products : Dict Int Product
-    , variant : String
-    , initialColumnStates : Maybe (List AgGrid.ColumnState)
-    }
+init : () -> Url -> Nav.Key -> ( Model, Cmd Msg )
+init flags url navKey =
+    let
+        initialModel =
+            { page = NotFound, navKey = navKey }
+    in
+    changePageTo url initialModel
 
 
-type Msg
-    = NoOp
-    | UpdateSearchInput String
-    | UpdateProduct (Result Json.Decode.Error Product)
-    | ClickedCellButton Int
-    | ColumnStateChanged (AgGrid.StateChange (List AgGrid.ColumnState))
-    | ReceivedColumnStates (Result Json.Decode.Error (List AgGrid.ColumnState))
+
+-- SUBSCRIPTIONS
 
 
-type Category
-    = Vegetable
-    | Fruit
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    case model.page of
+        NotFound ->
+            Sub.none
 
-
-type alias Product =
-    { amountLeft : Maybe Int
-    , category : Category
-    , description : Maybe String
-    , detailsUrl : String
-    , favorite : Bool
-    , id : Int
-    , offerUntil : String
-    , price : Float
-    , title : String
-    }
+        Basic basicModel ->
+            Sub.map BasicMsg (Basic.subscriptions basicModel)
 
 
 
@@ -128,224 +77,116 @@ type alias Product =
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
-        NoOp ->
-            ( model, Cmd.none )
+    case ( msg, model.page ) of
+        ( ClickedLink urlRequest, _ ) ->
+            case urlRequest of
+                Browser.Internal url ->
+                    ( model
+                    , Nav.pushUrl model.navKey (Url.toString url)
+                    )
 
-        UpdateSearchInput newSearchValue ->
-            ( { model | searchInput = newSearchValue }, Cmd.none )
+                Browser.External href ->
+                    ( model
+                    , Nav.load href
+                    )
 
-        UpdateProduct (Ok updatedProduct) ->
+        ( ChangedUrl url, _ ) ->
+            changePageTo url model
+
+        ( BasicMsg subMsg, Basic basicModel ) ->
             let
-                updatedProducts =
-                    Dict.update updatedProduct.id (always (Just updatedProduct)) model.products
+                ( updatedBasicModel, pageCmd ) =
+                    Basic.update subMsg basicModel
             in
-            ( { model | products = updatedProducts }, Cmd.none )
+            ( { model | page = Basic updatedBasicModel }, Cmd.map BasicMsg pageCmd )
 
-        UpdateProduct (Err err) ->
+        ( _, _ ) ->
             ( model, Cmd.none )
-
-        ClickedCellButton id ->
-            let
-                updatedVariant =
-                    case model.variant of
-                        "variant-1" ->
-                            "variant-2"
-
-                        _ ->
-                            "variant-1"
-            in
-            ( { model | variant = updatedVariant }, Cmd.none )
-
-        ColumnStateChanged {states} ->
-            ({model | initialColumnStates = Just states}, setItem ( gridColumnStorageKey, AgGrid.columnStatesEncoder states ) )
-
-        ReceivedColumnStates (states) ->
-            ( { model | initialColumnStates = Result.toMaybe states }, Cmd.none )
 
 
 
 -- VIEW
 
 
-view : Model -> Html Msg
+view : Model -> Document Msg
 view model =
-    let
-        gridConfig =
-            AgGrid.defaultGridConfig
-                |> (\config ->
-                        { config
-                            | sideBar = AgGrid.BothSidebars
-                            , pagination = True
-                            , quickFilterText = model.searchInput
-                            , cacheQuickFilter = True
-                            , themeClasses = Just "ag-theme-balham ag-basic"
-                            , columnStates = Maybe.withDefault [] model.initialColumnStates
-                        }
-                   )
-
-        defaultSettings =
-            AgGrid.defaultSettings
-                |> (\settings -> { settings | editable = True })
-
-        columns =
-            [ { field = "id"
-              , renderer = IntRenderer .id
-              , headerName = "Id"
-              , settings = { defaultSettings | hide = True }
-              }
-            , { field = "title"
-              , renderer = StringRenderer .title
-              , headerName = "Product"
-              , settings = { defaultSettings | editable = False, pinned = AgGrid.PinnedToLeft }
-              }
-            , { field = "details"
-              , renderer = AppRenderer { componentName = "linkRenderer", componentParams = Nothing } encodeDetails
-              , headerName = "Details"
-              , settings = { defaultSettings | editable = False }
-              }
-            , { field = "detailsUrl"
-              , renderer = StringRenderer .detailsUrl
-              , headerName = ""
-              , settings = { defaultSettings | hide = True }
-              }
-            , { field = "category"
-              , renderer = SelectionRenderer (.category >> categoryToString) (List.map categoryToString [ Fruit, Vegetable ])
-              , headerName = "Category"
-              , settings = defaultSettings
-              }
-            , { field = "description"
-              , renderer = MaybeStringRenderer .description
-              , headerName = "Description"
-              , settings = defaultSettings
-              }
-            , { field = "favorite"
-              , renderer = BoolRenderer .favorite
-              , headerName = "Favorite"
-              , settings = defaultSettings
-              }
-            , { field = "offer-until"
-              , renderer = StringRenderer .offerUntil
-              , headerName = "Offer until"
-              , settings = defaultSettings
-              }
-            , { field = "price"
-              , renderer = FloatRenderer .price
-              , headerName = "Price"
-              , settings = { defaultSettings | filter = AgGrid.NumberFilter }
-              }
-            , { field = "amount-left"
-              , renderer = MaybeIntRenderer .amountLeft
-              , headerName = "Amount Left"
-              , settings = defaultSettings
-              }
-            , { field = "table-button-column"
-              , renderer = AppRenderer (buttonConfig model) (always "")
-              , headerName = ""
-              , settings = { defaultSettings | editable = False }
-              }
-            ]
-    in
-    div []
-        [ input
-            [ value model.searchInput
-            , onInput UpdateSearchInput
-            , placeholder "Search ..."
-            , style "margin-bottom" "8px"
-            ]
-            []
-        , AgGrid.grid gridConfig
-            [ AgGrid.onCellChanged rowDecoder UpdateProduct
-            , AgGrid.onColumnStateChanged ColumnStateChanged
-
-            -- Eventlistener is not attached. Communication happens through ports.
-            -- , onCellClicked ClickedCellButton
-            ]
-            columns
-            (Dict.values model.products)
-        ]
-
-
-encodeDetails : Product -> String
-encodeDetails product =
-    Json.Encode.object
-        [ ( "url", Json.Encode.string product.detailsUrl )
-        , ( "linkName", Json.Encode.string product.title )
-        ]
-        |> Json.Encode.encode 0
-
-
-buttonConfig : Model -> { componentName : String, componentParams : Maybe Json.Encode.Value }
-buttonConfig model =
-    let
-        params =
-            Json.Encode.object
-                [ ( "variant", Json.Encode.string model.variant )
+    { title = "elm-ag-grid"
+    , body =
+        [ Css.Global.global
+            [ Css.Global.selector "body"
+                [ Css.displayFlex
+                , Css.margin (Css.px 0)
+                , Css.height (Css.vh 100)
+                , Css.overflow Css.hidden
+                , Css.fontFamilies [ "Open Sans", "sans-serif" ]
+                , Css.fontSize (Css.px 14)
                 ]
-    in
-    { componentName = "buttonRenderer"
-    , componentParams = Just params
+            ]
+        , viewSidebar model
+        , viewPage model.page
+        ]
+            |> List.map Html.Styled.toUnstyled
     }
 
 
-{-| Possible event listener for button click events.
+viewSidebar : Model -> Html Msg
+viewSidebar model =
+    div [ css [ Css.width (Css.px 200), Css.displayFlex, Css.flexDirection Css.column, Css.padding2 (Css.px 0) (Css.rem 2.5), Css.color (Css.hex "#555555") ] ]
+        [ viewHeader
+        , viewSources
+        , viewNavigation
+        ]
 
-Attempts to read the Product Id of from the the clicked element ID that has
-a format of `button-123`.
 
-It's probably easiert to just use ports for communication with the components,
-as this doesn't require to listen for all click events, filtering them, and
-parsing a potential ID from a string.
+viewHeader : Html Msg
+viewHeader =
+    div [ css [ Css.marginTop (Css.rem 1), Css.fontSize (Css.rem 2.4) ] ] [ text "elm-ag-grid" ]
 
-The port provides more accuracy to only receive a message event when the actual
-element was clicked and allows to send information much easier.
 
--}
-onCellClicked : (Int -> Msg) -> Html.Attribute Msg
-onCellClicked toMsg =
+viewSources : Html Msg
+viewSources =
+    div [ css [ Css.displayFlex, Css.marginTop (Css.rem 2) ] ]
+        [ a [ href "https://github.com/mercurymedia/elm-ag-grid", target "_blank", css [ Css.textDecoration Css.none, Css.cursor Css.pointer, Css.color (Css.hex "#177fd6") ] ] [ text "Github" ]
+        , span [ css [ Css.padding2 (Css.px 0) (Css.px 8) ] ] [ text "|" ]
+        , a [ href "https://package.elm-lang.org/packages/mercurymedia/elm-ag-grid/latest/", target "_blank", css [ Css.textDecoration Css.none, Css.cursor Css.pointer, Css.color (Css.hex "#177fd6") ] ] [ text "Docs" ]
+        ]
+
+
+viewNavigation : Html Msg
+viewNavigation =
+    div [ css [ Css.marginTop (Css.rem 2) ] ]
+        [ div [ css [ Css.color (Css.hex "#000000"), Css.fontWeight Css.normal ] ] [ text "Examples" ]
+        , viewPageLink "Basic" "/"
+        ]
+
+
+viewPageLink : String -> String -> Html Msg
+viewPageLink title url =
+    a
+        [ href url
+        , css
+            [ Css.textDecoration Css.none
+            , Css.marginLeft (Css.px 15)
+            , Css.cursor Css.pointer
+            , Css.color (Css.hex "#177fd6")
+            ]
+        ]
+        [ text title ]
+
+
+viewPage : Page -> Html Msg
+viewPage page =
     let
-        parseElementId elementId =
-            case String.split "-" elementId of
-                _ :: idString :: _ ->
-                    String.toInt idString
-
-                _ ->
-                    Nothing
-
-        valueDecoder =
-            Json.Decode.at [ "target", "id" ] Json.Decode.string
-                |> Json.Decode.andThen
-                    (\elementId ->
-                        case parseElementId elementId of
-                            Just id ->
-                                Json.Decode.succeed id
-
-                            Nothing ->
-                                Json.Decode.fail "invalid value"
-                    )
-                |> Json.Decode.map toMsg
+        toPage toMsg pageView =
+            Html.Styled.map toMsg pageView
     in
-    Html.Events.on "click" valueDecoder
+    div [ css [ Css.flex (Css.px 0), Css.flexGrow (Css.num 1), Css.flexShrink (Css.num 0), Css.displayFlex, Css.backgroundColor (Css.hex "#f2f2f2") ] ]
+        [ case page of
+            NotFound ->
+                text "Not found"
 
-
-
--- SUBSCRIPTIONS
-
-
-subscriptions : Model -> Sub Msg
-subscriptions _ =
-    Sub.batch
-        [ buttonClicked ClickedCellButton
-        , receivedItem
-            (\( key, value ) ->
-                if key == gridColumnStorageKey then
-                    value
-                        |> Json.Decode.decodeValue AgGrid.columnStatesDecoder
-                        |> ReceivedColumnStates
-
-                else
-                    NoOp
-            )
+            Basic pageModel ->
+                toPage BasicMsg (Basic.view pageModel)
         ]
 
 
@@ -353,48 +194,16 @@ subscriptions _ =
 -- HELPER
 
 
-categoryToString : Category -> String
-categoryToString category =
-    case category of
-        Fruit ->
-            "Fruit"
+changePageTo : Url -> Model -> ( Model, Cmd Msg )
+changePageTo url model =
+    let
+        toPage toModel toMsg ( pageModel, pageCmd ) =
+            ( { model | page = toModel pageModel }, Cmd.map toMsg pageCmd )
 
-        Vegetable ->
-            "Vegetable"
-
-
-decodeCategory : String -> Json.Decode.Decoder Category
-decodeCategory categoryString =
-    case categoryString of
-        "Fruit" ->
-            Json.Decode.succeed Fruit
-
-        "Vegetable" ->
-            Json.Decode.succeed Vegetable
-
-        _ ->
-            Json.Decode.fail "Failed decoding category"
-
-
-gridColumnStorageKey : String
-gridColumnStorageKey =
-    "elm-ag-grid-columns"
-
-
-rowDecoder : Json.Decode.Decoder Product
-rowDecoder =
-    Json.Decode.succeed Product
-        |> DecodePipeline.required "amount-left" (Json.Decode.nullable Json.Decode.int)
-        |> DecodePipeline.required "category" (Json.Decode.string |> Json.Decode.andThen decodeCategory)
-        |> DecodePipeline.required "description" (Json.Decode.nullable Json.Decode.string)
-        |> DecodePipeline.required "detailsUrl" Json.Decode.string
-        |> DecodePipeline.required "favorite" Json.Decode.bool
-        |> DecodePipeline.required "id" Json.Decode.int
-        |> DecodePipeline.required "offer-until" Json.Decode.string
-        |> DecodePipeline.required "price"
-            (Json.Decode.oneOf
-                [ Json.Decode.float
-                , Json.Decode.map (String.toFloat >> Maybe.withDefault 0) Json.Decode.string
+        parser =
+            Parser.oneOf
+                [ Parser.map (Basic.init |> toPage Basic BasicMsg) Parser.top
                 ]
-            )
-        |> DecodePipeline.required "title" Json.Decode.string
+    in
+    Parser.parse parser url
+        |> Maybe.withDefault ( { model | page = NotFound }, Cmd.none )
