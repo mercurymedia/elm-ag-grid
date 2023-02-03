@@ -1,5 +1,5 @@
 module AgGrid exposing
-    ( ColumnDef, FilterType(..), PinningType(..), Renderer(..), SidebarType(..), StateChange
+    ( Aggregation(..), ColumnDef, FilterType(..), PinningType(..), Renderer(..), SidebarType(..), StateChange
     , GridConfig, grid
     , defaultGridConfig, defaultSettings
     , onCellChanged, onCellDoubleClicked
@@ -12,7 +12,7 @@ module AgGrid exposing
 
 # Data Types
 
-@docs ColumnDef, FilterType, PinningType, Renderer, SidebarType, StateChange
+@docs Aggregation, ColumnDef, FilterType, PinningType, Renderer, SidebarType, StateChange
 
 
 # Grid
@@ -48,6 +48,19 @@ import Html.Events
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline as DecodePipeline
 import Json.Encode
+
+
+{-| Variants to aggregate values for a grouped column.
+-}
+type Aggregation
+    = AvgAggregation
+    | CountAggregation
+    | FirstAggregation
+    | LastAggregation
+    | MaxAggregation
+    | MinAggregation
+    | NoAggregation
+    | SumAggregation
 
 
 {-| Possible variants of callbacks that can lead to a certain change.
@@ -179,12 +192,14 @@ type alias ColumnDef dataType =
 {-| Column configuration settings.
 -}
 type alias ColumnSettings =
-    { editable : Bool
+    { aggFunc : Aggregation
+    , editable : Bool
     , enablePivot : Bool
     , enableRowGroup : Bool
     , enableValue : Bool
     , filter : FilterType
     , hide : Bool
+    , minWidth : Maybe Int
     , pinned : PinningType
     , sortable : Bool
     , suppressColumnsToolPanel : Bool
@@ -255,6 +270,7 @@ type alias GridConfig =
             }
     , disableResizeOnScroll : Bool
     , filterStates : Dict.Dict String FilterState
+    , groupIncludeTotalFooter : Bool
     , pagination : Bool
     , quickFilterText : String
     , rowHeight : Maybe Int
@@ -301,12 +317,14 @@ Default column settings:
 -}
 defaultSettings : ColumnSettings
 defaultSettings =
-    { editable = False
+    { aggFunc = NoAggregation
+    , editable = False
     , enablePivot = True
     , enableRowGroup = True
     , enableValue = True
     , filter = SetFilter
     , hide = False
+    , minWidth = Nothing
     , pinned = Unpinned
     , sortable = True
     , suppressColumnsToolPanel = False
@@ -348,6 +366,7 @@ defaultGridConfig =
     , detailRenderer = Nothing
     , disableResizeOnScroll = False
     , filterStates = Dict.empty
+    , groupIncludeTotalFooter = False
     , pagination = False
     , quickFilterText = ""
     , rowHeight = Nothing
@@ -540,7 +559,33 @@ cellEditorParamsEncoder params =
 columnDefEncoder : GridConfig -> ColumnDef dataType -> Json.Encode.Value
 columnDefEncoder gridConfig columnDef =
     Json.Encode.object
-        [ ( "cellRenderer"
+        [ ( "aggFunc"
+          , case columnDef.settings.aggFunc of
+                AvgAggregation ->
+                    Json.Encode.string "avg"
+
+                CountAggregation ->
+                    Json.Encode.string "count"
+
+                FirstAggregation ->
+                    Json.Encode.string "first"
+
+                LastAggregation ->
+                    Json.Encode.string "last"
+
+                MaxAggregation ->
+                    Json.Encode.string "max"
+
+                MinAggregation ->
+                    Json.Encode.string "min"
+
+                NoAggregation ->
+                    Json.Encode.null
+
+                SumAggregation ->
+                    Json.Encode.string "sum"
+          )
+        , ( "cellRenderer"
           , case columnDef.renderer of
                 AppRenderer _ _ ->
                     Json.Encode.string "appRenderer"
@@ -605,6 +650,7 @@ columnDefEncoder gridConfig columnDef =
           )
         , ( "headerName", Json.Encode.string columnDef.headerName )
         , ( "hide", Json.Encode.bool columnDef.settings.hide )
+        , ( "minWidth", encodeMaybe Json.Encode.int columnDef.settings.minWidth )
         , ( "pinned"
           , case columnDef.settings.pinned of
                 PinnedToLeft ->
@@ -826,6 +872,7 @@ generateGridConfigAttributes gridConfig =
               )
             , ( "disableResizeOnScroll", Json.Encode.bool gridConfig.disableResizeOnScroll )
             , ( "enableRangeSelection", Json.Encode.bool True )
+            , ( "groupIncludeTotalFooter", Json.Encode.bool gridConfig.groupIncludeTotalFooter )
             , ( "masterDetail"
               , Json.Encode.bool <|
                     case gridConfig.detailRenderer of
