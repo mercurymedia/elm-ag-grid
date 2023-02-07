@@ -1,5 +1,6 @@
 module Main exposing (main)
 
+import Aggregation
 import Basic
 import Browser exposing (Document)
 import Browser.Navigation as Nav
@@ -34,13 +35,15 @@ type alias Model =
 
 
 type Page
-    = Basic Basic.Model
+    = Aggregation Aggregation.Model
+    | Basic Basic.Model
     | NotFound
 
 
 type Msg
     = ChangedUrl Url
     | ClickedLink Browser.UrlRequest
+    | AggregationMsg Aggregation.Msg
     | BasicMsg Basic.Msg
 
 
@@ -70,6 +73,9 @@ subscriptions model =
         Basic basicModel ->
             Sub.map BasicMsg (Basic.subscriptions basicModel)
 
+        Aggregation aggregationModel ->
+            Sub.map AggregationMsg (Aggregation.subscriptions aggregationModel)
+
 
 
 -- UPDATE
@@ -92,6 +98,13 @@ update msg model =
 
         ( ChangedUrl url, _ ) ->
             changePageTo url model
+
+        ( AggregationMsg subMsg, Aggregation aggregationModel ) ->
+            let
+                ( updatedAggregationModel, pageCmd ) =
+                    Aggregation.update subMsg aggregationModel
+            in
+            ( { model | page = Aggregation updatedAggregationModel }, Cmd.map AggregationMsg pageCmd )
 
         ( BasicMsg subMsg, Basic basicModel ) ->
             let
@@ -122,15 +135,15 @@ view model =
                 , Css.fontSize (Css.px 14)
                 ]
             ]
-        , viewSidebar model
+        , viewSidebar
         , viewPage model.page
         ]
             |> List.map Html.Styled.toUnstyled
     }
 
 
-viewSidebar : Model -> Html Msg
-viewSidebar model =
+viewSidebar : Html Msg
+viewSidebar =
     div [ css [ Css.width (Css.px 200), Css.displayFlex, Css.flexDirection Css.column, Css.padding2 (Css.px 0) (Css.rem 2.5), Css.color (Css.hex "#555555") ] ]
         [ viewHeader
         , viewSources
@@ -154,9 +167,10 @@ viewSources =
 
 viewNavigation : Html Msg
 viewNavigation =
-    div [ css [ Css.marginTop (Css.rem 2) ] ]
+    div [ css [ Css.marginTop (Css.rem 2), Css.displayFlex, Css.flexDirection Css.column ] ]
         [ div [ css [ Css.color (Css.hex "#000000"), Css.fontWeight Css.normal ] ] [ text "Examples" ]
         , viewPageLink "Basic" "/"
+        , viewPageLink "Aggregations & Formatting" "/aggregation"
         ]
 
 
@@ -187,6 +201,9 @@ viewPage page =
 
             Basic pageModel ->
                 toPage BasicMsg (Basic.view pageModel)
+
+            Aggregation pageModel ->
+                toPage AggregationMsg (Aggregation.view pageModel)
         ]
 
 
@@ -203,6 +220,7 @@ changePageTo url model =
         parser =
             Parser.oneOf
                 [ Parser.map (Basic.init |> toPage Basic BasicMsg) Parser.top
+                , Parser.map (Aggregation.init |> toPage Aggregation AggregationMsg) (Parser.s "aggregation")
                 ]
     in
     Parser.parse parser url

@@ -1,5 +1,5 @@
 import "@webcomponents/custom-elements";
-// import * as AgGridEnterprise from "ag-grid-enterprise";
+import * as AgGridEnterprise from "ag-grid-enterprise";
 
 // This would usually be the pacakge import
 // import "@mercurymedia/elm-ag-grid";
