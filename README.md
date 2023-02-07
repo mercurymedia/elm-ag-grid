@@ -35,7 +35,8 @@ The latest [Elm package version](https://package.elm-lang.org/packages/mercuryme
 | :-----------: | :----------------: |
 |     1.0.0     | 1.0.0 <= v < 1.1.0 |
 | 2.0.0 - 3.0.0 | 1.1.0 <= v < 1.3.0 |
-|  3.1.0 - \*   |     1.3.0 <= v     |
+| 3.1.0 - 4.0.0 |     1.3.0 <= v     |
+|  5.0.0 - \*   |     2.1.0 <= v     |
 
 ## Ag Grid Enterprise
 
@@ -179,7 +180,20 @@ type Msg = FilterStateChanged { event : { type_ : String }, states : Dict String
 AgGrid.grid { gridConfig | filterState = model.filterState } [ onFilterStateChanged FilterStateChanged ] [] []
 ```
 
-# Master-Detail
+## Value formatting
+
+The package allows defining `valueGetter`, `valueFormatter`, `valueParser`, `valueSetter`, and `filterValueFormatter` as expressions for formatting cell values.
+These make it possible to change the type of the cell value the table works with (e.g. strings parsed as numbers to allow aggregations - valueGetter), to format values displayed to the user in the table/filter (e.g. with thousand separators and currency symbol - valueFormatter/filterValueFormatter), and to parse user input before applying the value (e.g. parsing a formatted currency value back into a floating-point number string - valueParser).
+
+**For a detailed explanation of what the expressions can do, refer to the AgGrid documentation.**
+
+The package provides preconfigured value formatting for currencies, decimals, and percentages. Those are available as a `Renderer` type and already configure a certain `valueFormatter`, `valueGetter`, `filterValueFormatter`, and `cellEditor`. If required, the formatting can be overwriten by setting a `valueFormatter`/`filterValueFormatter` yourself on the `ColumnDef`. Also, these predefined expressions can be applied individually to other `Renderer` types if necessary. These are available in the `AgGrid.ValueFormat` module.
+
+- **CurrencyRenderer** to format floating-point strings into localized currency strings (e.g. '1000.15' --> '1.000,15 €')
+- **DecimalRenderer** to format floats into localized strings (e.g. 1000.8 --> '1.000,8')
+- **PercentRenderer** to format floats into localized percent strings (e.g. 0.22 --> '22%')
+
+## Master-Detail
 
 **Requires AgGrid Enterprise**
 
@@ -195,4 +209,15 @@ To see the actual MasterDetail view the `GroupRenderer` can be used on a column 
 
 ```elm
   { renderer = AgGrid.GroupRenderer (.id >> String.fromInt), ... }
+```
+
+## Aggregation
+
+**Requires AgGrid Enterprise**
+
+Aggregation for a column can be defined by setting the `aggFunc` setting on the `ColumnSettings`. This may require that the cell's value be specified in the correct data type.
+Not all aggregation functions may work with string values. Using a `valueGetter` expression can help with this.
+
+```elm
+  { settings = { defaultSettings | aggFunc = AvgAggregation, valueGetter = Just "Number(data.cost)" }}
 ```
