@@ -1,5 +1,12 @@
 # Elm Changelog
 
+## [5.0.0]
+
+- Changed the `Renderer` type by adding a new `CurrencyRenderer`, `DecimalRenderer`, and `PercentRenderer` to format cell values into localized strings
+- Added `aggFunc` as column settings to define an Aggregation (Average, Sum, Min, Max, ...) for the column values.
+- Further, added column settings options for `filterValueGetter`, `minWidth`, `valueGetter`, `valueFormatter`, `valueParser`, and `valueSetter`
+- Added `groupIncludeFooter` and `groupIncludeTotalFooter` to the GridConfig, allowing to display a footer with aggregated values
+
 ## [4.0.0]
 
 - Added a new `GroupRenderer` for grouping rows, allowing usage of MasterDetail
