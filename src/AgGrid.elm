@@ -1,10 +1,11 @@
 module AgGrid exposing
-    ( Aggregation(..), ColumnDef, FilterType(..), PinningType(..), Renderer(..), SidebarType(..), StateChange
+    ( Aggregation(..), ColumnDef, FilterType(..), PinningType(..), Renderer(..), StateChange
     , GridConfig, grid
     , defaultGridConfig, defaultSettings
     , onCellChanged, onCellDoubleClicked
     , ColumnState, onColumnStateChanged, columnStatesDecoder, columnStatesEncoder
     , FilterState, onFilterStateChanged, filterStatesEncoder, filterStatesDecoder
+    , Sidebar, SidebarType(..), SidebarPosition(..), defaultSidebar
     )
 
 {-| AgGrid integration for elm.
@@ -12,7 +13,7 @@ module AgGrid exposing
 
 # Data Types
 
-@docs Aggregation, ColumnDef, FilterType, PinningType, Renderer, SidebarType, StateChange
+@docs Aggregation, ColumnDef, FilterType, PinningType, Renderer, StateChange
 
 
 # Grid
@@ -38,6 +39,11 @@ module AgGrid exposing
 # FilterState
 
 @docs FilterState, onFilterStateChanged, filterStatesEncoder, filterStatesDecoder
+
+
+# Sidebar
+
+@docs Sidebar, SidebarType, SidebarPosition, defaultSidebar
 
 -}
 
@@ -134,10 +140,15 @@ type Renderer dataType
 {-| Possible options for displayed sidebars.
 -}
 type SidebarType
-    = BothSidebars
-    | ColumnSidebar
+    = ColumnSidebar
     | FilterSidebar
-    | NoSidebar
+
+
+{-| Position for the sidebar.
+-}
+type SidebarPosition
+    = SidebarLeft
+    | SidebarRight
 
 
 type alias CellEditorParams =
@@ -280,9 +291,11 @@ type alias GridConfig =
     , pagination : Bool
     , quickFilterText : String
     , rowHeight : Maybe Int
-    , sideBar : SidebarType
+    , sideBar : Sidebar
     , size : String
     , suppressMenuHide : Bool
+    , sizeToFitAfterFirstDataRendered : Bool
+    , stopEditingWhenCellsLoseFocus : Bool
     , themeClasses : Maybe String
     }
 
@@ -292,6 +305,15 @@ type alias GridConfig =
 type alias StateChange type_ =
     { event : { type_ : EventType }
     , states : type_
+    }
+
+
+{-| Sidebar configuration.
+-}
+type alias Sidebar =
+    { panels : List SidebarType
+    , defaultToolPanel : Maybe SidebarType
+    , position : SidebarPosition
     }
 
 
@@ -378,10 +400,30 @@ defaultGridConfig =
     , pagination = False
     , quickFilterText = ""
     , rowHeight = Nothing
-    , sideBar = NoSidebar
+    , sideBar = defaultSidebar
     , size = "65vh"
+    , sizeToFitAfterFirstDataRendered = True
+    , stopEditingWhenCellsLoseFocus = True
     , suppressMenuHide = False
     , themeClasses = Nothing
+    }
+
+
+{-| Retrieve a `Sidebar` with default configuration.
+
+Can be used to ease the sidebar configuration.
+
+        { panels = []
+        , defaultToolPanel = Nothing
+        , position = SidebarRight
+        }
+
+-}
+defaultSidebar : Sidebar
+defaultSidebar =
+    { panels = []
+    , defaultToolPanel = Nothing
+    , position = SidebarRight
     }
 
 
@@ -978,21 +1020,21 @@ generateGridConfigAttributes gridConfig =
                         Json.Encode.null
               )
             , ( "sideBar"
-              , case gridConfig.sideBar of
-                    BothSidebars ->
-                        Json.Encode.bool True
+              , Json.Encode.object
+                    [ ( "toolPanels", Json.Encode.list encodeSidebarType gridConfig.sideBar.panels )
+                    , ( "position"
+                      , case gridConfig.sideBar.position of
+                            SidebarLeft ->
+                                Json.Encode.string "left"
 
-                    ColumnSidebar ->
-                        Json.Encode.string "columns"
-
-                    FilterSidebar ->
-                        Json.Encode.string "filters"
-
-                    NoSidebar ->
-                        Json.Encode.bool False
+                            SidebarRight ->
+                                Json.Encode.string "right"
+                      )
+                    , ( "defaultToolPanel", encodeMaybe encodeSidebarType gridConfig.sideBar.defaultToolPanel )
+                    ]
               )
-            , ( "sizeToFitAfterFirstDataRendered", Json.Encode.bool True )
-            , ( "stopEditingWhenCellsLoseFocus", Json.Encode.bool True )
+            , ( "sizeToFitAfterFirstDataRendered", Json.Encode.bool gridConfig.sizeToFitAfterFirstDataRendered )
+            , ( "stopEditingWhenCellsLoseFocus", Json.Encode.bool gridConfig.stopEditingWhenCellsLoseFocus )
             , ( "suppressMenuHide", Json.Encode.bool gridConfig.suppressMenuHide )
             ]
 
@@ -1006,6 +1048,17 @@ generateGridConfigAttributes gridConfig =
     , style "height" gridConfig.size
     ]
         ++ configAttributes
+
+
+encodeSidebarType : SidebarType -> Json.Encode.Value
+encodeSidebarType sidebarType =
+    Json.Encode.string <|
+        case sidebarType of
+            ColumnSidebar ->
+                "columns"
+
+            FilterSidebar ->
+                "filters"
 
 
 rowEncoder : List (ColumnDef dataType) -> dataType -> Json.Encode.Value

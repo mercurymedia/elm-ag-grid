@@ -3,6 +3,12 @@
 ## [5.0.0]
 
 - Changed the `Renderer` type by adding a new `CurrencyRenderer`, `DecimalRenderer`, and `PercentRenderer` to format cell values into localized strings
+- Changed the `sidebar` attribute on the `GridConfig` to a record. The sidebar type has moved into the record on the `panels` attribute - which is now a listing of all enabled toolbar panels. The equivalent values are:
+  - `AgGrid.ColumnSidebar` is now `{ defaultSidebar | panels = [AgGrid.ColumnSidebar] }`
+  - `AgGrid.FilterSidebar` is now `{ defaultSidebar | panels = [AgGrid.FilterSidebar] }`
+  - `AgGrid.BothSidebars` is now `{ defaultSidebar | panels = [AgGrid.ColumnSidebar, AgGrid.FilterSidebar] }`
+  - `AgGrid.NoSidebar` is now `{ defaultSidebar | panels = [] }` - which is already the default and therefore doesn't need to be set explicitly
+  - The default sidebar behaves exactly like the default sidebar setting before
 - Added `aggFunc` as column settings to define an Aggregation (Average, Sum, Min, Max, ...) for the column values.
 - Further, added column settings options for `filterValueGetter`, `minWidth`, `valueGetter`, `valueFormatter`, `valueParser`, and `valueSetter`
 - Added `groupIncludeFooter` and `groupIncludeTotalFooter` to the GridConfig, allowing to display a footer with aggregated values

@@ -1,6 +1,6 @@
 port module Basic exposing (Model, Msg, init, subscriptions, update, view)
 
-import AgGrid exposing (Renderer(..), defaultGridConfig, defaultSettings)
+import AgGrid exposing (Renderer(..), defaultGridConfig, defaultSettings, defaultSidebar)
 import Css
 import Dict exposing (Dict)
 import Html.Styled exposing (Html, a, div, input, span, text)
@@ -178,7 +178,7 @@ viewGrid model =
     let
         gridConfig =
             { defaultGridConfig
-                | sideBar = AgGrid.BothSidebars
+                | sideBar = { defaultSidebar | panels = [ AgGrid.ColumnSidebar, AgGrid.FilterSidebar ] }
                 , pagination = True
                 , quickFilterText = model.searchInput
                 , cacheQuickFilter = True
