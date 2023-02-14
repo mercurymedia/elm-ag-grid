@@ -3,7 +3,7 @@ module Aggregation exposing (Model, Msg, init, subscriptions, update, view)
 import AgGrid exposing (Renderer(..), defaultGridConfig, defaultSettings)
 import Css
 import Dict exposing (Dict)
-import Html.Styled exposing (Html, a, div, span, text)
+import Html.Styled exposing (Html, a, div, node, span, text)
 import Html.Styled.Attributes exposing (css, href, target)
 import Json.Decode as Decode
 import Json.Decode.Pipeline as DecodePipeline
@@ -159,7 +159,8 @@ viewGrid model =
               }
             ]
     in
-    div [ css [ Css.margin2 (Css.rem 1) (Css.px 0) ] ]
+    node "aggregation-grid"
+        [ css [ Css.display Css.block, Css.margin2 (Css.rem 1) (Css.px 0) ] ]
         [ AgGrid.grid gridConfig
             [ AgGrid.onCellChanged changeDecoder CellChanged ]
             columns
