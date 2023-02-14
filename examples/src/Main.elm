@@ -6,6 +6,7 @@ import Browser exposing (Document)
 import Browser.Navigation as Nav
 import Css
 import Css.Global
+import Grouping
 import Html.Styled exposing (Html, a, div, span, text)
 import Html.Styled.Attributes exposing (css, href, target)
 import Url exposing (Url)
@@ -37,6 +38,7 @@ type alias Model =
 type Page
     = Aggregation Aggregation.Model
     | Basic Basic.Model
+    | Grouping Grouping.Model
     | NotFound
 
 
@@ -45,6 +47,7 @@ type Msg
     | ClickedLink Browser.UrlRequest
     | AggregationMsg Aggregation.Msg
     | BasicMsg Basic.Msg
+    | NoOp
 
 
 
@@ -75,6 +78,9 @@ subscriptions model =
 
         Aggregation aggregationModel ->
             Sub.map AggregationMsg (Aggregation.subscriptions aggregationModel)
+
+        Grouping _ ->
+            Sub.none
 
 
 
@@ -112,6 +118,9 @@ update msg model =
                     Basic.update subMsg basicModel
             in
             ( { model | page = Basic updatedBasicModel }, Cmd.map BasicMsg pageCmd )
+
+        ( NoOp, _ ) ->
+            ( model, Cmd.none )
 
         ( _, _ ) ->
             ( model, Cmd.none )
@@ -171,6 +180,7 @@ viewNavigation =
         [ div [ css [ Css.color (Css.hex "#000000"), Css.fontWeight Css.normal ] ] [ text "Examples" ]
         , viewPageLink "Basic" "/"
         , viewPageLink "Aggregations & Formatting" "/aggregation"
+        , viewPageLink "Grouping" "/grouping"
         ]
 
 
@@ -204,6 +214,9 @@ viewPage page =
 
             Aggregation pageModel ->
                 toPage AggregationMsg (Aggregation.view pageModel)
+
+            Grouping pageModel ->
+                toPage (always NoOp) (Grouping.view pageModel)
         ]
 
 
@@ -221,6 +234,7 @@ changePageTo url model =
             Parser.oneOf
                 [ Parser.map (Basic.init |> toPage Basic BasicMsg) Parser.top
                 , Parser.map (Aggregation.init |> toPage Aggregation AggregationMsg) (Parser.s "aggregation")
+                , Parser.map ( { model | page = Grouping Grouping.init }, Cmd.none ) (Parser.s "grouping")
                 ]
     in
     Parser.parse parser url
