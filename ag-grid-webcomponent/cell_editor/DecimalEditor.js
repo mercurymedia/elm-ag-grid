@@ -15,13 +15,11 @@ export default class DecimalEditor {
     this.eInput = document.createElement("input");
     this.eInput.value = this.formatValue(params.value);
 
-    this.eInput.addEventListener("keypress", (event) => {
-      // ignore invalid characters
+    this.eInput.addEventListener("keydown", (event) => {
       if (!this.isInputAllowed(event.key)) {
+        // ignore invalid characters
         this.eInput.focus();
         if (event.preventDefault) event.preventDefault();
-      } else if (this.isKeyPressedNavigation(event)) {
-        event.stopPropagation();
       }
     });
 
@@ -137,6 +135,8 @@ export default class DecimalEditor {
   }
 
   isInputAllowed(char) {
+    if (this.isNavigationKey(char)) return true;
+
     if (this.invalidDecimalInput()) {
       return false;
     }
@@ -148,8 +148,20 @@ export default class DecimalEditor {
     return /[0-9\.,-]/.test(char);
   }
 
-  isKeyPressedNavigation(event) {
-    return event.key === "ArrowLeft" || event.key === "ArrowRight";
+  isNavigationKey(key) {
+    return (
+      key === "ArrowLeft" ||
+      key === "ArrowRight" ||
+      key === "ArrowUp" ||
+      key === "ArrowDown" ||
+      key === "PageDown" ||
+      key === "PageUp" ||
+      key === "Home" ||
+      key === "End" ||
+      key === "Escape" ||
+      key === "Enter" ||
+      key === "Backspace"
+    );
   }
 
   localeParseFloat(input) {
