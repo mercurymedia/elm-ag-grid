@@ -1,5 +1,9 @@
 # Elm Changelog
 
+## [5.0.1]
+
+- Bugfix `DecimalRenderer` and `PercentRenderer` aggregation by casting the cell values as numbers.
+
 ## [5.0.0]
 
 - Changed the `Renderer` type by adding a new `CurrencyRenderer`, `DecimalRenderer`, and `PercentRenderer` to format cell values into localized strings

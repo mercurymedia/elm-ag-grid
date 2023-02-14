@@ -793,6 +793,12 @@ columnDefEncoder gridConfig columnDef =
                 ( Nothing, CurrencyRenderer _ _ ) ->
                     Json.Encode.string (ValueFormat.numberValueGetter columnDef.field)
 
+                ( Nothing, DecimalRenderer _ _ ) ->
+                    Json.Encode.string (ValueFormat.numberValueGetter columnDef.field)
+
+                ( Nothing, PercentRenderer _ _ ) ->
+                    Json.Encode.string (ValueFormat.numberValueGetter columnDef.field)
+
                 ( Nothing, _ ) ->
                     Json.Encode.null
           )
