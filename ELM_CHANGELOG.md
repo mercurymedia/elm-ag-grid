@@ -1,5 +1,13 @@
 # Elm Changelog
 
+## [6.0.0]
+
+- Removed the `allowColResize` property on the `GridConfig`. This is now configured per column individually by setting `resizable` on the `ColumnSettings`.
+- Added `filterParams` and `rowGroup` to the `ColumnSettings`
+- Added `groupDefaultExpanded` to the `GridConfig` to control how many levels of groups are expanded by default
+- Added `autoGroupColumnDef` to the `GridConfig` to customize the group-column appearance
+- Added `rowGroupPanelShow` to the `GridConfig` to enable the RowGroupPanel
+
 ## [5.0.1]
 
 - Bugfix `DecimalRenderer` and `PercentRenderer` aggregation by casting the cell values as numbers.
