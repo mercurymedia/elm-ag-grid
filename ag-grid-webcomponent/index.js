@@ -4,6 +4,8 @@ import cellRenderer from "./cell_renderer";
 import cellEditor from "./cell_editor";
 import appRenderer from "./app_renderer";
 
+let CUSTOM_AGGREGATIONS = {};
+
 class AgGrid extends HTMLElement {
   constructor() {
     super();
@@ -173,6 +175,7 @@ class AgGrid extends HTMLElement {
         ...cellEditor,
         appRenderer,
       },
+      aggFuncs: CUSTOM_AGGREGATIONS,
 
       isRowSelectable: (params) => {
         return !!params.data && params.data.rowCallbackValues.isRowSelectable;
@@ -246,4 +249,11 @@ const setterProperties = Object.entries(
   .filter(([_key, descriptor]) => typeof descriptor.set === "function")
   .map(([key]) => key);
 
-customElements.define("ag-grid", AgGrid);
+export default class ElmAgGrid {
+  constructor({ apps = {}, aggregations = {} } = {}) {
+    window.ElmAgGridComponentRegistry = apps;
+    CUSTOM_AGGREGATIONS = aggregations;
+
+    customElements.define("ag-grid", AgGrid);
+  }
+}

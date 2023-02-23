@@ -19,10 +19,12 @@ It's also required to make the webcomponent from the package available to your p
 And then importing it into the Javascript pipeline.
 
 ```js
-import from "@mercurymedia/elm-ag-grid";
+import ElmAgGrid from "@mercurymedia/elm-ag-grid";
 import { Elm } from "./src/Main.elm";
 
-Elm.Main.init({ node: document.getElementById('app') });
+new ElmAgGrid();
+
+Elm.Main.init({ node: document.getElementById("app") });
 ```
 
 **Note:** The package requires at least `ag-grid-community` to be available in the project.
@@ -87,16 +89,18 @@ FYI, there are two components in the [example application](https://github.com/me
 
 ### Register Component
 
-To reference the component application and use it for the table, you must register the component in the `window.ElmAgGridComponentRegistry` object. The key is the name used in your main application to refer to the component and the value is the object containing the `init` function to initialize the Elm application.
+To reference the component application and use it for the table, you must register the component to the package. This can be done by configuring the ElmAgGrid class when instantiating and providing an object with your components via the `apps` config. The key is the name used in your main application to refer to the component and the value is the object containing the `init` function to initialize the Elm application.
 
 You can either just use the usual Elm object for this:
 
 ```javascript
 import { Elm } from "./src/Components/Link.elm";
 
-window.ElmAgGridComponentRegistry = {
-  linkRenderer: Elm.Components.Link,
-};
+new ElmAgGrid({
+  apps: {
+    linkRenderer: Elm.Components.Link,
+  },
+});
 ```
 
 Or define your own object with an `init` function if you want to use ports for communication between the applications.
@@ -106,23 +110,25 @@ Or define your own object with an `init` function if you want to use ports for c
 ```javascript
 import { Elm } from "./src/Components/Button.elm";
 
-window.ElmAgGridComponentRegistry = {
-  buttonRenderer: {
-    init: function ({ node, flags }) {
-      let component = Elm.Components.Button.init({
-        node: node,
-        flags: flags,
-      });
+new ElmAgGrid({
+  apps: {
+    buttonRenderer: {
+      init: function ({ node, flags }) {
+        let component = Elm.Components.Button.init({
+          node: node,
+          flags: flags,
+        });
 
-      component.ports.onButtonClick.subscribe(function (id) {
-        // This `app` is the main application
-        if (app) app.ports.buttonClicked.send(id);
-      });
+        component.ports.onButtonClick.subscribe(function (id) {
+          // This `app` is the main application
+          if (app) app.ports.buttonClicked.send(id);
+        });
 
-      return component;
+        return component;
+      },
     },
   },
-};
+});
 ```
 
 **The function is called with an object containing the keys `node` and `flags`. The flags are containing the usual [AgGrid cellRendererParams](https://www.ag-grid.com/javascript-data-grid/component-cell-renderer/#reference-ICellRendererParams) and the defined `componentParams` from your `AppRenderer` definition.**
@@ -221,4 +227,24 @@ Not all aggregation functions may work with string values. Using a `valueGetter`
 
 ```elm
   { settings = { defaultSettings | aggFunc = AvgAggregation, valueGetter = Just "Number(data.cost)" }}
+```
+
+### Customizing Aggregation
+
+Similar to [Register Component](#register-component), custom aggregation functions can be defined by passing the custom configuration during the instantiation to the ElmAgGrid class. The key is the name of the aggregation function and the value is the implementation accepting the ag-grid params and returning the aggregated value.
+
+```js
+new ElmAgGrid({
+  aggregations: {
+    foo: function (params) {
+      return "bar";
+    },
+  },
+});
+```
+
+This aggregation can be referenced in Elm by using the `CustomAggregation` type when defining a `aggFunc`.
+
+```elm
+{ ..., settings = { defaultSettings | aggFunc = CustomAggregation "foo" }}
 ```

@@ -157,6 +157,11 @@ viewGrid model =
               , headerName = "Discount US"
               , settings = { gridSettings | aggFunc = AgGrid.AvgAggregation }
               }
+            , { field = "minAndMax"
+              , renderer = MaybeStringRenderer  (.us >> .discount >> Maybe.map String.fromFloat)
+              , headerName = "Min & Max (Custom aggregation)"
+              , settings = { gridSettings | aggFunc = AgGrid.CustomAggregation "Min&Max" }
+              }
             ]
     in
     node "aggregation-grid"
