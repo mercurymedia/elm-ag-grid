@@ -4,6 +4,12 @@
 
 - Added `isRowSelectable` callback to the GridOptions
 - Changed: Updated `ag-grid-community` and `ag-grid-enterprise` peer-dependency to 29.1.0
+- The ElmAgGrid class now needs to be instantiated manually in order to register the webcomponents. The shortest form would just be `new ElmAgGrid()`
+- Additionally, the custom CellRenderer components defined via `window.ElmAgGridComponentRegistry` are now to be passed as an argument to the ElmAgGrid class
+
+```js
+new ElmAgGrid({ apps: { customRenderer: Elm.Components.Custom } });
+```
 
 ## [2.1.0]
 

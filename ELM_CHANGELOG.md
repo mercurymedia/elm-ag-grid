@@ -6,6 +6,7 @@ We added some more properties to the `GridConfig` and the `ColumnSettings` to co
 
 - Added `checkboxSelection`, `headerCheckboxSelection`, `lockPosition`, and `showDisabledCheckboxes` properties to the `ColumnSettings`
 - Added `groupSelectsChildren`, `isRowSelectable`, `rowSelection`, and `suppressRowClickSelection` properties to the `GridConfig`
+- Added the `CustomAggregation` variant to the `Aggregation` type in order to use custom aggregations
 
 **Requires at least version 3.0.0 of the `elm-ag-grid` [NPM package](https://www.npmjs.com/package/@mercurymedia/elm-ag-grid/v/3.0.0).**
 
