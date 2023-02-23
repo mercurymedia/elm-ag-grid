@@ -36,7 +36,8 @@ The latest [Elm package version](https://package.elm-lang.org/packages/mercuryme
 |     1.0.0     | 1.0.0 <= v < 1.1.0 |
 | 2.0.0 - 3.0.0 | 1.1.0 <= v < 1.3.0 |
 | 3.1.0 - 4.0.0 |     1.3.0 <= v     |
-|  5.0.0 - \*   |     2.1.0 <= v     |
+| 5.0.0 - 6.0.0 |     2.1.0 <= v     |
+|  7.0.0 - \*   |     3.0.0 <= v     |
 
 ## Ag Grid Enterprise
 

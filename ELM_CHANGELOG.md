@@ -1,5 +1,14 @@
 # Elm Changelog
 
+## [7.0.0]
+
+We added some more properties to the `GridConfig` and the `ColumnSettings` to control the row selection in the table. Since this changes the two types this is a major update. But if you have been using the `defaultSettings` and `defaultGridConfig` then there is no change needed to the configurations.
+
+- Added `checkboxSelection`, `headerCheckboxSelection`, `lockPosition`, and `showDisabledCheckboxes` properties to the `ColumnSettings`
+- Added `groupSelectsChildren`, `isRowSelectable`, `rowSelection`, and `suppressRowClickSelection` properties to the `GridConfig`
+
+**Requires at least version 3.0.0 of the `elm-ag-grid` [NPM package](https://www.npmjs.com/package/@mercurymedia/elm-ag-grid/v/3.0.0).**
+
 ## [6.0.0]
 
 - Removed the `allowColResize` property on the `GridConfig`. This is now configured per column individually by setting `resizable` on the `ColumnSettings`.
