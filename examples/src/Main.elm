@@ -3,6 +3,7 @@ module Main exposing (main)
 import Aggregation
 import Basic
 import Browser exposing (Document)
+import RowSelection
 import Browser.Navigation as Nav
 import Css
 import Css.Global
@@ -39,6 +40,7 @@ type Page
     = Aggregation Aggregation.Model
     | Basic Basic.Model
     | Grouping Grouping.Model
+    | RowSelection RowSelection.Model
     | NotFound
 
 
@@ -80,6 +82,9 @@ subscriptions model =
             Sub.map AggregationMsg (Aggregation.subscriptions aggregationModel)
 
         Grouping _ ->
+            Sub.none
+
+        RowSelection _ ->
             Sub.none
 
 
@@ -181,6 +186,8 @@ viewNavigation =
         , viewPageLink "Basic" "/"
         , viewPageLink "Aggregations & Formatting" "/aggregation"
         , viewPageLink "Grouping" "/grouping"
+        , viewPageLink "RowSelection" "/row-selection"
+
         ]
 
 
@@ -217,6 +224,9 @@ viewPage page =
 
             Grouping pageModel ->
                 toPage (always NoOp) (Grouping.view pageModel)
+
+            RowSelection pageModel ->
+                toPage (always NoOp) (RowSelection.view pageModel)
         ]
 
 
@@ -235,6 +245,8 @@ changePageTo url model =
                 [ Parser.map (Basic.init |> toPage Basic BasicMsg) Parser.top
                 , Parser.map (Aggregation.init |> toPage Aggregation AggregationMsg) (Parser.s "aggregation")
                 , Parser.map ( { model | page = Grouping Grouping.init }, Cmd.none ) (Parser.s "grouping")
+                , Parser.map ( { model | page = RowSelection RowSelection.init }, Cmd.none ) (Parser.s "row-selection")
+
                 ]
     in
     Parser.parse parser url
