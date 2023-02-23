@@ -1,5 +1,10 @@
 # NPM Changelog
 
+## [3.0.0]
+
+- Added `isRowSelectable` callback to the GridOptions
+- Changed: Updated `ag-grid-community` and `ag-grid-enterprise` peer-dependency to 29.1.0
+
 ## [2.1.0]
 
 - Added new DecimalEditor component to edit localized cell values
