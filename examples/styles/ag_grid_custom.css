@@ -2,7 +2,7 @@
   width: 100%;
 }
 .ag-header-cell {
-  display: block;
+  display: flex;
 }
 
 .ag-theme-balham .ag-header-cell-label .ag-header-cell-text {

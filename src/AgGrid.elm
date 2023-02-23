@@ -1,5 +1,6 @@
 module AgGrid exposing
-    ( Aggregation(..), ColumnDef, FilterType(..), PinningType(..), Renderer(..), RowGroupPanelVisibility(..), StateChange
+    ( Aggregation(..), ColumnDef, FilterType(..), LockPosition(..), PinningType(..), Renderer(..), RowGroupPanelVisibility(..)
+    , RowSelection(..), StateChange
     , GridConfig, grid
     , defaultGridConfig, defaultSettings
     , onCellChanged, onCellDoubleClicked
@@ -13,7 +14,8 @@ module AgGrid exposing
 
 # Data Types
 
-@docs Aggregation, ColumnDef, FilterType, PinningType, Renderer, RowGroupPanelVisibility, StateChange
+@docs Aggregation, ColumnDef, FilterType, LockPosition, PinningType, Renderer, RowGroupPanelVisibility
+@docs RowSelection, StateChange
 
 
 # Grid
@@ -96,6 +98,17 @@ type FilterButtonType
     | ResetButton
 
 
+{-| Lock a column to position to left or right to always have this column displayed in that position.
+
+Or can be configured to not lock in one position and move the column freely.
+
+-}
+type LockPosition
+    = LockToLeft
+    | LockToRight
+    | NoPositionLock
+
+
 {-| Possible options to pin a column.
 -}
 type PinningType
@@ -150,6 +163,19 @@ type RowGroupPanelVisibility
     = AlwaysVisible
     | NeverVisible
     | OnlyWhenGroupingVisible
+
+
+{-| Type of row selection, set to either `SingleRowSelection` or `MultipleRowSelection` to enable selection.
+
+  - `SingleRowSelection` will use single row selection, such that when you select a row, any previously selected row gets unselected.
+  - `MultipleRowSelection` allows multiple rows to be selected.
+  - `NoRowSelection` will not perform a row selection, only selecting the cell.
+
+-}
+type RowSelection
+    = MultipleRowSelection
+    | NoRowSelection
+    | SingleRowSelection
 
 
 {-| Possible options for displayed sidebars.
@@ -223,6 +249,7 @@ type alias ColumnDef dataType =
 -}
 type alias ColumnSettings =
     { aggFunc : Aggregation
+    , checkboxSelection : Bool
     , editable : Bool
     , enablePivot : Bool
     , enableRowGroup : Bool
@@ -233,11 +260,14 @@ type alias ColumnSettings =
         , closeOnApply : Bool
         }
     , filterValueGetter : Maybe String
+    , headerCheckboxSelection : Bool
     , hide : Bool
+    , lockPosition : LockPosition
     , minWidth : Maybe Int
     , pinned : PinningType
     , resizable : Bool
     , rowGroup : Bool
+    , showDisabledCheckboxes : Bool
     , sortable : Bool
     , suppressColumnsToolPanel : Bool
     , suppressFiltersToolPanel : Bool
@@ -294,7 +324,7 @@ type alias FilterState =
 
 {-| Grid configurations.
 -}
-type alias GridConfig =
+type alias GridConfig dataType =
     { autoGroupColumnDef :
         { cellRendererParams :
             { suppressCount : Bool
@@ -318,13 +348,17 @@ type alias GridConfig =
     , groupDefaultExpanded : Int
     , groupIncludeFooter : Bool
     , groupIncludeTotalFooter : Bool
+    , groupSelectsChildren : Bool
+    , isRowSelectable : dataType -> Bool
     , pagination : Bool
     , quickFilterText : String
     , rowHeight : Maybe Int
     , rowGroupPanelShow : RowGroupPanelVisibility
+    , rowSelection : RowSelection
     , sideBar : Sidebar
     , size : String
     , suppressMenuHide : Bool
+    , suppressRowClickSelection : Bool
     , sizeToFitAfterFirstDataRendered : Bool
     , stopEditingWhenCellsLoseFocus : Bool
     , themeClasses : Maybe String
@@ -359,6 +393,7 @@ Can be used when implementing column configurations for the table.
 Default column settings:
 
     { aggFunc = NoAggregation
+    , checkboxSelection = False
     , editable = False
     , enablePivot = True
     , enableRowGroup = True
@@ -368,12 +403,15 @@ Default column settings:
         { buttons = [ ClearButton ]
         , closeOnApply = False
         }
-    , resizable = True
-    , rowGroup = False
     , filterValueGetter = Nothing
+    , headerCheckboxSelection = False
     , hide = False
+    , lockPosition = NoLock
     , minWidth = Nothing
     , pinned = Unpinned
+    , resizable = True
+    , rowGroup = False
+    , showDisabledCheckboxes = False
     , sortable = True
     , suppressColumnsToolPanel = False
     , suppressFiltersToolPanel = False
@@ -390,6 +428,7 @@ Default column settings:
 defaultSettings : ColumnSettings
 defaultSettings =
     { aggFunc = NoAggregation
+    , checkboxSelection = False
     , editable = False
     , enablePivot = True
     , enableRowGroup = True
@@ -399,12 +438,15 @@ defaultSettings =
         { buttons = [ ClearButton ]
         , closeOnApply = False
         }
-    , resizable = True
-    , rowGroup = False
     , filterValueGetter = Nothing
+    , headerCheckboxSelection = False
     , hide = False
+    , lockPosition = NoPositionLock
     , minWidth = Nothing
     , pinned = Unpinned
+    , resizable = True
+    , rowGroup = False
+    , showDisabledCheckboxes = False
     , sortable = True
     , suppressColumnsToolPanel = False
     , suppressFiltersToolPanel = False
@@ -440,19 +482,24 @@ Can be used when implementing the grid.
         , groupDefaultExpanded = 0
         , groupIncludeFooter = False
         , groupIncludeTotalFooter = False
+        , groupSelectsChildren = False
+        , isRowSelectable = always True
         , pagination = False
         , quickFilterText = ""
+        , rowGroupPanelShow = NeverVisible
         , rowHeight = Nothing
+        , rowSelection = MultipleRowSelection
         , sideBar = defaultSidebar
         , size = "65vh"
         , sizeToFitAfterFirstDataRendered = True
         , stopEditingWhenCellsLoseFocus = True
         , suppressMenuHide = False
+        , suppressRowClickSelection = False
         , themeClasses = Nothing
         }
 
 -}
-defaultGridConfig : GridConfig
+defaultGridConfig : GridConfig dataType
 defaultGridConfig =
     { autoGroupColumnDef =
         { cellRendererParams =
@@ -472,15 +519,19 @@ defaultGridConfig =
     , groupDefaultExpanded = 0
     , groupIncludeFooter = False
     , groupIncludeTotalFooter = False
+    , groupSelectsChildren = False
+    , isRowSelectable = always True
     , pagination = False
     , quickFilterText = ""
-    , rowHeight = Nothing
     , rowGroupPanelShow = NeverVisible
+    , rowHeight = Nothing
+    , rowSelection = MultipleRowSelection
     , sideBar = defaultSidebar
     , size = "65vh"
     , sizeToFitAfterFirstDataRendered = True
     , stopEditingWhenCellsLoseFocus = True
     , suppressMenuHide = False
+    , suppressRowClickSelection = False
     , themeClasses = Nothing
     }
 
@@ -543,7 +594,7 @@ defaultSidebar =
     grid gridConfig events columns data
 
 -}
-grid : GridConfig -> List (Html.Attribute msg) -> List (ColumnDef dataType) -> List dataType -> Html msg
+grid : GridConfig dataType -> List (Html.Attribute msg) -> List (ColumnDef dataType) -> List dataType -> Html msg
 grid gridConfig events columnDefs data =
     let
         columns =
@@ -558,7 +609,7 @@ grid gridConfig events columnDefs data =
     node "ag-grid"
         ([ id "ag-grid"
          , attribute "columnDefs" columns
-         , attribute "rowData" (encodeData columnDefs data)
+         , attribute "rowData" (encodeData gridConfig columnDefs data)
          ]
             ++ configAttributes
             ++ events
@@ -566,7 +617,7 @@ grid gridConfig events columnDefs data =
         []
 
 
-prepareColumns : GridConfig -> List (ColumnDef dataType) -> List (ColumnDef dataType)
+prepareColumns : GridConfig dataType -> List (ColumnDef dataType) -> List (ColumnDef dataType)
 prepareColumns gridConfig columnDefs =
     if not gridConfig.autoSizeColumns then
         -- If columns are not automatically sized, we insert another (empty) column that
@@ -682,7 +733,7 @@ cellEditorParamsEncoder params =
         ]
 
 
-columnDefEncoder : GridConfig -> ColumnDef dataType -> Json.Encode.Value
+columnDefEncoder : GridConfig dataType -> ColumnDef dataType -> Json.Encode.Value
 columnDefEncoder gridConfig columnDef =
     Json.Encode.object
         [ ( "aggFunc"
@@ -711,6 +762,7 @@ columnDefEncoder gridConfig columnDef =
                 SumAggregation ->
                     Json.Encode.string "sum"
           )
+        , ( "checkboxSelection", Json.Encode.bool columnDef.settings.checkboxSelection )
         , ( "cellRenderer"
           , case columnDef.renderer of
                 AppRenderer _ _ ->
@@ -823,8 +875,20 @@ columnDefEncoder gridConfig columnDef =
                 ( Nothing, _ ) ->
                     Json.Encode.null
           )
+        , ( "headerCheckboxSelection", Json.Encode.bool columnDef.settings.headerCheckboxSelection )
         , ( "headerName", Json.Encode.string columnDef.headerName )
         , ( "hide", Json.Encode.bool columnDef.settings.hide )
+        , ( "lockPosition"
+          , case columnDef.settings.lockPosition of
+                LockToLeft ->
+                    Json.Encode.string "left"
+
+                LockToRight ->
+                    Json.Encode.string "right"
+
+                NoPositionLock ->
+                    Json.Encode.null
+          )
         , ( "minWidth", encodeMaybe Json.Encode.int columnDef.settings.minWidth )
         , ( "pinned"
           , case columnDef.settings.pinned of
@@ -840,6 +904,7 @@ columnDefEncoder gridConfig columnDef =
         , ( "resizable", Json.Encode.bool columnDef.settings.resizable )
         , ( "rowGroup", Json.Encode.bool columnDef.settings.rowGroup )
         , ( "sortable", Json.Encode.bool columnDef.settings.sortable )
+        , ( "showDisabledCheckboxes", Json.Encode.bool columnDef.settings.showDisabledCheckboxes )
         , ( "suppressColumnsToolPanel", Json.Encode.bool columnDef.settings.suppressColumnsToolPanel )
         , ( "suppressFiltersToolPanel", Json.Encode.bool columnDef.settings.suppressFiltersToolPanel )
         , ( "suppressSizeToFit"
@@ -1032,7 +1097,7 @@ eventTypeDecoder =
             )
 
 
-generateGridConfigAttributes : GridConfig -> List (Html.Attribute msg)
+generateGridConfigAttributes : GridConfig dataType -> List (Html.Attribute msg)
 generateGridConfigAttributes gridConfig =
     let
         encodedConfigValues =
@@ -1091,6 +1156,7 @@ generateGridConfigAttributes gridConfig =
             , ( "groupDefaultExpanded", Json.Encode.int gridConfig.groupDefaultExpanded )
             , ( "groupIncludeFooter", Json.Encode.bool gridConfig.groupIncludeFooter )
             , ( "groupIncludeTotalFooter", Json.Encode.bool gridConfig.groupIncludeTotalFooter )
+            , ( "groupSelectsChildren", Json.Encode.bool gridConfig.groupSelectsChildren )
             , ( "masterDetail"
               , Json.Encode.bool <|
                     case gridConfig.detailRenderer of
@@ -1110,6 +1176,17 @@ generateGridConfigAttributes gridConfig =
                         Json.Encode.null
               )
             , ( "rowGroupPanelShow", encodeRowGroupPanelVisibility gridConfig.rowGroupPanelShow )
+            , ( "rowSelection"
+              , case gridConfig.rowSelection of
+                    MultipleRowSelection ->
+                        Json.Encode.string "multiple"
+
+                    SingleRowSelection ->
+                        Json.Encode.string "single"
+
+                    NoRowSelection ->
+                        Json.Encode.null
+              )
             , ( "sideBar"
               , Json.Encode.object
                     [ ( "toolPanels", Json.Encode.list encodeSidebarType gridConfig.sideBar.panels )
@@ -1121,12 +1198,14 @@ generateGridConfigAttributes gridConfig =
                             SidebarRight ->
                                 Json.Encode.string "right"
                       )
+                    , ( "hiddenByDefault", Json.Encode.bool (List.isEmpty gridConfig.sideBar.panels) )
                     , ( "defaultToolPanel", encodeMaybe encodeSidebarType gridConfig.sideBar.defaultToolPanel )
                     ]
               )
             , ( "sizeToFitAfterFirstDataRendered", Json.Encode.bool gridConfig.sizeToFitAfterFirstDataRendered )
             , ( "stopEditingWhenCellsLoseFocus", Json.Encode.bool gridConfig.stopEditingWhenCellsLoseFocus )
             , ( "suppressMenuHide", Json.Encode.bool gridConfig.suppressMenuHide )
+            , ( "suppressRowClickSelection", Json.Encode.bool gridConfig.suppressRowClickSelection )
             ]
 
         createConfigAttribute ( key, value ) =
@@ -1181,13 +1260,23 @@ encodeSidebarType sidebarType =
                 "filters"
 
 
-rowEncoder : List (ColumnDef dataType) -> dataType -> Json.Encode.Value
-rowEncoder columns data =
+rowEncoder : GridConfig dataType -> List (ColumnDef dataType) -> dataType -> Json.Encode.Value
+rowEncoder gridConfig columns data =
     let
-        encoders =
+        rowCallbackValues =
+            ( "rowCallbackValues", rowCallbackValuesEncoder gridConfig data )
+
+        encodedAttributes =
             List.map (encoder data) columns
     in
-    Json.Encode.object encoders
+    Json.Encode.object (rowCallbackValues :: encodedAttributes)
+
+
+rowCallbackValuesEncoder : GridConfig dataType -> dataType -> Json.Encode.Value
+rowCallbackValuesEncoder gridConfig data =
+    Json.Encode.object
+        [ ( "isRowSelectable", Json.Encode.bool (gridConfig.isRowSelectable data) )
+        ]
 
 
 encoder : dataType -> ColumnDef dataType -> ( String, Json.Encode.Value )
@@ -1253,14 +1342,14 @@ encoder data column =
     )
 
 
-encodeData : List (ColumnDef dataType) -> List dataType -> String
-encodeData columns data =
+encodeData : GridConfig dataType -> List (ColumnDef dataType) -> List dataType -> String
+encodeData gridConfig columns data =
     if List.isEmpty data then
         Json.Encode.null |> Json.Encode.encode 0
 
     else
         data
-            |> Json.Encode.list (rowEncoder columns)
+            |> Json.Encode.list (rowEncoder gridConfig columns)
             |> Json.Encode.encode 0
 
 

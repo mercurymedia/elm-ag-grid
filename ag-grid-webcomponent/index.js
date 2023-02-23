@@ -173,6 +173,10 @@ class AgGrid extends HTMLElement {
         ...cellEditor,
         appRenderer,
       },
+
+      isRowSelectable: (params) => {
+        return !!params.data && params.data.rowCallbackValues.isRowSelectable;
+      },
     };
 
     // Use autoHeight if no height was specified on the DOM element otherwise.
