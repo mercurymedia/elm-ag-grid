@@ -5,6 +5,15 @@ import cellEditor from "./cell_editor";
 import appRenderer from "./app_renderer";
 
 let CUSTOM_AGGREGATIONS = {};
+let APP;
+
+function evalExpression(expression, params) {
+  return eval(
+    `(function(data) {
+      ${expression}
+      }(${JSON.stringify(params.node.data)}))`
+  );
+}
 
 class AgGrid extends HTMLElement {
   constructor() {
@@ -129,8 +138,35 @@ class AgGrid extends HTMLElement {
       });
     }
   }
+
   set columnDefs(defs) {
     this.api.setColumnDefs(defs);
+  }
+
+  set getContextMenuItems(data) {
+    function prepareContextAction(item, params) {
+      if (typeof item === "string") return item;
+
+      if (typeof item.action === "string") {
+        let port = APP.ports[item.action];
+        item.action = () => port.send(params);
+      }
+
+      item.subMenu =
+        item.subMenu && item.subMenu.length > 0
+          ? item.subMenu.map((item) => prepareContextAction(item))
+          : null;
+
+      if (typeof item.disabled === "string") {
+        item.disabled = evalExpression(item.disabled, params);
+      }
+
+      return item;
+    }
+
+    this._applyChange("getContextMenuItems", function (params) {
+      return data.map((item) => prepareContextAction(item, params));
+    });
   }
 
   _applyChange(propertyName, newValue) {
@@ -284,8 +320,9 @@ const setterProperties = Object.entries(
   .map(([key]) => key);
 
 export default class ElmAgGrid {
-  constructor({ apps = {}, aggregations = {} } = {}) {
+  constructor({ app = null, apps = {}, aggregations = {} } = {}) {
     window.ElmAgGridComponentRegistry = apps;
+    APP = app;
     CUSTOM_AGGREGATIONS = aggregations;
 
     customElements.define("ag-grid", AgGrid);

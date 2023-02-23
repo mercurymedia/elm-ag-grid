@@ -1,17 +1,21 @@
-module Main exposing (main)
+port module Main exposing (main)
 
 import Aggregation
 import Basic
 import Browser exposing (Document)
-import RowSelection
 import Browser.Navigation as Nav
 import Css
 import Css.Global
 import Grouping
 import Html.Styled exposing (Html, a, div, span, text)
 import Html.Styled.Attributes exposing (css, href, target)
+import Json.Encode
+import RowSelection
 import Url exposing (Url)
 import Url.Parser as Parser
+
+
+port incrementCounter : (Json.Encode.Value -> msg) -> Sub msg
 
 
 
@@ -51,6 +55,7 @@ type Msg
     | BasicMsg Basic.Msg
     | RowSelectionMsg RowSelection.Msg
     | NoOp
+    | GotCounterIncremented Json.Encode.Value
 
 
 
@@ -72,21 +77,24 @@ init flags url navKey =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    case model.page of
-        NotFound ->
-            Sub.none
+    Sub.batch
+        [ case model.page of
+            NotFound ->
+                Sub.none
 
-        Basic basicModel ->
-            Sub.map BasicMsg (Basic.subscriptions basicModel)
+            Basic basicModel ->
+                Sub.map BasicMsg (Basic.subscriptions basicModel)
 
-        Aggregation aggregationModel ->
-            Sub.map AggregationMsg (Aggregation.subscriptions aggregationModel)
+            Aggregation aggregationModel ->
+                Sub.map AggregationMsg (Aggregation.subscriptions aggregationModel)
 
-        Grouping _ ->
-            Sub.none
+            Grouping _ ->
+                Sub.none
 
-        RowSelection _ ->
-            Sub.none
+            RowSelection _ ->
+                Sub.none
+        , incrementCounter GotCounterIncremented
+        ]
 
 
 
@@ -133,6 +141,13 @@ update msg model =
             ( { model | page = RowSelection updatedRowSelectionModel }, Cmd.map RowSelectionMsg pageCmd )
 
         ( NoOp, _ ) ->
+            ( model, Cmd.none )
+
+        ( GotCounterIncremented _, _ ) ->
+            let
+                _ =
+                    Debug.log "increment counter" True
+            in
             ( model, Cmd.none )
 
         ( _, _ ) ->
@@ -195,7 +210,6 @@ viewNavigation =
         , viewPageLink "Aggregations & Formatting" "/aggregation"
         , viewPageLink "Grouping" "/grouping"
         , viewPageLink "RowSelection" "/row-selection"
-
         ]
 
 
@@ -254,7 +268,6 @@ changePageTo url model =
                 , Parser.map (Aggregation.init |> toPage Aggregation AggregationMsg) (Parser.s "aggregation")
                 , Parser.map ( { model | page = Grouping Grouping.init }, Cmd.none ) (Parser.s "grouping")
                 , Parser.map ( { model | page = RowSelection RowSelection.init }, Cmd.none ) (Parser.s "row-selection")
-
                 ]
     in
     Parser.parse parser url

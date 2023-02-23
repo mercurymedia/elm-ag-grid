@@ -49,6 +49,7 @@ module AgGrid exposing
 
 -}
 
+import AgGrid.ContextMenu exposing (ContextMenu)
 import AgGrid.ValueFormat as ValueFormat
 import Dict
 import Html exposing (Html, node)
@@ -57,6 +58,7 @@ import Html.Events
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline as DecodePipeline
 import Json.Encode
+import Json.Encode.Extra exposing (encodeMaybe)
 
 
 {-| Variants to aggregate values for a grouped column.
@@ -339,6 +341,7 @@ type alias GridConfig dataType =
     , autoSizeColumns : Bool
     , cacheQuickFilter : Bool
     , columnStates : List ColumnState
+    , contextMenu : Maybe ContextMenu
     , detailRenderer :
         Maybe
             { componentName : String
@@ -522,6 +525,7 @@ defaultGridConfig =
     , autoSizeColumns = False
     , cacheQuickFilter = False
     , columnStates = []
+    , contextMenu = Nothing
     , detailRenderer = Nothing
     , disableResizeOnScroll = False
     , filterStates = Dict.empty
@@ -1098,13 +1102,6 @@ filterStateEncoder filterState =
         ]
 
 
-encodeMaybe : (a -> Json.Encode.Value) -> Maybe a -> Json.Encode.Value
-encodeMaybe valueEncoder value =
-    value
-        |> Maybe.map valueEncoder
-        |> Maybe.withDefault Json.Encode.null
-
-
 eventTypeDecoder : Decoder EventType
 eventTypeDecoder =
     Decode.at [ "detail", "event", "type" ] Decode.string
@@ -1182,6 +1179,7 @@ generateGridConfigAttributes gridConfig =
               )
             , ( "filterState", filterStatesEncoder gridConfig.filterStates )
             , ( "headerHeight", Json.Encode.int 48 )
+            , ( "getContextMenuItems", encodeMaybe AgGrid.ContextMenu.encode gridConfig.contextMenu )
             , ( "quickFilterText"
               , if String.isEmpty gridConfig.quickFilterText then
                     Json.Encode.null
