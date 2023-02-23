@@ -16,14 +16,14 @@
   "repository": "git://github.com/mercurymedia/elm-ag-grid.git",
   "license": "MIT",
   "peerDependencies": {
-    "ag-grid-community": "^29.0.0",
-    "ag-grid-enterprise": "^29.0.0"
+    "ag-grid-community": "^29.1.0",
+    "ag-grid-enterprise": "^29.1.0"
   },
   "devDependencies": {
     "@parcel/transformer-elm": "^2.3.2",
     "@webcomponents/custom-elements": "^1.5.0",
-    "ag-grid-community": "^29.0.0",
-    "ag-grid-enterprise": "^29.0.0",
+    "ag-grid-community": "^29.1.0",
+    "ag-grid-enterprise": "^29.1.0",
     "elm": "^0.19.1-5",
     "parcel": "^2.3.2"
   }
