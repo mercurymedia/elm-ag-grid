@@ -1,6 +1,7 @@
 module Aggregation exposing (Model, Msg, init, subscriptions, update, view)
 
 import AgGrid exposing (Renderer(..), defaultGridConfig, defaultSettings)
+import AgGrid.ContextMenu as AgGridContextMenu exposing (defaultActionAttributes)
 import Css
 import Dict exposing (Dict)
 import Html.Styled exposing (Html, a, div, node, span, text)
@@ -116,7 +117,30 @@ viewGrid : Model -> Html Msg
 viewGrid model =
     let
         gridConfig =
-            { defaultGridConfig | themeClasses = Just "ag-theme-balham ag-basic", groupIncludeTotalFooter = True, size = "65vh" }
+            { defaultGridConfig
+                | themeClasses = Just "ag-theme-balham ag-basic"
+                , groupIncludeTotalFooter = True
+                , size = "65vh"
+                , contextMenu =
+                    Just
+                        [ AgGridContextMenu.autoSizeAllContextAction
+                        , AgGridContextMenu.contextAction
+                            { defaultActionAttributes
+                                | name = "Edit"
+                                , subMenu =
+                                    [ AgGridContextMenu.ChildContextAction AgGridContextMenu.copyContextAction
+                                    , AgGridContextMenu.ChildContextAction AgGridContextMenu.contextSeparator
+                                    , AgGridContextMenu.ChildContextAction AgGridContextMenu.pasteContextAction
+                                    ]
+                            }
+                        , AgGridContextMenu.contextAction
+                            { defaultActionAttributes
+                                | name = "Increase counter"
+                                , action = Just "incrementCounter"
+                                , disabled = Just "return data.id <= 10"
+                            }
+                        ]
+            }
 
         gridSettings =
             { defaultSettings | editable = True }
@@ -158,7 +182,7 @@ viewGrid model =
               , settings = { gridSettings | aggFunc = AgGrid.AvgAggregation }
               }
             , { field = "minAndMax"
-              , renderer = MaybeStringRenderer  (.us >> .discount >> Maybe.map String.fromFloat)
+              , renderer = MaybeStringRenderer (.us >> .discount >> Maybe.map String.fromFloat)
               , headerName = "Min & Max (Custom aggregation)"
               , settings = { gridSettings | aggFunc = AgGrid.CustomAggregation "Min&Max" }
               }
