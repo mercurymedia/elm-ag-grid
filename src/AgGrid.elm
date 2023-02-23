@@ -64,6 +64,7 @@ import Json.Encode
 type Aggregation
     = AvgAggregation
     | CountAggregation
+    | CustomAggregation String
     | FirstAggregation
     | LastAggregation
     | MaxAggregation
@@ -743,6 +744,9 @@ columnDefEncoder gridConfig columnDef =
 
                 CountAggregation ->
                     Json.Encode.string "count"
+
+                CustomAggregation name ->
+                    Json.Encode.string name
 
                 FirstAggregation ->
                     Json.Encode.string "first"
