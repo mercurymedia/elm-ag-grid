@@ -2,7 +2,7 @@ import "@webcomponents/custom-elements";
 import * as AgGridEnterprise from "ag-grid-enterprise";
 
 // This would usually be the pacakge import
-// import "@mercurymedia/elm-ag-grid";
+// import ElmAgGrid from "@mercurymedia/elm-ag-grid";
 import ElmAgGrid from "../ag-grid-webcomponent";
 import { Elm } from "./src/Main.elm";
 
