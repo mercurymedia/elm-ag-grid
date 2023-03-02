@@ -48,7 +48,7 @@ currencyValueFormatter { currency, countryCode } =
     String.Interpolate.interpolate """
         let input;
 
-        if (!value) { return null; }
+        if (value === null || value === undefined) { return null; }
 
         if (typeof value === 'object' && value.hasOwnProperty('value')) {
             // Group value
@@ -58,7 +58,7 @@ currencyValueFormatter { currency, countryCode } =
             input = value
         }
 
-        if (!input) { return null; }
+        if (input === null || input === undefined) { return null; }
 
         return new Intl.NumberFormat('{0}', { style: 'currency', currency: '{1}' }).format(input)
     """ [ countryCode, currency ]
@@ -80,7 +80,7 @@ decimalValueFormatter { countryCode, decimalPlaces } =
     String.Interpolate.interpolate """
         let input;
 
-        if (!value) { return null; }
+        if (value === null || value === undefined) { return null; }
 
         if (typeof value === 'object' && value.hasOwnProperty('value')) {
             // Group value
@@ -90,7 +90,7 @@ decimalValueFormatter { countryCode, decimalPlaces } =
             input = value
         }
 
-        if (!input) { return null; }
+        if (input === null || input === undefined) { return null; }
 
         return new Intl.NumberFormat('{0}', { style: 'decimal', maximumFractionDigits: '{1}' }).format(value)
     """ [ countryCode, String.fromInt decimalPlaces ]
@@ -109,7 +109,7 @@ percentValueFormatter { countryCode, decimalPlaces } =
     String.Interpolate.interpolate """
         let input;
 
-        if (!value) { return null; }
+        if (value === null || value === undefined) { return null; }
 
         if (typeof value === 'object' && value.hasOwnProperty('value')) {
             // Group value
@@ -119,7 +119,7 @@ percentValueFormatter { countryCode, decimalPlaces } =
             input = value
         }
 
-        if (!input) { return null; }
+        if (input === null || input === undefined) { return null; }
 
         return new Intl.NumberFormat('{0}', { style: 'percent', maximumFractionDigits: {1} }).format(value)
     """ [ countryCode, String.fromInt <| Basics.max (decimalPlaces - 2) 0 ]
