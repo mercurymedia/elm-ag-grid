@@ -1,5 +1,9 @@
 # Elm Changelog
 
+## [7.0.1]
+
+- Fix format of zero values when using Currency/Decimal/Percentage formatter.
+
 ## [7.0.0]
 
 We added some more properties to the `GridConfig` and the `ColumnSettings` to control the row selection in the table. Since this changes the two types this is a major update. But if you have been using the `defaultSettings` and `defaultGridConfig` then there is no change needed to the configurations.
