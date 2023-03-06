@@ -16,7 +16,7 @@ export default class DecimalEditor {
     this.eInput.value = this.formatValue(params.value);
 
     this.eInput.addEventListener("keydown", (event) => {
-      if (!this.isInputAllowed(event.key)) {
+      if (!this.isInputAllowed(event)) {
         // ignore invalid characters
         this.eInput.focus();
         if (event.preventDefault) event.preventDefault();
@@ -100,7 +100,7 @@ export default class DecimalEditor {
     }
 
     const fixablePattern = new RegExp(
-      `^[-]?([${this.escapedThousandsSep}\\d]*)(${this.escapedDecimalSep}[0-9]{1,})?$`
+      `^[-]?([${this.escapedThousandsSep}\\d]+)(${this.escapedDecimalSep}[0-9]+)?$`
     );
 
     return fixablePattern.test(event.target.value);
@@ -134,33 +134,37 @@ export default class DecimalEditor {
     );
   }
 
-  isInputAllowed(char) {
-    if (this.isNavigationKey(char)) return true;
+  isInputAllowed(event) {
+    if (this.isNavigationKey(event)) return true;
 
     if (this.invalidDecimalInput()) {
       return false;
     }
 
-    if (char == this.decimalSeparator && this.invalidDecimalSeparatorInput()) {
+    if (
+      event.key == this.decimalSeparator &&
+      this.invalidDecimalSeparatorInput()
+    ) {
       return false;
     }
 
-    return /[0-9\.,-]/.test(char);
+    return /[0-9\.,-]/.test(event.key);
   }
 
-  isNavigationKey(key) {
+  isNavigationKey(event) {
     return (
-      key === "ArrowLeft" ||
-      key === "ArrowRight" ||
-      key === "ArrowUp" ||
-      key === "ArrowDown" ||
-      key === "PageDown" ||
-      key === "PageUp" ||
-      key === "Home" ||
-      key === "End" ||
-      key === "Escape" ||
-      key === "Enter" ||
-      key === "Backspace"
+      event.ctrlKey ||
+      event.key === "ArrowLeft" ||
+      event.key === "ArrowRight" ||
+      event.key === "ArrowUp" ||
+      event.key === "ArrowDown" ||
+      event.key === "PageDown" ||
+      event.key === "PageUp" ||
+      event.key === "Home" ||
+      event.key === "End" ||
+      event.key === "Escape" ||
+      event.key === "Enter" ||
+      event.key === "Backspace"
     );
   }
 
