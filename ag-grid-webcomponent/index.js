@@ -190,7 +190,7 @@ class AgGrid extends HTMLElement {
       },
 
       aggFuncs: CUSTOM_AGGREGATIONS,
-      getRowId: (params) => params.data.id.toString(),
+      getRowId: (params) => params.data?.id?.toString(),
 
       isRowSelectable: (params) => {
         return !!params.data && params.data.rowCallbackValues.isRowSelectable;
