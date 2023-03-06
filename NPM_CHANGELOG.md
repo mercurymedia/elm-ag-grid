@@ -4,6 +4,8 @@
 
 - Added customized `onSelectionChange` event listener that returns now the current selection
 - Added `selectedIds` setter to handle custom selections
+- Fixed a bug that no leading minus could be entered without any number in the input field
+- Fixed a bug that no CTRL actions (cut, copy, paste, ...) where usable in the decimal input field
 
 ## [3.0.0]
 
