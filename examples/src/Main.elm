@@ -49,6 +49,7 @@ type Msg
     | ClickedLink Browser.UrlRequest
     | AggregationMsg Aggregation.Msg
     | BasicMsg Basic.Msg
+    | RowSelectionMsg RowSelection.Msg
     | NoOp
 
 
@@ -123,6 +124,13 @@ update msg model =
                     Basic.update subMsg basicModel
             in
             ( { model | page = Basic updatedBasicModel }, Cmd.map BasicMsg pageCmd )
+
+        ( RowSelectionMsg subMsg, RowSelection rowSelectionModel) ->
+            let
+                ( updatedRowSelectionModel, pageCmd ) =
+                    RowSelection.update subMsg rowSelectionModel
+            in
+            ( { model | page = RowSelection updatedRowSelectionModel }, Cmd.map RowSelectionMsg pageCmd )
 
         ( NoOp, _ ) ->
             ( model, Cmd.none )
@@ -226,7 +234,7 @@ viewPage page =
                 toPage (always NoOp) (Grouping.view pageModel)
 
             RowSelection pageModel ->
-                toPage (always NoOp) (RowSelection.view pageModel)
+                toPage (RowSelectionMsg) (RowSelection.view pageModel)
         ]
 
 

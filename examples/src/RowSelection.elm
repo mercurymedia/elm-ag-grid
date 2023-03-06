@@ -1,9 +1,12 @@
-module RowSelection exposing (Model, init, view)
+module RowSelection exposing (Model, Msg, init, update, view)
 
 import AgGrid exposing (Renderer(..), defaultGridConfig, defaultSettings)
 import Css
-import Html.Styled exposing (Html, a, div, node, span, text)
+import Html.Styled exposing (Html, a, button, div, node, span, text)
 import Html.Styled.Attributes exposing (css, href, target)
+import Html.Styled.Events exposing (onClick)
+import Json.Decode as Decode exposing (Decoder)
+import Set exposing (Set)
 
 
 
@@ -44,6 +47,7 @@ initialModel =
         , { id = 24, country = "United States", sport = "Fencing", name = "Corenda Addicote", year = 1999 }
         , { id = 25, country = "Russia", sport = "Cycling", name = "Kynthia Gisby", year = 1985 }
         ]
+    , currentSelection = Set.empty
     }
 
 
@@ -53,6 +57,7 @@ initialModel =
 
 type alias Model =
     { winners : List LineItem
+    , currentSelection : Set Int
     }
 
 
@@ -65,12 +70,40 @@ type alias LineItem =
     }
 
 
+type Msg
+    = GotRowSelection (Result Decode.Error (List Int))
+    | ResetSelection
+
+
+
+-- UPDATE
+
+
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+    case msg of
+        GotRowSelection (Err err) ->
+            ( model, Cmd.none )
+
+        GotRowSelection (Ok selection) ->
+            ( { model | currentSelection = Set.fromList selection }, Cmd.none )
+
+        ResetSelection ->
+            ( { model | currentSelection = Set.empty }, Cmd.none )
+
+
 
 -- VIEW
 
 
-view : Model -> Html ()
+view : Model -> Html Msg
 view model =
+    let
+        selection =
+            model.currentSelection
+                |> Set.toList
+                |> List.map String.fromInt
+    in
     div [ css [ Css.width (Css.pct 100), Css.margin2 (Css.rem 0) (Css.rem 1) ] ]
         [ div [ css [ Css.margin2 (Css.rem 1) (Css.px 0), Css.displayFlex, Css.alignItems Css.center ] ]
             [ span [ css [ Css.fontSize (Css.rem 1.8), Css.marginRight (Css.px 5) ] ] [ text "RowSelection" ]
@@ -79,12 +112,13 @@ view model =
         , div [ css [] ]
             [ div [] [ text "RowSelection" ]
             ]
-        , viewGrid model
+        , viewGrid model selection
+        , viewCurrentSelection selection
         ]
 
 
-viewGrid : Model -> Html ()
-viewGrid model =
+viewGrid : Model -> List String -> Html Msg
+viewGrid model selection =
     let
         defaultAutoGroupColumnDef =
             defaultGridConfig.autoGroupColumnDef
@@ -95,8 +129,8 @@ viewGrid model =
                 , rowSelection = AgGrid.MultipleRowSelection
                 , groupDefaultExpanded = 1
                 , groupSelectsChildren = True
-                , suppressRowClickSelection = True
-                , isRowSelectable = .year >> (<=) 2000
+                , selectedIds = selection
+                , isRowSelectable = .year >> (<=) 2000 
                 , autoGroupColumnDef =
                     { defaultAutoGroupColumnDef
                         | cellRendererParams =
@@ -144,6 +178,34 @@ viewGrid model =
     in
     node "row-selection-grid"
         [ css [ Css.display Css.block, Css.margin2 (Css.rem 1) (Css.px 0) ] ]
-        [ AgGrid.grid gridConfig [] columns model.winners
+        [ AgGrid.grid gridConfig
+            [ AgGrid.onSelectionChange selectionDecoder GotRowSelection ]
+            columns
+            model.winners
             |> Html.Styled.fromUnstyled
         ]
+
+
+viewCurrentSelection : List String -> Html Msg
+viewCurrentSelection selection =
+    div []
+        [ if List.isEmpty selection then
+            text "No items selected"
+
+          else
+            div []
+                [ div [] [ button [ onClick ResetSelection ] [ text "Deselect all" ] ]
+                , div []
+                    [ text ("Selected Items: " ++ String.join ", " selection)
+                    ]
+                ]
+        ]
+
+
+
+-- DECODER
+
+
+selectionDecoder : Decoder Int
+selectionDecoder =
+    Decode.at [ "data", "id" ] Decode.int
