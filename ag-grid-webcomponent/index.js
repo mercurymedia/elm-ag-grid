@@ -119,6 +119,17 @@ class AgGrid extends HTMLElement {
     }
   }
 
+  set selectedIds(selectedIds) {
+    if (selectedIds.length == 0) {
+      this.api.deselectAll();
+    } else {
+      this.api.forEachNode(function (node) {
+        const selected = selectedIds.includes(node.id);
+        node.setSelected(selected);
+      });
+    }
+  }
+
   _applyChange(propertyName, newValue) {
     let changeObject = {};
     changeObject[propertyName] = { currentValue: newValue };
@@ -169,16 +180,28 @@ class AgGrid extends HTMLElement {
   }
 
   _initializeGrid() {
+    const self = this;
+
     this.gridOptions = {
       components: {
         ...cellRenderer,
         ...cellEditor,
         appRenderer,
       },
+
       aggFuncs: CUSTOM_AGGREGATIONS,
+      getRowId: (params) => params.data.id.toString(),
 
       isRowSelectable: (params) => {
         return !!params.data && params.data.rowCallbackValues.isRowSelectable;
+      },
+
+      onSelectionChanged: function (event) {
+        const nodes = event.api.getSelectedNodes();
+        const selectionEvent = new CustomEvent("selectionChanged", {
+          detail: { nodes },
+        });
+        self.dispatchEvent(selectionEvent);
       },
     };
 

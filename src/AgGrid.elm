@@ -3,7 +3,7 @@ module AgGrid exposing
     , RowSelection(..), StateChange
     , GridConfig, grid
     , defaultGridConfig, defaultSettings
-    , onCellChanged, onCellDoubleClicked
+    , onCellChanged, onCellDoubleClicked, onSelectionChange
     , ColumnState, onColumnStateChanged, columnStatesDecoder, columnStatesEncoder
     , FilterState, onFilterStateChanged, filterStatesEncoder, filterStatesDecoder
     , Sidebar, SidebarType(..), SidebarPosition(..), defaultSidebar
@@ -30,7 +30,7 @@ module AgGrid exposing
 
 # Events
 
-@docs onCellChanged, onCellDoubleClicked
+@docs onCellChanged, onCellDoubleClicked, onSelectionChange
 
 
 # ColumnState
@@ -355,7 +355,9 @@ type alias GridConfig dataType =
     , quickFilterText : String
     , rowHeight : Maybe Int
     , rowGroupPanelShow : RowGroupPanelVisibility
+    , rowMultiSelectWithClick : Bool
     , rowSelection : RowSelection
+    , selectedIds : List String
     , sideBar : Sidebar
     , size : String
     , suppressMenuHide : Bool
@@ -363,6 +365,7 @@ type alias GridConfig dataType =
     , sizeToFitAfterFirstDataRendered : Bool
     , stopEditingWhenCellsLoseFocus : Bool
     , themeClasses : Maybe String
+    , suppressRowDeselection : Bool
     }
 
 
@@ -489,7 +492,9 @@ Can be used when implementing the grid.
         , quickFilterText = ""
         , rowGroupPanelShow = NeverVisible
         , rowHeight = Nothing
+        , rowMultiSelectWithClick = False
         , rowSelection = MultipleRowSelection
+        , selectedIds = []
         , sideBar = defaultSidebar
         , size = "65vh"
         , sizeToFitAfterFirstDataRendered = True
@@ -497,6 +502,7 @@ Can be used when implementing the grid.
         , suppressMenuHide = False
         , suppressRowClickSelection = False
         , themeClasses = Nothing
+        , suppressRowDeselection = False
         }
 
 -}
@@ -526,7 +532,9 @@ defaultGridConfig =
     , quickFilterText = ""
     , rowGroupPanelShow = NeverVisible
     , rowHeight = Nothing
+    , rowMultiSelectWithClick = False
     , rowSelection = MultipleRowSelection
+    , selectedIds = []
     , sideBar = defaultSidebar
     , size = "65vh"
     , sizeToFitAfterFirstDataRendered = True
@@ -534,6 +542,7 @@ defaultGridConfig =
     , suppressMenuHide = False
     , suppressRowClickSelection = False
     , themeClasses = Nothing
+    , suppressRowDeselection = False
     }
 
 
@@ -721,6 +730,24 @@ onFilterStateChanged toMsg =
     Decode.map2 (\type_ states -> { event = { type_ = type_ }, states = states }) eventTypeDecoder statesDecoder
         |> Decode.map toMsg
         |> Html.Events.on "filterStateChanged"
+
+
+{-| Detect selection change events.
+
+Sends the current selection of [nodes](https://www.ag-grid.com/javascript-data-grid/row-object/) to the `toMsg`.
+
+-}
+onSelectionChange : Decoder node -> (Result Decode.Error (List node) -> msg) -> Html.Attribute msg
+onSelectionChange nodeDecoder toMsg =
+    let
+        nodesDecoder =
+            Decode.list nodeDecoder
+    in
+    Html.Events.on "selectionChanged"
+        (Decode.at [ "detail", "nodes" ] Decode.value
+            |> Decode.map (Decode.decodeValue nodesDecoder)
+            |> Decode.map toMsg
+        )
 
 
 
@@ -1180,6 +1207,7 @@ generateGridConfigAttributes gridConfig =
                         Json.Encode.null
               )
             , ( "rowGroupPanelShow", encodeRowGroupPanelVisibility gridConfig.rowGroupPanelShow )
+            , ( "rowMultiSelectWithClick", Json.Encode.bool gridConfig.rowMultiSelectWithClick )
             , ( "rowSelection"
               , case gridConfig.rowSelection of
                     MultipleRowSelection ->
@@ -1191,6 +1219,7 @@ generateGridConfigAttributes gridConfig =
                     NoRowSelection ->
                         Json.Encode.null
               )
+            , ( "selectedIds", Json.Encode.list Json.Encode.string gridConfig.selectedIds )
             , ( "sideBar"
               , Json.Encode.object
                     [ ( "toolPanels", Json.Encode.list encodeSidebarType gridConfig.sideBar.panels )
@@ -1210,6 +1239,7 @@ generateGridConfigAttributes gridConfig =
             , ( "stopEditingWhenCellsLoseFocus", Json.Encode.bool gridConfig.stopEditingWhenCellsLoseFocus )
             , ( "suppressMenuHide", Json.Encode.bool gridConfig.suppressMenuHide )
             , ( "suppressRowClickSelection", Json.Encode.bool gridConfig.suppressRowClickSelection )
+            , ( "suppressRowDeselection", Json.Encode.bool gridConfig.suppressRowDeselection )
             ]
 
         createConfigAttribute ( key, value ) =
