@@ -1,5 +1,10 @@
 # NPM Changelog
 
+## [3.1.0]
+
+- Added customized `onSelectionChange` event listener that returns now the current selection
+- Added `selectedIds` setter to handle custom selections
+
 ## [3.0.0]
 
 - Added `isRowSelectable` callback to the GridOptions
