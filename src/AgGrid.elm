@@ -501,8 +501,8 @@ Can be used when implementing the grid.
         , stopEditingWhenCellsLoseFocus = True
         , suppressMenuHide = False
         , suppressRowClickSelection = False
-        , themeClasses = Nothing
         , suppressRowDeselection = False
+        , themeClasses = Nothing
         }
 
 -}
@@ -541,8 +541,8 @@ defaultGridConfig =
     , stopEditingWhenCellsLoseFocus = True
     , suppressMenuHide = False
     , suppressRowClickSelection = False
-    , themeClasses = Nothing
     , suppressRowDeselection = False
+    , themeClasses = Nothing
     }
 
 

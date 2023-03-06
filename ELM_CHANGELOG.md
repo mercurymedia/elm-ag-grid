@@ -1,5 +1,11 @@
 # Elm Changelog
 
+## [8.0.0]
+
+- Added `suppressRowDeselection` and `rowMultiSelectWithClick` attributes to the `GridConfig`
+- Added `selectedIds` to the `GridConfig` allowing to preset a item selection
+- Added `onSelectionChange` event to read the current selection whenever the selection changes
+
 ## [7.0.1]
 
 - Fix format of zero values when using Currency/Decimal/Percentage formatter.
