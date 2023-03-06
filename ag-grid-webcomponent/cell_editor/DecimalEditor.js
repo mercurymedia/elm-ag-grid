@@ -15,6 +15,11 @@ export default class DecimalEditor {
     this.eInput = document.createElement("input");
     this.eInput.value = this.formatValue(params.value);
 
+    this.eInput.style.width = "100%";
+    this.eInput.style.height = "100%";
+    this.eInput.style.border = "none";
+    this.eInput.style.outline = "none";
+
     this.eInput.addEventListener("keydown", (event) => {
       if (!this.isInputAllowed(event)) {
         // ignore invalid characters
