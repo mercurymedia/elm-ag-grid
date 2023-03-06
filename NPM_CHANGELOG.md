@@ -1,5 +1,9 @@
 # NPM Changelog
 
+## [3.1.1]
+
+- Using null-safe access operator for `getRowId`
+
 ## [3.1.0]
 
 - Added customized `onSelectionChange` event listener that returns now the current selection
