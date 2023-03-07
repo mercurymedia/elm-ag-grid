@@ -1,5 +1,9 @@
 # Elm Changelog
 
+## [9.0.0]
+
+- Added `rowId` to `GridConfig` allowing to configure a custom rowId depending on a data attribute
+
 ## [8.0.0]
 
 - Added `suppressRowDeselection` and `rowMultiSelectWithClick` attributes to the `GridConfig`
