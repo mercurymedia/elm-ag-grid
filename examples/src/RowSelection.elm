@@ -131,6 +131,7 @@ viewGrid model selection =
                 , groupSelectsChildren = True
                 , selectedIds = selection
                 , isRowSelectable = .year >> (<=) 2000 
+                , rowId = Just (.id >> String.fromInt )
                 , autoGroupColumnDef =
                     { defaultAutoGroupColumnDef
                         | cellRendererParams =
