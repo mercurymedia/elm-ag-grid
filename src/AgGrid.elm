@@ -354,6 +354,7 @@ type alias GridConfig dataType =
     , pagination : Bool
     , quickFilterText : String
     , rowHeight : Maybe Int
+    , rowId : Maybe (dataType -> String)
     , rowGroupPanelShow : RowGroupPanelVisibility
     , rowMultiSelectWithClick : Bool
     , rowSelection : RowSelection
@@ -530,6 +531,7 @@ defaultGridConfig =
     , isRowSelectable = always True
     , pagination = False
     , quickFilterText = ""
+    , rowId = Nothing
     , rowGroupPanelShow = NeverVisible
     , rowHeight = Nothing
     , rowMultiSelectWithClick = False
@@ -1149,6 +1151,7 @@ generateGridConfigAttributes gridConfig =
             , ( "animateRows", Json.Encode.bool True )
             , ( "cacheQuickFilter", Json.Encode.bool gridConfig.cacheQuickFilter )
             , ( "columnState", columnStatesEncoder gridConfig.columnStates )
+            , ( "customRowId", Json.Encode.bool (gridConfig.rowId /= Nothing) )
             , ( "detailCellRenderer"
               , case gridConfig.detailRenderer of
                     Just _ ->
@@ -1310,6 +1313,14 @@ rowCallbackValuesEncoder : GridConfig dataType -> dataType -> Json.Encode.Value
 rowCallbackValuesEncoder gridConfig data =
     Json.Encode.object
         [ ( "isRowSelectable", Json.Encode.bool (gridConfig.isRowSelectable data) )
+        , ( "rowId"
+          , case gridConfig.rowId of
+                Just rowId ->
+                    Json.Encode.string (rowId data)
+
+                Nothing ->
+                    Json.Encode.null
+          )
         ]
 
 

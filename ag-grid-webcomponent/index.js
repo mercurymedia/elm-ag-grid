@@ -182,7 +182,7 @@ class AgGrid extends HTMLElement {
   _initializeGrid() {
     const self = this;
 
-    this.gridOptions = {
+    let gridOptions = {
       components: {
         ...cellRenderer,
         ...cellEditor,
@@ -190,7 +190,6 @@ class AgGrid extends HTMLElement {
       },
 
       aggFuncs: CUSTOM_AGGREGATIONS,
-      getRowId: (params) => params.data?.id?.toString(),
 
       isRowSelectable: (params) => {
         return !!params.data && params.data.rowCallbackValues.isRowSelectable;
@@ -204,6 +203,14 @@ class AgGrid extends HTMLElement {
         self.dispatchEvent(selectionEvent);
       },
     };
+
+    if (this.loadAttribute("customRowId")) {
+      gridOptions.getRowId = function (params) {
+        return params.data.rowCallbackValues.rowId;
+      };
+    }
+
+    this.gridOptions = gridOptions;
 
     // Use autoHeight if no height was specified on the DOM element otherwise.
     if (!this.style.height) this.api.setDomLayout("autoHeight");
