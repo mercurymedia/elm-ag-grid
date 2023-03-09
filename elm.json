@@ -3,7 +3,7 @@
     "name": "mercurymedia/elm-ag-grid",
     "summary": "AgGrid integration for Elm",
     "license": "MIT",
-    "version": "9.0.0",
+    "version": "9.1.0",
     "exposed-modules": [
         "AgGrid"
     ],

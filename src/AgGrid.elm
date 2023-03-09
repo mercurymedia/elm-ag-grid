@@ -1,6 +1,6 @@
 module AgGrid exposing
-    ( Aggregation(..), ColumnDef, FilterType(..), LockPosition(..), PinningType(..), Renderer(..), RowGroupPanelVisibility(..)
-    , RowSelection(..), StateChange
+    ( Aggregation(..), ColumnDef, ColumnSettings, FilterType(..), LockPosition(..), PinningType(..), Renderer(..)
+    , RowGroupPanelVisibility(..), RowSelection(..), StateChange
     , GridConfig, grid
     , defaultGridConfig, defaultSettings
     , onCellChanged, onCellDoubleClicked, onSelectionChange
@@ -14,8 +14,8 @@ module AgGrid exposing
 
 # Data Types
 
-@docs Aggregation, ColumnDef, FilterType, LockPosition, PinningType, Renderer, RowGroupPanelVisibility
-@docs RowSelection, StateChange
+@docs Aggregation, ColumnDef, ColumnSettings, FilterType, LockPosition, PinningType, Renderer
+@docs RowGroupPanelVisibility, RowSelection, StateChange
 
 
 # Grid

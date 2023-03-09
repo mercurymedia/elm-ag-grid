@@ -1,5 +1,9 @@
 # Elm Changelog
 
+## [9.1.0]
+
+- Exposing the `ColumnSettings` type alias.
+
 ## [9.0.0]
 
 - Added `rowId` to `GridConfig` allowing to configure a custom rowId depending on a data attribute
