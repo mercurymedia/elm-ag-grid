@@ -1,5 +1,9 @@
 # NPM Changelog
 
+## [3.2.1]
+
+- Listening for `onColumnVisible` event for column state changes
+
 ## [3.2.0]
 
 - Added callback value to customize the row ID

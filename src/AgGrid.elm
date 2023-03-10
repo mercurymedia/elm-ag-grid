@@ -78,6 +78,7 @@ type Aggregation
 type EventType
     = ColumnMoved
     | ColumnResized
+    | ColumnVisible
     | FilterChanged
     | GridColumnsChanged
     | SortChanged
@@ -1115,6 +1116,9 @@ eventTypeDecoder =
 
                     "columnResized" ->
                         Decode.succeed ColumnResized
+
+                    "columnVisible" ->
+                        Decode.succeed ColumnVisible
 
                     "gridColumnsChanged" ->
                         Decode.succeed GridColumnsChanged
