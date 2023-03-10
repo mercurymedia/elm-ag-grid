@@ -239,6 +239,7 @@ class AgGrid extends HTMLElement {
       "onColumnMoved",
       "onGridColumnsChanged",
       "onColumnResized",
+      "onColumnVisible",
     ];
     const _this = this;
 

@@ -1,5 +1,9 @@
 # Elm Changelog
 
+## [9.1.1]
+
+- Added `ColumnVisible` event type for GridState changes
+
 ## [9.1.0]
 
 - Exposing the `ColumnSettings` type alias.
