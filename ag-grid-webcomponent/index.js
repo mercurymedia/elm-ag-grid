@@ -129,6 +129,9 @@ class AgGrid extends HTMLElement {
       });
     }
   }
+  set columnDefs(defs) {
+    this.api.setColumnDefs(defs);
+  }
 
   _applyChange(propertyName, newValue) {
     let changeObject = {};

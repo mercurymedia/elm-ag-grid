@@ -1,5 +1,9 @@
 # NPM Changelog
 
+## [3.2.2]
+
+- Add setter for `columnDefs` to make use of the gridApi
+
 ## [3.2.1]
 
 - Listening for `onColumnVisible` event for column state changes
