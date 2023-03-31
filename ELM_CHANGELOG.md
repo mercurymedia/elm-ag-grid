@@ -1,5 +1,9 @@
 # Elm Changelog
 
+## [11.0.0]
+
+- Add `autoHeaderHeight` and `wrapHeaderText` to `ColumnSettings`
+
 ## [10.2.0]
 
 - Exposing `not` operator utility function from `AgGrid.Expression`
