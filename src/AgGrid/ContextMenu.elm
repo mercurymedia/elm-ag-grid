@@ -33,6 +33,7 @@ module AgGrid.ContextMenu exposing
 
 -}
 
+import AgGrid.Expression as Expression exposing (Eval(..))
 import Json.Encode
 import Json.Encode.Extra
 
@@ -55,7 +56,7 @@ type alias ContextActionAttributes =
     , checked : Maybe Bool
     , action : Maybe String
     , icon : Maybe String
-    , disabled : Maybe String
+    , disabled : Eval Bool
     , subMenu : List ChildContextAction
     }
 
@@ -68,7 +69,7 @@ contextAction :
     { name : String
     , checked : Maybe Bool
     , action : Maybe String
-    , disabled : Maybe String
+    , disabled : Eval Bool
     , icon : Maybe String
     , subMenu : List ChildContextAction
     }
@@ -81,7 +82,7 @@ defaultActionAttributes : ContextActionAttributes
 defaultActionAttributes =
     { name = ""
     , checked = Nothing
-    , disabled = Nothing
+    , disabled = Const False
     , action = Nothing
     , icon = Nothing
     , subMenu = []
@@ -192,7 +193,7 @@ encodeCustomContextAction action =
         [ ( "name", Json.Encode.string action.name )
         , ( "checked", Json.Encode.Extra.encodeMaybe Json.Encode.bool action.checked )
         , ( "action", Json.Encode.Extra.encodeMaybe Json.Encode.string action.action )
-        , ( "disabled", Json.Encode.Extra.encodeMaybe Json.Encode.string action.disabled )
+        , ( "disabledCallback", Expression.encode Json.Encode.bool action.disabled )
         , ( "icon", Json.Encode.Extra.encodeMaybe Json.Encode.string action.icon )
         , ( "subMenu", Json.Encode.list encodeSubMenuItem action.subMenu )
         ]

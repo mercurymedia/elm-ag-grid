@@ -2,6 +2,7 @@ module Aggregation exposing (Model, Msg, init, subscriptions, update, view)
 
 import AgGrid exposing (Renderer(..), defaultGridConfig, defaultSettings)
 import AgGrid.ContextMenu as AgGridContextMenu exposing (defaultActionAttributes)
+import AgGrid.Expression as Expression
 import Css
 import Dict exposing (Dict)
 import Html.Styled exposing (Html, a, div, node, span, text)
@@ -137,7 +138,14 @@ viewGrid model =
                             { defaultActionAttributes
                                 | name = "Increase counter"
                                 , action = Just "incrementCounter"
-                                , disabled = Just "return data.id <= 10"
+                                , disabled =
+                                    Expression.Expr
+                                        (Expression.Op
+                                            (Expression.Lte
+                                                (Expression.Value "id")
+                                                (Expression.Lit (Expression.IntLiteral 10))
+                                            )
+                                        )
                             }
                         ]
             }
