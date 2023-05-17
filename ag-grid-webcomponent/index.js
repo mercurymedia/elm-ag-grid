@@ -151,7 +151,6 @@ class AgGrid extends HTMLElement {
                 item.disabled = item.disabledCallback;
             }
 
-
             return item;
         }
 
@@ -162,7 +161,9 @@ class AgGrid extends HTMLElement {
     });
 }
 
-_applyChange(propertyName, newValue) {
+
+  _applyChange(propertyName, newValue) {
+
     let changeObject = {};
     changeObject[propertyName] = { currentValue: newValue };
 
@@ -318,6 +319,7 @@ export default class ElmAgGrid {
         APP = app;
         CUSTOM_AGGREGATIONS = aggregations;
 
+
         customElements.define("ag-grid", AgGrid);
-    }
+    }gg
 }

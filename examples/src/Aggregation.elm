@@ -139,6 +139,7 @@ viewGrid model =
                                 | name = "Increase counter"
                                 , action = Just "incrementCounter"
                                 , disabled = Expression.Expr (Expression.lte (Expression.value "id") (Expression.int 10))
+
                             }
                         ]
             }

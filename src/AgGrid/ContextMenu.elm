@@ -33,6 +33,7 @@ module AgGrid.ContextMenu exposing
 
 -}
 
+
 import AgGrid.Expression as Expression exposing (Eval(..))
 import Json.Encode
 import Json.Encode.Extra
@@ -83,6 +84,7 @@ defaultActionAttributes =
     { name = ""
     , checked = Nothing
     , disabled = Const False
+    , disabled = Nothing
     , action = Nothing
     , icon = Nothing
     , subMenu = []
