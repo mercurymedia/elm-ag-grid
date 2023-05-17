@@ -1,4 +1,19 @@
-module AgGrid.Expression exposing (Eval(..), Expression(..), Literal(..), Operator(..), encode)
+module AgGrid.Expression exposing
+    ( Eval(..)
+    , Expression
+    , Literal
+    , Operator
+    , encode
+    , eq
+    , float
+    , gte
+    , int
+    , lte
+    , string
+    , value
+    , or 
+    , and
+    )
 
 import Json.Encode as Encode
 
@@ -33,8 +48,8 @@ type Operator
 encode : (a -> Encode.Value) -> Eval a -> Encode.Value
 encode constEncoder eval =
     case eval of
-        Const value ->
-            constEncoder value
+        Const const ->
+            constEncoder const
 
         Expr expr ->
             encodeExpression expr
@@ -43,16 +58,16 @@ encode constEncoder eval =
 encodeExpression : Expression -> Encode.Value
 encodeExpression expr =
     case expr of
-        Lit value ->
+        Lit literal ->
             Encode.object
                 [ ( "type", Encode.string "literal" )
-                , ( "value", encodeLiteral value )
+                , ( "value", encodeLiteral literal )
                 ]
 
-        Value value ->
+        Value v ->
             Encode.object
                 [ ( "type", Encode.string "value" )
-                , ( "value", Encode.string value )
+                , ( "value", Encode.string v )
                 ]
 
         Op operator ->
@@ -97,14 +112,14 @@ encodeOperator operator =
 encodeLiteral : Literal -> Encode.Value
 encodeLiteral literal =
     case literal of
-        StringLiteral value ->
-            Encode.string value
+        StringLiteral s ->
+            Encode.string s
 
-        IntLiteral value ->
-            Encode.int value
+        IntLiteral i ->
+            Encode.int i
 
-        FloatLiteral value ->
-            Encode.float value
+        FloatLiteral f ->
+            Encode.float f
 
 
 operatorToString : Operator -> String
@@ -130,3 +145,52 @@ operatorToString operator =
 
         Lte _ _ ->
             "<="
+
+
+
+-- Helper functions
+
+
+value : String -> Expression
+value accessor =
+    Value accessor
+
+
+or : Expression -> Expression -> Expression
+or left right =
+    Op (Or left right)
+
+
+and : Expression -> Expression -> Expression
+and left right =
+    Op (And left right)
+
+
+eq : Expression -> Expression -> Expression
+eq left right =
+    Op (Eq left right)
+
+
+lte : Expression -> Expression -> Expression
+lte left right =
+    Op (Lte left right)
+
+
+gte : Expression -> Expression -> Expression
+gte left right =
+    Op (Gte left right)
+
+
+int : Int -> Expression
+int i =
+    Lit (IntLiteral i)
+
+
+string : String -> Expression
+string s =
+    Lit (StringLiteral s)
+
+
+float : Float -> Expression
+float f =
+    Lit (FloatLiteral f)

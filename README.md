@@ -249,3 +249,13 @@ This aggregation can be referenced in Elm by using the `CustomAggregation` type 
 ```elm
 { ..., settings = { defaultSettings | aggFunc = CustomAggregation "foo" }}
 ```
+
+## Examples 
+
+To run the examples in the browser clone the repo and run:
+
+```sh 
+$ npm start
+```
+
+Open you browser at [localhost:1234](http://localhost:1234)
