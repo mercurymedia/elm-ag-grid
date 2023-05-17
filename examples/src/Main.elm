@@ -17,8 +17,6 @@ import Url.Parser as Parser
 
 port incrementCounter : (Json.Encode.Value -> msg) -> Sub msg
 
-
-
 -- MAIN
 
 

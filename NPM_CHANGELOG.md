@@ -1,5 +1,9 @@
 # NPM Changelog
 
+## [3.3.0]
+
+- Added `expression.js` to evaluate serialized expressions for the context menu actions
+
 ## [3.2.1]
 
 - Listening for `onColumnVisible` event for column state changes

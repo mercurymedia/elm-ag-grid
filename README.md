@@ -250,6 +250,54 @@ This aggregation can be referenced in Elm by using the `CustomAggregation` type 
 { ..., settings = { defaultSettings | aggFunc = CustomAggregation "foo" }}
 ```
 
+## ContextMenu
+
+**Requires AgGrid Enterprise**
+
+Context menu actions can be defined in Elm in the `gridConfig` by using the `AgGrid.ContextMenu` module. The predefined context menu actions are covered within that module.
+
+```elm
+gridConfig = 
+    { defaultGridConfig 
+        | contextMenu = 
+            Just 
+                [ AgGrid.ContextMenu.autoSizeAllContextAction ] 
+        }
+```
+
+To create a custom context action we make use of ports to handle the action in elm.
+
+```elm 
+port incrementCounter : (Json.Encode.Value -> msg) -> Sub msg
+
+gridConfig = 
+    { defaultGridConfig 
+        | contextMenu = 
+            Just 
+                [ AgGrid.ContextMenu.contextAction 
+                    { defaultActionAttributes
+                        | name = "Increase counter"
+                        , action = Just "incrementCounter"
+                    }
+                ] 
+        }
+```
+
+The `disabled` attribute uses the `AgGrid.Expression` module, to serialize expressions in a save way. This makes sure that we prevent XSS atacks.
+
+```elm
+import AgGrid.Expression as Expression
+
+... 
+
+AgGrid.ContextMenu.contextAction 
+    { defaultActionAttributes
+        | name = "Increase counter"
+        , action = Just "incrementCounter"
+        , disabled = Expression.Expr (Expression.lte (Expression.value "id") (Expression.int 10))
+    }
+```
+
 ## Examples 
 
 To run the examples in the browser clone the repo and run:
