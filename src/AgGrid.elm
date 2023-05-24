@@ -7,6 +7,7 @@ module AgGrid exposing
     , ColumnState, onColumnStateChanged, columnStatesDecoder, columnStatesEncoder
     , FilterState, onFilterStateChanged, filterStatesEncoder, filterStatesDecoder
     , Sidebar, SidebarType(..), SidebarPosition(..), defaultSidebar
+    , onContextMenu
     )
 
 {-| AgGrid integration for elm.
@@ -59,6 +60,7 @@ import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline as DecodePipeline
 import Json.Encode
 import Json.Encode.Extra exposing (encodeMaybe)
+import Json.Decode as Decode
 
 
 {-| Variants to aggregate values for a grouped column.
@@ -703,6 +705,24 @@ onCellDoubleClicked dataDecoder toMsg =
             Decode.map2 (\v e -> toMsg <| Tuple.pair v e) valueDecoder elementDecoder
     in
     Html.Events.on "celldoubleclicked" event
+
+
+{-| Detect click on custom context menu actions
+-}
+onContextMenu : Decoder dataType -> (( Result Decode.Error dataType, String ) -> msg) -> Html.Attribute msg
+onContextMenu dataDecoder toMsg =
+    let
+        actionDecoder =
+            Decode.at [ "detail", "action" ] Decode.string
+
+        elementDecoder =
+            Decode.at [ "detail", "data" ] Decode.value
+            |> Decode.map (Decode.decodeValue dataDecoder)
+
+        event =
+            Decode.map2 (\v e -> toMsg <| Tuple.pair v e) elementDecoder actionDecoder
+    in
+    Html.Events.on "oncontextaction" event
 
 
 {-| Detect change events to the table structure (e.g. sorting or moved columns).

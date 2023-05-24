@@ -54,7 +54,7 @@ type ChildContextAction
 type alias ContextActionAttributes =
     { name : String
     , checked : Maybe Bool
-    , action : Maybe String
+    , actionName : Maybe String
     , icon : Maybe String
     , disabled : Eval Bool
     , subMenu : List ChildContextAction
@@ -68,7 +68,7 @@ type alias ContextActionAttributes =
 contextAction :
     { name : String
     , checked : Maybe Bool
-    , action : Maybe String
+    , actionName : Maybe String
     , disabled : Eval Bool
     , icon : Maybe String
     , subMenu : List ChildContextAction
@@ -83,7 +83,7 @@ defaultActionAttributes =
     { name = ""
     , checked = Nothing
     , disabled = Const False
-    , action = Nothing
+    , actionName = Nothing
     , icon = Nothing
     , subMenu = []
     }
@@ -192,7 +192,7 @@ encodeCustomContextAction action =
     Json.Encode.object
         [ ( "name", Json.Encode.string action.name )
         , ( "checked", Json.Encode.Extra.encodeMaybe Json.Encode.bool action.checked )
-        , ( "action", Json.Encode.Extra.encodeMaybe Json.Encode.string action.action )
+        , ( "actionName", Json.Encode.Extra.encodeMaybe Json.Encode.string action.actionName )
         , ( "disabledCallback", Expression.encode Json.Encode.bool action.disabled )
         , ( "icon", Json.Encode.Extra.encodeMaybe Json.Encode.string action.icon )
         , ( "subMenu", Json.Encode.list encodeSubMenuItem action.subMenu )

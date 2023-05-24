@@ -5,7 +5,7 @@ import AgGrid.ContextMenu as AgGridContextMenu exposing (defaultActionAttributes
 import AgGrid.Expression as Expression exposing (Eval(..))
 import Css
 import Dict exposing (Dict)
-import Html.Styled exposing (Html, a, div, node, span, text)
+import Html.Styled exposing (Html, a, div, h3, node, span, text)
 import Html.Styled.Attributes exposing (css, href, target)
 import Json.Decode as Decode
 import Json.Decode.Pipeline as DecodePipeline
@@ -51,6 +51,7 @@ initialModel =
         ]
             |> List.map (\item -> ( item.id, item ))
             |> Dict.fromList
+    , counter = 0
     }
 
 
@@ -60,6 +61,7 @@ initialModel =
 
 type alias Model =
     { costs : Dict Int LineItem
+    , counter : Int
     }
 
 
@@ -79,6 +81,7 @@ type alias Cost =
 
 type Msg
     = CellChanged (Result Decode.Error LineItem)
+    | ContextMenuAction ( Result Decode.Error Int, String )
 
 
 
@@ -93,6 +96,14 @@ update msg model =
 
         CellChanged (Ok change) ->
             ( { model | costs = Dict.insert change.id change model.costs }, Cmd.none )
+
+        ContextMenuAction ( result, action ) ->
+            case result of
+                Ok id ->
+                    ( { model | counter = model.counter + 1 }, Cmd.none )
+
+                Err _ ->
+                    ( model, Cmd.none )
 
 
 
@@ -111,6 +122,8 @@ view model =
             , div [ css [ Css.marginTop (Css.rem 1) ] ] [ text "This formatting can be customized by overwriting the valueFormatter expression on the column settings." ]
             ]
         , viewGrid model
+        , div []
+            [ h3 [] [ text ("You increased the counter from the context menu " ++ String.fromInt model.counter ++ " times!") ] ]
         ]
 
 
@@ -137,7 +150,7 @@ viewGrid model =
                         , AgGridContextMenu.contextAction
                             { defaultActionAttributes
                                 | name = "Increase counter"
-                                , action = Just "incrementCounter"
+                                , actionName = Just "incrementCounter"
                                 , disabled = Expression.Expr (Expression.lte (Expression.value "id") (Expression.int 10))
                             }
                         ]
@@ -192,7 +205,9 @@ viewGrid model =
     node "aggregation-grid"
         [ css [ Css.display Css.block, Css.margin2 (Css.rem 1) (Css.px 0) ] ]
         [ AgGrid.grid gridConfig
-            [ AgGrid.onCellChanged changeDecoder CellChanged ]
+            [ AgGrid.onCellChanged changeDecoder CellChanged
+            , AgGrid.onContextMenu idDecoder ContextMenuAction
+            ]
             columns
             (Dict.values model.costs)
             |> Html.Styled.fromUnstyled
@@ -225,3 +240,8 @@ changeDecoder =
         |> DecodePipeline.required "id" Decode.int
         |> DecodePipeline.custom (costDecoder "priceDE" "volumeDE" "discountDE")
         |> DecodePipeline.custom (costDecoder "priceUS" "volumeUS" "discountUS")
+
+
+idDecoder : Decode.Decoder Int
+idDecoder =
+    Decode.field "id" Decode.int

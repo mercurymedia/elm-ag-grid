@@ -137,12 +137,21 @@ class AgGrid extends HTMLElement {
   }
 
   set getContextMenuItems(data) {
-    function prepareContextAction(item, params) {
+    const prepareContextAction = (item, params) => {
       if (typeof item === "string") return item;
 
-      if (typeof item.action === "string") {
-        let port = APP.ports[item.action];
-        item.action = () => port.send(params);
+      if (typeof item.actionName === "string") {
+        item.action = () => {
+          const contextMenuEvent = new CustomEvent("oncontextaction", {
+            detail: {
+              action: item.actionName,
+              data: params.node.data,
+            }
+          });
+
+          console.log(params)
+          this.dispatchEvent(contextMenuEvent)
+        }
       }
 
       item.subMenu =
@@ -160,11 +169,9 @@ class AgGrid extends HTMLElement {
       return item;
     }
 
-    this._applyChange("getContextMenuItems", function(params) {
-      return data.map((item) => {
-        return prepareContextAction(item, params)
-      });
-    });
+    this._applyChange("getContextMenuItems", (params) =>
+      data.map((item) => prepareContextAction(item, params))
+    );
   }
 
   _applyChange(propertyName, newValue) {
