@@ -722,7 +722,7 @@ onContextMenu dataDecoder toMsg =
         event =
             Decode.map2 (\v e -> toMsg <| Tuple.pair v e) elementDecoder actionDecoder
     in
-    Html.Events.on "oncontextaction" event
+    Html.Events.on "contextActionClicked" event
 
 
 {-| Detect change events to the table structure (e.g. sorting or moved columns).

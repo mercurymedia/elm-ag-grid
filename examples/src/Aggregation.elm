@@ -98,11 +98,11 @@ update msg model =
             ( { model | costs = Dict.insert change.id change model.costs }, Cmd.none )
 
         ContextMenuAction ( result, action ) ->
-            case result of
-                Ok id ->
+            case ( result, action ) of
+                ( Ok _, "incrementCounter" ) ->
                     ( { model | counter = model.counter + 1 }, Cmd.none )
 
-                Err _ ->
+                _ ->
                     ( model, Cmd.none )
 
 

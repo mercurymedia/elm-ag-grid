@@ -6,7 +6,6 @@ import appRenderer from "./app_renderer";
 import expression from "./expression";
 
 let CUSTOM_AGGREGATIONS = {};
-let APP;
 
 class AgGrid extends HTMLElement {
   constructor() {
@@ -142,14 +141,13 @@ class AgGrid extends HTMLElement {
 
       if (typeof item.actionName === "string") {
         item.action = () => {
-          const contextMenuEvent = new CustomEvent("oncontextaction", {
+          const contextMenuEvent = new CustomEvent("contextActionClicked", {
             detail: {
               action: item.actionName,
               data: params.node.data,
             }
           });
 
-          console.log(params)
           this.dispatchEvent(contextMenuEvent)
         }
       }
@@ -325,9 +323,8 @@ const setterProperties = Object.entries(
   .map(([key]) => key);
 
 export default class ElmAgGrid {
-  constructor({ app = null, apps = {}, aggregations = {} } = {}) {
+  constructor({ apps = {}, aggregations = {} } = {}) {
     window.ElmAgGridComponentRegistry = apps;
-    APP = app;
     CUSTOM_AGGREGATIONS = aggregations;
 
     customElements.define("ag-grid", AgGrid);
