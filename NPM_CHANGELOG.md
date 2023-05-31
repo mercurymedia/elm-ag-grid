@@ -1,12 +1,13 @@
 # NPM Changelog
 
-## [3.2.2]
-
-- Add setter for `columnDefs` to make use of the gridApi
 
 ## [3.3.0]
 
 - Added `expression.js` to evaluate serialized expressions for the context menu actions
+
+## [3.2.2]
+
+- Add setter for `columnDefs` to make use of the gridApi
 
 ## [3.2.1]
 

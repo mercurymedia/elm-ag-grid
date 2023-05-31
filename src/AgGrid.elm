@@ -3,11 +3,10 @@ module AgGrid exposing
     , RowGroupPanelVisibility(..), RowSelection(..), StateChange
     , GridConfig, grid
     , defaultGridConfig, defaultSettings
-    , onCellChanged, onCellDoubleClicked, onSelectionChange
+    , onCellChanged, onCellDoubleClicked, onSelectionChange, onContextMenu
     , ColumnState, onColumnStateChanged, columnStatesDecoder, columnStatesEncoder
     , FilterState, onFilterStateChanged, filterStatesEncoder, filterStatesDecoder
     , Sidebar, SidebarType(..), SidebarPosition(..), defaultSidebar
-    , onContextMenu
     )
 
 {-| AgGrid integration for elm.
@@ -31,7 +30,7 @@ module AgGrid exposing
 
 # Events
 
-@docs onCellChanged, onCellDoubleClicked, onSelectionChange
+@docs onCellChanged, onCellDoubleClicked, onSelectionChange, onContextMenu
 
 
 # ColumnState
@@ -60,7 +59,6 @@ import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline as DecodePipeline
 import Json.Encode
 import Json.Encode.Extra exposing (encodeMaybe)
-import Json.Decode as Decode
 
 
 {-| Variants to aggregate values for a grouped column.
@@ -717,7 +715,7 @@ onContextMenu dataDecoder toMsg =
 
         elementDecoder =
             Decode.at [ "detail", "data" ] Decode.value
-            |> Decode.map (Decode.decodeValue dataDecoder)
+                |> Decode.map (Decode.decodeValue dataDecoder)
 
         event =
             Decode.map2 (\v e -> toMsg <| Tuple.pair v e) elementDecoder actionDecoder
