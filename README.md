@@ -33,14 +33,15 @@ Elm.Main.init({ node: document.getElementById("app") });
 
 The latest [Elm package version](https://package.elm-lang.org/packages/mercurymedia/elm-ag-grid/latest) always works well with the latest [NPM package version](https://www.npmjs.com/package/@mercurymedia/elm-ag-grid/v/latest). Otherwise, please keep the NPM version in the accepted range for the used version of the Elm package to reduce the possibility of errors.
 
-|  Elm Version  |    Npm Version     |
+| Elm Version   | Npm Version        |
 | :-----------: | :----------------: |
-|     1.0.0     | 1.0.0 <= v < 1.1.0 |
+| 1.0.0         | 1.0.0 <= v < 1.1.0 |
 | 2.0.0 - 3.0.0 | 1.1.0 <= v < 1.3.0 |
-| 3.1.0 - 4.0.0 |       1.3.0        |
-| 5.0.0 - 6.0.0 |       2.1.0        |
-| 7.0.0 - 7.0.1 |       3.0.0        |
-|  8.0.0 - \*   |       3.1.0        |
+| 3.1.0 - 4.0.0 | 1.3.0              |
+| 5.0.0 - 6.0.0 | 2.1.0              |
+| 7.0.0 - 7.0.1 | 3.0.0              |
+| 8.0.0 - 9.1.1 | 3.1.0              |
+| 10.0.0 - \*   | 3.3.0              |
 
 ## Ag Grid Enterprise
 
@@ -249,3 +250,70 @@ This aggregation can be referenced in Elm by using the `CustomAggregation` type 
 ```elm
 { ..., settings = { defaultSettings | aggFunc = CustomAggregation "foo" }}
 ```
+
+## ContextMenu
+
+**Requires AgGrid Enterprise**
+
+Context menu actions can be defined in Elm in the `gridConfig` by using the `AgGrid.ContextMenu` module. The predefined context menu actions are covered within that module.
+
+```elm
+gridConfig =
+    { defaultGridConfig
+        | contextMenu =
+            Just
+                [ AgGrid.ContextMenu.autoSizeAllContextAction ]
+        }
+```
+
+To create a custom context action we make use of events to handle the action in elm.
+
+```elm
+gridConfig =
+    { defaultGridConfig
+        | contextMenu =
+            Just
+                [ AgGrid.ContextMenu.contextAction
+                    { defaultActionAttributes
+                        | name = "Increase counter"
+                        , actionName = Just "incrementCounter"
+                    }
+                ]
+        }
+
+-- The String contains the clicked action name
+type Msg =
+  ContextMenuAction (Result DecodeError Data, String)
+
+
+view =
+  AgGrid.grid gridConfig
+      [ AgGrid.onContextMenu dataDecoder ContextMenuAction ]
+      columns
+      data
+```
+
+The `disabled` attribute uses the `AgGrid.Expression` module, to serialize expressions in a save way. This makes sure that we prevent XSS atacks.
+
+```elm
+import AgGrid.Expression as Expression
+
+...
+
+AgGrid.ContextMenu.contextAction
+    { defaultActionAttributes
+        | name = "Increase counter"
+        , action = Just "incrementCounter"
+        , disabled = Expression.Expr (Expression.lte (Expression.value "id") (Expression.int 10))
+    }
+```
+
+## Examples
+
+To run the examples in the browser clone the repo and run:
+
+```sh
+$ npm start
+```
+
+Open you browser at [localhost:1234](http://localhost:1234)

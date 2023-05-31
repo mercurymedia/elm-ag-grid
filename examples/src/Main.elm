@@ -3,13 +3,13 @@ module Main exposing (main)
 import Aggregation
 import Basic
 import Browser exposing (Document)
-import RowSelection
 import Browser.Navigation as Nav
 import Css
 import Css.Global
 import Grouping
 import Html.Styled exposing (Html, a, div, span, text)
 import Html.Styled.Attributes exposing (css, href, target)
+import RowSelection
 import Url exposing (Url)
 import Url.Parser as Parser
 
@@ -125,7 +125,7 @@ update msg model =
             in
             ( { model | page = Basic updatedBasicModel }, Cmd.map BasicMsg pageCmd )
 
-        ( RowSelectionMsg subMsg, RowSelection rowSelectionModel) ->
+        ( RowSelectionMsg subMsg, RowSelection rowSelectionModel ) ->
             let
                 ( updatedRowSelectionModel, pageCmd ) =
                     RowSelection.update subMsg rowSelectionModel
@@ -195,7 +195,6 @@ viewNavigation =
         , viewPageLink "Aggregations & Formatting" "/aggregation"
         , viewPageLink "Grouping" "/grouping"
         , viewPageLink "RowSelection" "/row-selection"
-
         ]
 
 
@@ -234,7 +233,7 @@ viewPage page =
                 toPage (always NoOp) (Grouping.view pageModel)
 
             RowSelection pageModel ->
-                toPage (RowSelectionMsg) (RowSelection.view pageModel)
+                toPage RowSelectionMsg (RowSelection.view pageModel)
         ]
 
 
@@ -254,7 +253,6 @@ changePageTo url model =
                 , Parser.map (Aggregation.init |> toPage Aggregation AggregationMsg) (Parser.s "aggregation")
                 , Parser.map ( { model | page = Grouping Grouping.init }, Cmd.none ) (Parser.s "grouping")
                 , Parser.map ( { model | page = RowSelection RowSelection.init }, Cmd.none ) (Parser.s "row-selection")
-
                 ]
     in
     Parser.parse parser url

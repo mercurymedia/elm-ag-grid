@@ -1,9 +1,11 @@
 module Aggregation exposing (Model, Msg, init, subscriptions, update, view)
 
 import AgGrid exposing (Renderer(..), defaultGridConfig, defaultSettings)
+import AgGrid.ContextMenu as AgGridContextMenu exposing (defaultActionAttributes)
+import AgGrid.Expression as Expression exposing (Eval(..))
 import Css
 import Dict exposing (Dict)
-import Html.Styled exposing (Html, a, div, node, span, text)
+import Html.Styled exposing (Html, a, div, h3, node, span, text)
 import Html.Styled.Attributes exposing (css, href, target)
 import Json.Decode as Decode
 import Json.Decode.Pipeline as DecodePipeline
@@ -49,6 +51,7 @@ initialModel =
         ]
             |> List.map (\item -> ( item.id, item ))
             |> Dict.fromList
+    , counter = 0
     }
 
 
@@ -58,6 +61,7 @@ initialModel =
 
 type alias Model =
     { costs : Dict Int LineItem
+    , counter : Int
     }
 
 
@@ -77,6 +81,7 @@ type alias Cost =
 
 type Msg
     = CellChanged (Result Decode.Error LineItem)
+    | ContextMenuAction ( Result Decode.Error Int, String )
 
 
 
@@ -91,6 +96,14 @@ update msg model =
 
         CellChanged (Ok change) ->
             ( { model | costs = Dict.insert change.id change model.costs }, Cmd.none )
+
+        ContextMenuAction ( result, action ) ->
+            case ( result, action ) of
+                ( Ok _, "incrementCounter" ) ->
+                    ( { model | counter = model.counter + 1 }, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
 
 
 
@@ -109,6 +122,8 @@ view model =
             , div [ css [ Css.marginTop (Css.rem 1) ] ] [ text "This formatting can be customized by overwriting the valueFormatter expression on the column settings." ]
             ]
         , viewGrid model
+        , div []
+            [ h3 [] [ text ("You increased the counter from the context menu " ++ String.fromInt model.counter ++ " times!") ] ]
         ]
 
 
@@ -116,7 +131,30 @@ viewGrid : Model -> Html Msg
 viewGrid model =
     let
         gridConfig =
-            { defaultGridConfig | themeClasses = Just "ag-theme-balham ag-basic", groupIncludeTotalFooter = True, size = "65vh" }
+            { defaultGridConfig
+                | themeClasses = Just "ag-theme-balham ag-basic"
+                , groupIncludeTotalFooter = True
+                , size = "65vh"
+                , contextMenu =
+                    Just
+                        [ AgGridContextMenu.autoSizeAllContextAction
+                        , AgGridContextMenu.contextAction
+                            { defaultActionAttributes
+                                | name = "Edit"
+                                , subMenu =
+                                    [ AgGridContextMenu.ChildContextAction AgGridContextMenu.copyContextAction
+                                    , AgGridContextMenu.ChildContextAction AgGridContextMenu.contextSeparator
+                                    , AgGridContextMenu.ChildContextAction AgGridContextMenu.pasteContextAction
+                                    ]
+                            }
+                        , AgGridContextMenu.contextAction
+                            { defaultActionAttributes
+                                | name = "Increase counter"
+                                , actionName = Just "incrementCounter"
+                                , disabled = Expression.Expr (Expression.lte (Expression.value "id") (Expression.int 10))
+                            }
+                        ]
+            }
 
         gridSettings =
             { defaultSettings | editable = True }
@@ -158,7 +196,7 @@ viewGrid model =
               , settings = { gridSettings | aggFunc = AgGrid.AvgAggregation }
               }
             , { field = "minAndMax"
-              , renderer = MaybeStringRenderer  (.us >> .discount >> Maybe.map String.fromFloat)
+              , renderer = MaybeStringRenderer (.us >> .discount >> Maybe.map String.fromFloat)
               , headerName = "Min & Max (Custom aggregation)"
               , settings = { gridSettings | aggFunc = AgGrid.CustomAggregation "Min&Max" }
               }
@@ -167,7 +205,9 @@ viewGrid model =
     node "aggregation-grid"
         [ css [ Css.display Css.block, Css.margin2 (Css.rem 1) (Css.px 0) ] ]
         [ AgGrid.grid gridConfig
-            [ AgGrid.onCellChanged changeDecoder CellChanged ]
+            [ AgGrid.onCellChanged changeDecoder CellChanged
+            , AgGrid.onContextMenu idDecoder ContextMenuAction
+            ]
             columns
             (Dict.values model.costs)
             |> Html.Styled.fromUnstyled
@@ -200,3 +240,8 @@ changeDecoder =
         |> DecodePipeline.required "id" Decode.int
         |> DecodePipeline.custom (costDecoder "priceDE" "volumeDE" "discountDE")
         |> DecodePipeline.custom (costDecoder "priceUS" "volumeUS" "discountUS")
+
+
+idDecoder : Decode.Decoder Int
+idDecoder =
+    Decode.field "id" Decode.int

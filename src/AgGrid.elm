@@ -3,7 +3,7 @@ module AgGrid exposing
     , RowGroupPanelVisibility(..), RowSelection(..), StateChange
     , GridConfig, grid
     , defaultGridConfig, defaultSettings
-    , onCellChanged, onCellDoubleClicked, onSelectionChange
+    , onCellChanged, onCellDoubleClicked, onSelectionChange, onContextMenu
     , ColumnState, onColumnStateChanged, columnStatesDecoder, columnStatesEncoder
     , FilterState, onFilterStateChanged, filterStatesEncoder, filterStatesDecoder
     , Sidebar, SidebarType(..), SidebarPosition(..), defaultSidebar
@@ -30,7 +30,7 @@ module AgGrid exposing
 
 # Events
 
-@docs onCellChanged, onCellDoubleClicked, onSelectionChange
+@docs onCellChanged, onCellDoubleClicked, onSelectionChange, onContextMenu
 
 
 # ColumnState
@@ -49,6 +49,7 @@ module AgGrid exposing
 
 -}
 
+import AgGrid.ContextMenu exposing (ContextMenu)
 import AgGrid.ValueFormat as ValueFormat
 import Dict
 import Html exposing (Html, node)
@@ -57,6 +58,7 @@ import Html.Events
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline as DecodePipeline
 import Json.Encode
+import Json.Encode.Extra exposing (encodeMaybe)
 
 
 {-| Variants to aggregate values for a grouped column.
@@ -339,6 +341,7 @@ type alias GridConfig dataType =
     , autoSizeColumns : Bool
     , cacheQuickFilter : Bool
     , columnStates : List ColumnState
+    , contextMenu : Maybe ContextMenu
     , detailRenderer :
         Maybe
             { componentName : String
@@ -522,6 +525,7 @@ defaultGridConfig =
     , autoSizeColumns = False
     , cacheQuickFilter = False
     , columnStates = []
+    , contextMenu = Nothing
     , detailRenderer = Nothing
     , disableResizeOnScroll = False
     , filterStates = Dict.empty
@@ -699,6 +703,24 @@ onCellDoubleClicked dataDecoder toMsg =
             Decode.map2 (\v e -> toMsg <| Tuple.pair v e) valueDecoder elementDecoder
     in
     Html.Events.on "celldoubleclicked" event
+
+
+{-| Detect click on custom context menu actions
+-}
+onContextMenu : Decoder dataType -> (( Result Decode.Error dataType, String ) -> msg) -> Html.Attribute msg
+onContextMenu dataDecoder toMsg =
+    let
+        actionDecoder =
+            Decode.at [ "detail", "action" ] Decode.string
+
+        elementDecoder =
+            Decode.at [ "detail", "data" ] Decode.value
+                |> Decode.map (Decode.decodeValue dataDecoder)
+
+        event =
+            Decode.map2 (\v e -> toMsg <| Tuple.pair v e) elementDecoder actionDecoder
+    in
+    Html.Events.on "contextActionClicked" event
 
 
 {-| Detect change events to the table structure (e.g. sorting or moved columns).
@@ -1098,13 +1120,6 @@ filterStateEncoder filterState =
         ]
 
 
-encodeMaybe : (a -> Json.Encode.Value) -> Maybe a -> Json.Encode.Value
-encodeMaybe valueEncoder value =
-    value
-        |> Maybe.map valueEncoder
-        |> Maybe.withDefault Json.Encode.null
-
-
 eventTypeDecoder : Decoder EventType
 eventTypeDecoder =
     Decode.at [ "detail", "event", "type" ] Decode.string
@@ -1182,6 +1197,7 @@ generateGridConfigAttributes gridConfig =
               )
             , ( "filterState", filterStatesEncoder gridConfig.filterStates )
             , ( "headerHeight", Json.Encode.int 48 )
+            , ( "getContextMenuItems", encodeMaybe AgGrid.ContextMenu.encode gridConfig.contextMenu )
             , ( "quickFilterText"
               , if String.isEmpty gridConfig.quickFilterText then
                     Json.Encode.null

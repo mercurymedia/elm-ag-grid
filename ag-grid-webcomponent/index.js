@@ -3,6 +3,7 @@ import * as agGrid from "ag-grid-community";
 import cellRenderer from "./cell_renderer";
 import cellEditor from "./cell_editor";
 import appRenderer from "./app_renderer";
+import expression from "./expression";
 
 let CUSTOM_AGGREGATIONS = {};
 
@@ -91,7 +92,7 @@ class AgGrid extends HTMLElement {
     this._addEventHandler(
       "onBodyScroll",
       "disableResizeOnScroll",
-      function (params) {
+      function(params) {
         if (!disabled) params.api.sizeColumnsToFit();
       }
     );
@@ -105,7 +106,7 @@ class AgGrid extends HTMLElement {
     this._addEventHandler(
       "onFirstDataRendered",
       "sizeToFitAfterFirstDataRendered",
-      function (params) {
+      function(params) {
         if (sizeToFit) params.api.sizeColumnsToFit();
       }
     );
@@ -123,14 +124,52 @@ class AgGrid extends HTMLElement {
     if (selectedIds.length == 0) {
       this.api.deselectAll();
     } else {
-      this.api.forEachNode(function (node) {
+      this.api.forEachNode(function(node) {
         const selected = selectedIds.includes(node.id);
         node.setSelected(selected);
       });
     }
   }
+
   set columnDefs(defs) {
     this.api.setColumnDefs(defs);
+  }
+
+  set getContextMenuItems(data) {
+    const prepareContextAction = (item, params) => {
+      if (typeof item === "string") return item;
+
+      if (typeof item.actionName === "string") {
+        item.action = () => {
+          const contextMenuEvent = new CustomEvent("contextActionClicked", {
+            detail: {
+              action: item.actionName,
+              data: params.node.data,
+            }
+          });
+
+          this.dispatchEvent(contextMenuEvent)
+        }
+      }
+
+      item.subMenu =
+        item.subMenu && item.subMenu.length > 0
+          ? item.subMenu.map((item) => prepareContextAction(item))
+          : null;
+
+      if (typeof item.disabledCallback === "object") {
+        item.disabled = expression.apply(params.node.data, item.disabledCallback);
+      } else {
+        item.disabled = item.disabledCallback;
+      }
+
+
+      return item;
+    }
+
+    this._applyChange("getContextMenuItems", (params) =>
+      data.map((item) => prepareContextAction(item, params))
+    );
   }
 
   _applyChange(propertyName, newValue) {
@@ -146,7 +185,7 @@ class AgGrid extends HTMLElement {
 
     this._events = collection;
 
-    this._gridOptions[eventName] = function (args) {
+    this._gridOptions[eventName] = function(args) {
       Object.values(collection).map((event) => event(args));
     };
   }
@@ -198,7 +237,7 @@ class AgGrid extends HTMLElement {
         return !!params.data && params.data.rowCallbackValues.isRowSelectable;
       },
 
-      onSelectionChanged: function (event) {
+      onSelectionChanged: function(event) {
         const nodes = event.api.getSelectedNodes();
         const selectionEvent = new CustomEvent("selectionChanged", {
           detail: { nodes },
@@ -208,7 +247,7 @@ class AgGrid extends HTMLElement {
     };
 
     if (this.loadAttribute("customRowId")) {
-      gridOptions.getRowId = function (params) {
+      gridOptions.getRowId = function(params) {
         return params.data.rowCallbackValues.rowId;
       };
     }
@@ -247,7 +286,7 @@ class AgGrid extends HTMLElement {
     const _this = this;
 
     columnEvents.map((event) =>
-      this._addEventHandler(event, "columnEvents", function (params) {
+      this._addEventHandler(event, "columnEvents", function(params) {
         const stateChangeEvent = new CustomEvent("columnStateChanged", {
           detail: {
             event: params,
@@ -264,7 +303,7 @@ class AgGrid extends HTMLElement {
     const _this = this;
 
     filterEvents.map((event) =>
-      this._addEventHandler(event, "filterEvents", function (params) {
+      this._addEventHandler(event, "filterEvents", function(params) {
         const stateChangeEvent = new CustomEvent("filterStateChanged", {
           detail: {
             event: params,

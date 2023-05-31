@@ -400,3 +400,4 @@ rowDecoder =
                 ]
             )
         |> DecodePipeline.required "title" Json.Decode.string
+

@@ -21,7 +21,10 @@ let app;
 
 window.AgGrid = {
   init: function ({ node }) {
+    app = Elm.Main.init({ node: node });
+
     new ElmAgGrid({
+      app: app,
       apps: {
         // You can simply provide the usual Elm object to register your component.
         // Or, to use ports for communication between your component and main application
@@ -71,8 +74,6 @@ window.AgGrid = {
         },
       },
     });
-
-    app = Elm.Main.init({ node: node });
 
     app.ports.setItem.subscribe(function (args) {
       localStorage.setItem(args[0], JSON.stringify(args[1]));

@@ -1,5 +1,11 @@
 # Elm Changelog
 
+## [10.0.0]
+
+- Added `contextMenu` to `GridConfig`
+- Added `AgGrid.ContextMenu` module with predefined context menu actions from `AgGrid`
+- Added `AgGrid.Expression` module to evaluate javascript expressions in a safer way.
+
 ## [9.1.1]
 
 - Added `ColumnVisible` event type for GridState changes
