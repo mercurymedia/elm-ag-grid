@@ -5,6 +5,8 @@
     "license": "MIT",
     "version": "10.0.0",
     "exposed-modules": [
+        "AgGrid.ContextMenu",
+        "AgGrid.Expression",
         "AgGrid"
     ],
     "elm-version": "0.19.0 <= v < 0.20.0",

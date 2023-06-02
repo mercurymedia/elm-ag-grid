@@ -1,5 +1,10 @@
 # Elm Changelog
 
+## [10.0.1]
+
+- Exposing `AgGrid.ContextMenu` module.
+- Exposing `AgGrid.Expression` module.
+
 ## [10.0.0]
 
 - Added `contextMenu` to `GridConfig`
