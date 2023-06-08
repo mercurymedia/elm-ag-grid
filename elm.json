@@ -3,7 +3,7 @@
     "name": "mercurymedia/elm-ag-grid",
     "summary": "AgGrid integration for Elm",
     "license": "MIT",
-    "version": "10.1.0",
+    "version": "10.2.0",
     "exposed-modules": [
         "AgGrid.ContextMenu",
         "AgGrid.Expression",
