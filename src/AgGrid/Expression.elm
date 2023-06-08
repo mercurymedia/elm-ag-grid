@@ -1,9 +1,9 @@
 module AgGrid.Expression exposing
     ( Eval(..), Expression, Literal, Operator
-    , or, and, eq, lte, gte, includes
+    , or, and, eq, lte, gte, not, includes
     , int, string, float
-    , encode
     , value
+    , encode
     )
 
 {-| Integration of Expressions for AgGrid. A `Expression` will be encoded and evaluated in javascript.
@@ -18,16 +18,18 @@ For more information take a look at <https://github.com/mercurymedia/elm-ag-grid
 
 # Operators
 
-@docs or, and, eq, lte, gte, includes
+@docs or, and, eq, lte, gte, not, includes
 
 
 # Literals
 
 @docs int, string, float
 
+
 # Row values
 
 @docs value
+
 
 # Encoding
 
@@ -39,7 +41,7 @@ import Json.Encode as Encode
 
 
 {-| `Eval a` can be a `Cosnt a` or and `Expr`
-    
+
     A `Const a` will pass the value of the type `a` directly to the `AgGrid` attribute in javascript.
     A `Expr` will frist evaluated in javascript and than passed to the `AgGrid` attribute.
 
@@ -68,7 +70,7 @@ type Literal
     | FloatLiteral Float
 
 
-{-| A `Operator` takes two expressions and evaluate the result in javascript.
+{-| A `Operator` take expression(s) and evaluate the result in javascript.
 -}
 type Operator
     = Or Expression Expression
@@ -266,6 +268,16 @@ lte left right =
 gte : Expression -> Expression -> Expression
 gte left right =
     Op (Gte left right)
+
+
+{-| Represents the ! operator
+
+    Expression.not (Expression.value "isActive")
+
+-}
+not : Expression -> Expression
+not expr =
+    Op (Not expr)
 
 
 {-| Performs the javascript Array.inclues function
