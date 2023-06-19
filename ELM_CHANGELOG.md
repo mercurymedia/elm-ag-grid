@@ -1,6 +1,10 @@
 # Elm Changelog
 
-## [10.0.1]
+## [10.2.0]
+
+- Exposing `not` operator utility function from `AgGrid.Expression`
+
+## [10.1.0]
 
 - Exposing `AgGrid.ContextMenu` module.
 - Exposing `AgGrid.Expression` module.
