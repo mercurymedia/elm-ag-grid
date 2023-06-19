@@ -253,6 +253,7 @@ type alias ColumnDef dataType =
 -}
 type alias ColumnSettings =
     { aggFunc : Aggregation
+    , autoHeaderHeight : Bool
     , checkboxSelection : Bool
     , editable : Bool
     , enablePivot : Bool
@@ -282,6 +283,7 @@ type alias ColumnSettings =
     , valueParser : Maybe String
     , valueSetter : Maybe String
     , width : Maybe Int
+    , wrapHeaderText : Bool
     }
 
 
@@ -437,6 +439,7 @@ Default column settings:
 defaultSettings : ColumnSettings
 defaultSettings =
     { aggFunc = NoAggregation
+    , autoHeaderHeight = False
     , checkboxSelection = False
     , editable = False
     , enablePivot = True
@@ -466,6 +469,7 @@ defaultSettings =
     , valueParser = Nothing
     , valueSetter = Nothing
     , width = Nothing
+    , wrapHeaderText = False
     }
 
 
@@ -818,6 +822,7 @@ columnDefEncoder gridConfig columnDef =
                 SumAggregation ->
                     Json.Encode.string "sum"
           )
+        , ( "autoHeaderHeight", Json.Encode.bool columnDef.settings.autoHeaderHeight )
         , ( "checkboxSelection", Json.Encode.bool columnDef.settings.checkboxSelection )
         , ( "cellRenderer"
           , case columnDef.renderer of
@@ -1023,6 +1028,7 @@ columnDefEncoder gridConfig columnDef =
                 Nothing ->
                     Json.Encode.null
           )
+        , ( "wrapHeaderText", Json.Encode.bool columnDef.settings.wrapHeaderText )
         ]
 
 
