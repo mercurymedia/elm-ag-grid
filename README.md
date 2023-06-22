@@ -33,15 +33,16 @@ Elm.Main.init({ node: document.getElementById("app") });
 
 The latest [Elm package version](https://package.elm-lang.org/packages/mercurymedia/elm-ag-grid/latest) always works well with the latest [NPM package version](https://www.npmjs.com/package/@mercurymedia/elm-ag-grid/v/latest). Otherwise, please keep the NPM version in the accepted range for the used version of the Elm package to reduce the possibility of errors.
 
-| Elm Version   | Npm Version        |
-| :-----------: | :----------------: |
-| 1.0.0         | 1.0.0 <= v < 1.1.0 |
-| 2.0.0 - 3.0.0 | 1.1.0 <= v < 1.3.0 |
-| 3.1.0 - 4.0.0 | 1.3.0              |
-| 5.0.0 - 6.0.0 | 2.1.0              |
-| 7.0.0 - 7.0.1 | 3.0.0              |
-| 8.0.0 - 9.1.1 | 3.1.0              |
-| 10.0.0 - \*   | 3.3.0              |
+|   Elm Version   |    Npm Version     |
+| :-------------: | :----------------: |
+|      1.0.0      | 1.0.0 <= v < 1.1.0 |
+|  2.0.0 - 3.0.0  | 1.1.0 <= v < 1.3.0 |
+|  3.1.0 - 4.0.0  |       1.3.0        |
+|  5.0.0 - 6.0.0  |       2.1.0        |
+|  7.0.0 - 7.0.1  |       3.0.0        |
+|  8.0.0 - 9.1.1  |       3.1.0        |
+| 10.0.0 - 11.0.0 |       3.3.0        |
+|     12.0.0      |       3.3.1        |
 
 ## Ag Grid Enterprise
 
@@ -143,7 +144,7 @@ To use a component for cell rendering, you can use the `AppRenderer { componentN
     { field = "details"
     , renderer = AppRenderer { componentName = "linkRenderer", componentParams = Nothing } .url
     , headerName = "Details"
-    , settings = { defaultSettings | editable = False }
+    , settings = { defaultSettings | editable = Expression.Const False }
     }
 ```
 

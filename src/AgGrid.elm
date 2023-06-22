@@ -50,6 +50,7 @@ module AgGrid exposing
 -}
 
 import AgGrid.ContextMenu exposing (ContextMenu)
+import AgGrid.Expression as Expression exposing (Eval(..))
 import AgGrid.ValueFormat as ValueFormat
 import Dict
 import Html exposing (Html, node)
@@ -256,7 +257,7 @@ type alias ColumnSettings =
     , autoHeaderHeight : Bool
     , cellClassRules : List { class : String, expression : String }
     , checkboxSelection : Bool
-    , editable : Bool
+    , editable : Eval Bool
     , enablePivot : Bool
     , enableRowGroup : Bool
     , enableValue : Bool
@@ -443,7 +444,7 @@ defaultSettings =
     , autoHeaderHeight = False
     , cellClassRules = []
     , checkboxSelection = False
-    , editable = False
+    , editable = Const False
     , enablePivot = True
     , enableRowGroup = True
     , enableValue = True
@@ -901,7 +902,7 @@ columnDefEncoder gridConfig columnDef =
                 _ ->
                     Json.Encode.null
           )
-        , ( "editable", Json.Encode.bool columnDef.settings.editable )
+        , ( "editable", Expression.encode Json.Encode.bool columnDef.settings.editable )
         , ( "enablePivot", Json.Encode.bool columnDef.settings.enablePivot )
         , ( "enableRowGroup", Json.Encode.bool columnDef.settings.enableRowGroup )
         , ( "enableValue", Json.Encode.bool columnDef.settings.enableValue )

@@ -132,7 +132,15 @@ class AgGrid extends HTMLElement {
   }
 
   set columnDefs(defs) {
-    this.api.setColumnDefs(defs);
+    function applyCallbacks(def) {
+      return {
+        ...def,
+        editable: function (params) {
+          return expression.apply(params.node.data, def.editable);
+        },
+      };
+    }
+    this.api.setColumnDefs(defs.map(applyCallbacks));
   }
 
   set getContextMenuItems(data) {

@@ -1,6 +1,7 @@
 port module Basic exposing (Model, Msg, init, subscriptions, update, view)
 
 import AgGrid exposing (Renderer(..), defaultGridConfig, defaultSettings, defaultSidebar)
+import AgGrid.Expression as Expression
 import Css
 import Css.Global
 import Dict exposing (Dict)
@@ -188,7 +189,7 @@ viewGrid model =
             }
 
         gridSettings =
-            { defaultSettings | editable = True }
+            { defaultSettings | editable = Expression.Const True }
 
         columns =
             [ { field = "id"
@@ -199,12 +200,12 @@ viewGrid model =
             , { field = "title"
               , renderer = StringRenderer .title
               , headerName = "Product"
-              , settings = { gridSettings | editable = False, pinned = AgGrid.PinnedToLeft }
+              , settings = { gridSettings | editable = Expression.Const False, pinned = AgGrid.PinnedToLeft }
               }
             , { field = "details"
               , renderer = AppRenderer { componentName = "linkRenderer", componentParams = Nothing } encodeDetails
               , headerName = "Details"
-              , settings = { gridSettings | editable = False }
+              , settings = { gridSettings | editable = Expression.Const False }
               }
             , { field = "detailsUrl"
               , renderer = StringRenderer .detailsUrl
@@ -219,7 +220,7 @@ viewGrid model =
             , { field = "description"
               , renderer = MaybeStringRenderer .description
               , headerName = "Description"
-              , settings = gridSettings
+              , settings = { gridSettings | editable = Expression.Expr <| Expression.eq (Expression.value "category") (Expression.string "Fruit") }
               }
             , { field = "favorite"
               , renderer = BoolRenderer .favorite
@@ -251,7 +252,7 @@ viewGrid model =
             , { field = "table-button-column"
               , renderer = AppRenderer (buttonConfig model) (always "")
               , headerName = ""
-              , settings = { gridSettings | editable = False }
+              , settings = { gridSettings | editable = Expression.Const False }
               }
             ]
     in
