@@ -1,5 +1,9 @@
 # Elm Changelog
 
+## [12.0.0]
+
+- Added `cellClassRules` to `ColumnSettings`
+
 ## [11.0.0]
 
 - Add `autoHeaderHeight` and `wrapHeaderText` to `ColumnSettings`

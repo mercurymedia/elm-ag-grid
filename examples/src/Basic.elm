@@ -2,6 +2,7 @@ port module Basic exposing (Model, Msg, init, subscriptions, update, view)
 
 import AgGrid exposing (Renderer(..), defaultGridConfig, defaultSettings, defaultSidebar)
 import Css
+import Css.Global
 import Dict exposing (Dict)
 import Html.Styled exposing (Html, a, div, input, span, text)
 import Html.Styled.Attributes exposing (css, href, placeholder, style, target, value)
@@ -233,7 +234,14 @@ viewGrid model =
             , { field = "price"
               , renderer = FloatRenderer .price
               , headerName = "Price"
-              , settings = { gridSettings | filter = AgGrid.NumberFilter }
+              , settings =
+                    { gridSettings
+                        | cellClassRules =
+                            [ { class = "discount", expression = "data.price < 3" }
+                            , { class = "high-price", expression = "data.price > 3" }
+                            ]
+                        , filter = AgGrid.NumberFilter
+                    }
               }
             , { field = "amount-left"
               , renderer = MaybeIntRenderer .amountLeft
@@ -247,7 +255,15 @@ viewGrid model =
               }
             ]
     in
-    div [ css [ Css.margin2 (Css.rem 1) (Css.px 0) ] ]
+    div
+        [ css
+            [ Css.Global.descendants
+                [ Css.Global.class "discount" [ Css.backgroundColor (Css.hex "3cb371") ]
+                , Css.Global.class "high-price" [ Css.backgroundColor (Css.hex "ff6347") ]
+                ]
+            , Css.margin2 (Css.rem 1) (Css.px 0)
+            ]
+        ]
         [ input
             [ value model.searchInput
             , onInput UpdateSearchInput
@@ -400,4 +416,3 @@ rowDecoder =
                 ]
             )
         |> DecodePipeline.required "title" Json.Decode.string
-
