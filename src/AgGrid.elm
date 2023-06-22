@@ -254,6 +254,7 @@ type alias ColumnDef dataType =
 type alias ColumnSettings =
     { aggFunc : Aggregation
     , autoHeaderHeight : Bool
+    , cellClassRules : List { class : String, expression : String }
     , checkboxSelection : Bool
     , editable : Bool
     , enablePivot : Bool
@@ -440,6 +441,7 @@ defaultSettings : ColumnSettings
 defaultSettings =
     { aggFunc = NoAggregation
     , autoHeaderHeight = False
+    , cellClassRules = []
     , checkboxSelection = False
     , editable = False
     , enablePivot = True
@@ -823,6 +825,10 @@ columnDefEncoder gridConfig columnDef =
                     Json.Encode.string "sum"
           )
         , ( "autoHeaderHeight", Json.Encode.bool columnDef.settings.autoHeaderHeight )
+        , ( "cellClassRules"
+          , Json.Encode.object <|
+                List.map (\rule -> ( rule.class, Json.Encode.string rule.expression )) columnDef.settings.cellClassRules
+          )
         , ( "checkboxSelection", Json.Encode.bool columnDef.settings.checkboxSelection )
         , ( "cellRenderer"
           , case columnDef.renderer of
