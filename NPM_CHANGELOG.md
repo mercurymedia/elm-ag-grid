@@ -1,5 +1,8 @@
 # NPM Changelog
 
+## [3.3.1]
+
+- Applying `editable` callbacks on ColumnDefs
 
 ## [3.3.0]
 

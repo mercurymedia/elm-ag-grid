@@ -157,7 +157,7 @@ viewGrid model =
             }
 
         gridSettings =
-            { defaultSettings | editable = True }
+            { defaultSettings | editable = Expression.Const True }
 
         columns =
             [ { field = "id"

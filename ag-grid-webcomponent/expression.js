@@ -1,4 +1,8 @@
 const apply = (data, expr) => {
+    if (typeof expr !== "object") {
+        return expr
+    }
+
     switch (expr.type) {
         case "operator":
             return applyOperator(data, expr.value, expr.body)

@@ -3,6 +3,7 @@
 ## [12.0.0]
 
 - Added `cellClassRules` to `ColumnSettings`
+- Changed `editable` from a boolean to an expression (default will be `Expression.Const False`)
 
 ## [11.0.0]
 
