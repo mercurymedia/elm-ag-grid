@@ -191,6 +191,13 @@ viewGrid model =
         gridSettings =
             { defaultSettings | editable = Expression.Const True }
 
+        isFruit =
+            Expression.eq (Expression.value "category") (Expression.string "Fruit")
+
+        isDiscounted =
+            Expression.lte (Expression.value "price") (Expression.int 3)
+
+
         columns =
             [ { field = "id"
               , renderer = IntRenderer .id
@@ -220,7 +227,7 @@ viewGrid model =
             , { field = "description"
               , renderer = MaybeStringRenderer .description
               , headerName = "Description"
-              , settings = { gridSettings | editable = Expression.Expr <| Expression.eq (Expression.value "category") (Expression.string "Fruit") }
+              , settings = { gridSettings | editable = Expression.Expr isFruit }
               }
             , { field = "favorite"
               , renderer = BoolRenderer .favorite
@@ -238,8 +245,8 @@ viewGrid model =
               , settings =
                     { gridSettings
                         | cellClassRules =
-                            [ { class = "discount", expression = "data.price < 3" }
-                            , { class = "high-price", expression = "data.price > 3" }
+                            [ ("discount", Expression.Expr isDiscounted )
+                            , ("high-price", Expression.Expr <|  Expression.not isDiscounted )
                             ]
                         , filter = AgGrid.NumberFilter
                     }

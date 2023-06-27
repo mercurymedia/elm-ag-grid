@@ -1,4 +1,4 @@
-import * as agGrid from "ag-grid-community";
+import { Grid, ComponentUtil } from "ag-grid-community";
 
 import cellRenderer from "./cell_renderer";
 import cellEditor from "./cell_editor";
@@ -17,7 +17,7 @@ class AgGrid extends HTMLElement {
   }
 
   _createPropertyMap() {
-    return agGrid.ComponentUtil.ALL_PROPERTIES.concat(setterProperties).reduce(
+    return ComponentUtil.ALL_PROPERTIES.concat(setterProperties).reduce(
       (map, property) => {
         map[property.toLowerCase()] = property;
         return map;
@@ -42,7 +42,7 @@ class AgGrid extends HTMLElement {
   set gridOptions(options) {
     let globalEventListener = this.globalEventListener.bind(this);
 
-    this._gridOptions = agGrid.ComponentUtil.copyAttributesToGridOptions(
+    this._gridOptions = ComponentUtil.copyAttributesToGridOptions(
       options,
       this._preInitAgGridAttributes
     );
@@ -51,7 +51,7 @@ class AgGrid extends HTMLElement {
     if (!this._initialised) {
       // prevent instantiating multiple grids
       let gridParams = { globalEventListener };
-      this._agGrid = new agGrid.Grid(this, this._gridOptions, gridParams);
+      this._agGrid = new Grid(this, this._gridOptions, gridParams);
 
       this.api = options.api;
       this.columnApi = options.columnApi;
@@ -79,7 +79,7 @@ class AgGrid extends HTMLElement {
   }
 
   static get observedAttributes() {
-    return agGrid.ComponentUtil.ALL_PROPERTIES.concat(setterProperties).map(
+    return ComponentUtil.ALL_PROPERTIES.concat(setterProperties).map(
       (property) => property.toLowerCase()
     );
   }
@@ -124,7 +124,7 @@ class AgGrid extends HTMLElement {
     if (selectedIds.length == 0) {
       this.api.deselectAll();
     } else {
-      this.api.forEachNode(function(node) {
+      this.api.forEachNode(function (node) {
         const selected = selectedIds.includes(node.id);
         node.setSelected(selected);
       });
@@ -135,10 +135,12 @@ class AgGrid extends HTMLElement {
     function applyCallbacks(def) {
       return {
         ...def,
-        editable: function (params) {
-          return expression.apply(params.node.data, def.editable);
-        },
-      };
+        editable: (params) => expression.apply(params.node.data, def.editable),
+        cellClassRules: objectMap(
+          def.cellClassRules,
+          (v) => (params) => expression.apply(params.node.data, v)
+        ),
+      }
     }
     this.api.setColumnDefs(defs.map(applyCallbacks));
   }
@@ -171,7 +173,6 @@ class AgGrid extends HTMLElement {
         item.disabled = item.disabledCallback;
       }
 
-
       return item;
     }
 
@@ -184,7 +185,7 @@ class AgGrid extends HTMLElement {
     let changeObject = {};
     changeObject[propertyName] = { currentValue: newValue };
 
-    agGrid.ComponentUtil.processOnChange(changeObject, this.api);
+    ComponentUtil.processOnChange(changeObject, this.api);
   }
 
   _addEventHandler(eventName, type, callback) {
@@ -255,7 +256,7 @@ class AgGrid extends HTMLElement {
     };
 
     if (this.loadAttribute("customRowId")) {
-      gridOptions.getRowId = function(params) {
+      gridOptions.getRowId = function (params) {
         return params.data.rowCallbackValues.rowId;
       };
     }
@@ -329,6 +330,12 @@ const setterProperties = Object.entries(
 )
   .filter(([_key, descriptor]) => typeof descriptor.set === "function")
   .map(([key]) => key);
+
+function objectMap(obj, fn) {
+  return Object.fromEntries(
+    Object.entries(obj).map(([k, v], i) => [k, fn(v, k, i)])
+  );
+}
 
 export default class ElmAgGrid {
   constructor({ apps = {}, aggregations = {} } = {}) {
