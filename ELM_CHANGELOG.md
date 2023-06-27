@@ -1,5 +1,11 @@
 # Elm Changelog
 
+## [13.0.0]
+
+- Changed `cellClassRules` attribute on `ColumnSettings`. The values are now provided as tuple, more similarly to `classList`, where the first value
+  is the class and the second value is the condition (as `Expression` type). This provides more consistency using the same kind of expression throughout
+  the code and allows to reuse the expressions on different attributes.
+
 ## [12.0.0]
 
 - Added `cellClassRules` to `ColumnSettings`

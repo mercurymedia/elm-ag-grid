@@ -1,5 +1,9 @@
 # NPM Changelog
 
+## [3.3.2]
+
+- Changed the AgGrid expression string for `cellClassRules` to our own `Expression` object for consistency.
+
 ## [3.3.1]
 
 - Applying `editable` callbacks on ColumnDefs
