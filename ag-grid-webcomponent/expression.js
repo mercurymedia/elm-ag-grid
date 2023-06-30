@@ -3,6 +3,11 @@ const apply = (data, expr) => {
         return expr
     }
 
+    if (data === null || data === undefined) {
+        // Ignore rows without data (i.e. footer) when evaluating expressions
+        return null
+    }
+
     switch (expr.type) {
         case "operator":
             return applyOperator(data, expr.value, expr.body)
