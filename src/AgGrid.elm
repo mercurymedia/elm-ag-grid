@@ -1,6 +1,6 @@
 module AgGrid exposing
     ( Aggregation(..), ColumnDef, ColumnSettings, FilterType(..), LockPosition(..), PinningType(..), Renderer(..)
-    , RowGroupPanelVisibility(..), RowSelection(..), StateChange
+    , RowGroupPanelVisibility(..), RowSelection(..), StateChange, CsvExportParams, ExcelExportParams
     , GridConfig, grid
     , defaultGridConfig, defaultSettings
     , onCellChanged, onCellDoubleClicked, onSelectionChange, onContextMenu
@@ -15,7 +15,7 @@ module AgGrid exposing
 # Data Types
 
 @docs Aggregation, ColumnDef, ColumnSettings, FilterType, LockPosition, PinningType, Renderer
-@docs RowGroupPanelVisibility, RowSelection, StateChange
+@docs RowGroupPanelVisibility, RowSelection, StateChange, CsvExportParams, ExcelExportParams
 
 
 # Grid
@@ -76,6 +76,12 @@ type Aggregation
     | SumAggregation
 
 
+type alias CsvExportParams =
+    { fileName : String
+    , columnKeys : List String
+    }
+
+
 {-| Possible variants of callbacks that can lead to a certain change.
 -}
 type EventType
@@ -85,6 +91,12 @@ type EventType
     | FilterChanged
     | GridColumnsChanged
     | SortChanged
+
+
+type alias ExcelExportParams =
+    { fileName : String
+    , columnKeys : List String
+    }
 
 
 {-| Possible filter options for columns.
@@ -346,6 +358,7 @@ type alias GridConfig dataType =
     , cacheQuickFilter : Bool
     , columnStates : List ColumnState
     , contextMenu : Maybe ContextMenu
+    , csvExport : Maybe CsvExportParams
     , detailRenderer :
         Maybe
             { componentName : String
@@ -353,6 +366,7 @@ type alias GridConfig dataType =
             , rowHeight : Maybe Int
             }
     , disableResizeOnScroll : Bool
+    , excelExport : Maybe ExcelExportParams
     , filterStates : Dict.Dict String FilterState
     , groupDefaultExpanded : Int
     , groupIncludeFooter : Bool
@@ -533,8 +547,10 @@ defaultGridConfig =
     , cacheQuickFilter = False
     , columnStates = []
     , contextMenu = Nothing
+    , csvExport = Nothing
     , detailRenderer = Nothing
     , disableResizeOnScroll = False
+    , excelExport = Nothing
     , filterStates = Dict.empty
     , groupDefaultExpanded = 0
     , groupIncludeFooter = False
@@ -1208,6 +1224,8 @@ generateGridConfigAttributes gridConfig =
                     |> Maybe.andThen .rowHeight
                     |> encodeMaybe Json.Encode.int
               )
+            , ( "defaultExcelExportParams", encodeMaybe encodeExcelExportParams gridConfig.excelExport )
+            , ( "defaultCsvExportParams", encodeMaybe encodeCsvExportParams gridConfig.csvExport )
             , ( "filterState", filterStatesEncoder gridConfig.filterStates )
             , ( "headerHeight", Json.Encode.int 48 )
             , ( "getContextMenuItems", encodeMaybe AgGrid.ContextMenu.encode gridConfig.contextMenu )
@@ -1288,6 +1306,22 @@ generateGridConfigAttributes gridConfig =
     , style "height" gridConfig.size
     ]
         ++ configAttributes
+
+
+encodeExcelExportParams : ExcelExportParams -> Json.Encode.Value
+encodeExcelExportParams params =
+    Json.Encode.object
+        [ ( "fileName", Json.Encode.string params.fileName )
+        , ( "columnKeys", Json.Encode.list Json.Encode.string params.columnKeys )
+        ]
+
+
+encodeCsvExportParams : CsvExportParams -> Json.Encode.Value
+encodeCsvExportParams params =
+    Json.Encode.object
+        [ ( "fileName", Json.Encode.string params.fileName )
+        , ( "columnKeys", Json.Encode.list Json.Encode.string params.columnKeys )
+        ]
 
 
 encodeFilterButtonType : FilterButtonType -> Json.Encode.Value

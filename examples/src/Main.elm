@@ -6,6 +6,7 @@ import Browser exposing (Document)
 import Browser.Navigation as Nav
 import Css
 import Css.Global
+import Export
 import Grouping
 import Html.Styled exposing (Html, a, div, span, text)
 import Html.Styled.Attributes exposing (css, href, target)
@@ -41,6 +42,7 @@ type Page
     | Basic Basic.Model
     | Grouping Grouping.Model
     | RowSelection RowSelection.Model
+    | Export Export.Model
     | NotFound
 
 
@@ -86,6 +88,9 @@ subscriptions model =
             Sub.none
 
         RowSelection _ ->
+            Sub.none
+
+        Export _ ->
             Sub.none
 
 
@@ -195,6 +200,7 @@ viewNavigation =
         , viewPageLink "Aggregations & Formatting" "/aggregation"
         , viewPageLink "Grouping" "/grouping"
         , viewPageLink "RowSelection" "/row-selection"
+        , viewPageLink "Export" "/export"
         ]
 
 
@@ -234,6 +240,9 @@ viewPage page =
 
             RowSelection pageModel ->
                 toPage RowSelectionMsg (RowSelection.view pageModel)
+
+            Export pageModel ->
+                toPage (always NoOp) (Export.view pageModel)
         ]
 
 
@@ -253,6 +262,7 @@ changePageTo url model =
                 , Parser.map (Aggregation.init |> toPage Aggregation AggregationMsg) (Parser.s "aggregation")
                 , Parser.map ( { model | page = Grouping Grouping.init }, Cmd.none ) (Parser.s "grouping")
                 , Parser.map ( { model | page = RowSelection RowSelection.init }, Cmd.none ) (Parser.s "row-selection")
+                , Parser.map ( { model | page = Export Export.init }, Cmd.none ) (Parser.s "export")
                 ]
     in
     Parser.parse parser url
