@@ -215,7 +215,7 @@ class AgGrid extends HTMLElement {
     } else {
       if (this._initialised) {
         // for subsequent (post gridOptions) changes
-        this._applyChange(name, parsedNewValue);
+        this._applyChange(gridPropertyName, parsedNewValue);
       } else {
         // for properties set before gridOptions is called
         this._preInitAgGridAttributes[gridPropertyName] = parsedNewValue;

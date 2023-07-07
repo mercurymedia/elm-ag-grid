@@ -1,5 +1,9 @@
 # NPM Changelog
 
+## [3.3.4]
+
+- Fixed change detection for case-sensitive attributes (i.e. `quickFilterText`)
+
 ## [3.3.3]
 
 - Fix: Ignore rows without data (i.e. footer) when evaluating expressions
