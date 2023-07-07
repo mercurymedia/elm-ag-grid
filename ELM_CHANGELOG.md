@@ -1,5 +1,10 @@
 # Elm Changelog
 
+## [14.0.0]
+
+- Added `customCellEditor` attribute on `ColumnSettings`. This allows to alter the cell editor used for the column.
+- Added `csvExport` and `excelExport` on `GridConfig`. This allows to configure the export capabilities for the grid.
+
 ## [13.0.0]
 
 - Changed `cellClassRules` attribute on `ColumnSettings`. The values are now provided as tuple, more similarly to `classList`, where the first value

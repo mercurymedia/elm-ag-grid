@@ -1,5 +1,10 @@
 # NPM Changelog
 
+
+## [3.4.0]
+
+- Added an `app_editor` cellEditor component to use Elm apps for editing cell values.
+
 ## [3.3.4]
 
 - Fixed change detection for case-sensitive attributes (i.e. `quickFilterText`)
