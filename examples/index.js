@@ -16,6 +16,8 @@ import "./styles/ag_grid_custom.css";
 // Component import
 import ButtonRenderer from "./src/Components/Button.elm";
 import LinkRenderer from "./src/Components/Link.elm";
+import Editor from "./src/Components/Editor.elm";
+
 
 let app;
 
@@ -32,6 +34,7 @@ window.AgGrid = {
         // and `flags`.
         // Note: The component application needs to be returned in order to access the ports
         // in the cellRenderer.
+        editor: Editor.Elm.Components.Editor,
         linkRenderer: LinkRenderer.Elm.Components.Link,
         buttonRenderer: {
           init: function ({ node, flags }) {

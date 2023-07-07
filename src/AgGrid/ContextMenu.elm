@@ -57,9 +57,10 @@ type ChildContextAction
     = ChildContextAction ContextAction
 
 
-{-| Context action attributes 
+{-| Context action attributes
 
 This can be used to define a custom context action.
+
 -}
 type alias ContextActionAttributes =
     { name : String
@@ -75,7 +76,7 @@ type alias ContextActionAttributes =
 -- Custom context actions
 
 
-{-| Create a custom context action 
+{-| Create a custom context action
 -}
 contextAction :
     { name : String

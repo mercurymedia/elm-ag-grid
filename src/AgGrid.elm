@@ -1,5 +1,5 @@
 module AgGrid exposing
-    ( Aggregation(..), ColumnDef, ColumnSettings, FilterType(..), LockPosition(..), PinningType(..), Renderer(..)
+    ( Aggregation(..), CellEditor(..), ColumnDef, ColumnSettings, FilterType(..), LockPosition(..), PinningType(..), Renderer(..)
     , RowGroupPanelVisibility(..), RowSelection(..), StateChange, CsvExportParams, ExcelExportParams
     , GridConfig, grid
     , defaultGridConfig, defaultSettings
@@ -14,7 +14,7 @@ module AgGrid exposing
 
 # Data Types
 
-@docs Aggregation, ColumnDef, ColumnSettings, FilterType, LockPosition, PinningType, Renderer
+@docs Aggregation, CellEditor, ColumnDef, ColumnSettings, FilterType, LockPosition, PinningType, Renderer
 @docs RowGroupPanelVisibility, RowSelection, StateChange, CsvExportParams, ExcelExportParams
 
 
@@ -76,6 +76,8 @@ type Aggregation
     | SumAggregation
 
 
+{-| Possible configuration for the CSV export.
+-}
 type alias CsvExportParams =
     { fileName : String
     , columnKeys : List String
@@ -93,6 +95,8 @@ type EventType
     | SortChanged
 
 
+{-| Possible configuration for the Excel export.
+-}
 type alias ExcelExportParams =
     { fileName : String
     , columnKeys : List String
@@ -209,6 +213,19 @@ type SidebarPosition
     | SidebarRight
 
 
+{-| CellEditor
+
+  - `DefaultEditor` will set an editor derived from the renderer
+  - `PredefinedEditor` allows to use an existing ag-grid editor
+  - `AppEditor` allows to use an Elm app as custom editor
+
+-}
+type CellEditor
+    = AppEditor { componentName : String, componentParams : Maybe Json.Encode.Value }
+    | PredefinedEditor String
+    | DefaultEditor
+
+
 type alias CellEditorParams =
     { values : List String }
 
@@ -269,6 +286,7 @@ type alias ColumnSettings =
     , autoHeaderHeight : Bool
     , cellClassRules : List ( String, Expression.Eval Bool )
     , checkboxSelection : Bool
+    , customCellEditor : CellEditor
     , editable : Eval Bool
     , enablePivot : Bool
     , enableRowGroup : Bool
@@ -458,6 +476,7 @@ defaultSettings =
     , autoHeaderHeight = False
     , cellClassRules = []
     , checkboxSelection = False
+    , customCellEditor = DefaultEditor
     , editable = Const False
     , enablePivot = True
     , enableRowGroup = True
@@ -873,47 +892,59 @@ columnDefEncoder gridConfig columnDef =
                     Json.Encode.null
           )
         , ( "cellEditor"
-          , case columnDef.renderer of
-                BoolRenderer _ ->
+          , case ( columnDef.settings.customCellEditor, columnDef.renderer ) of
+                ( DefaultEditor, BoolRenderer _ ) ->
                     Json.Encode.string "booleanCellEditor"
 
-                CurrencyRenderer _ _ ->
+                ( DefaultEditor, CurrencyRenderer _ _ ) ->
                     Json.Encode.string "decimalEditor"
 
-                DecimalRenderer _ _ ->
+                ( DefaultEditor, DecimalRenderer _ _ ) ->
                     Json.Encode.string "decimalEditor"
 
-                PercentRenderer _ _ ->
+                ( DefaultEditor, PercentRenderer _ _ ) ->
                     Json.Encode.string "decimalEditor"
 
-                SelectionRenderer _ _ ->
+                ( DefaultEditor, SelectionRenderer _ _ ) ->
                     Json.Encode.string "agRichSelectCellEditor"
+
+                ( PredefinedEditor editorName, _ ) ->
+                    Json.Encode.string editorName
+
+                ( AppEditor _, _ ) ->
+                    Json.Encode.string "appEditor"
 
                 _ ->
                     Json.Encode.null
           )
         , ( "cellEditorParams"
-          , case columnDef.renderer of
-                CurrencyRenderer { countryCode } _ ->
+          , case ( columnDef.settings.customCellEditor, columnDef.renderer ) of
+                ( DefaultEditor, CurrencyRenderer { countryCode } _ ) ->
                     Json.Encode.object
                         [ ( "countryCode", Json.Encode.string countryCode )
                         , ( "decimalPlaces", Json.Encode.int 2 )
                         ]
 
-                DecimalRenderer { countryCode, decimalPlaces } _ ->
+                ( DefaultEditor, DecimalRenderer { countryCode, decimalPlaces } _ ) ->
                     Json.Encode.object
                         [ ( "countryCode", Json.Encode.string countryCode )
                         , ( "decimalPlaces", Json.Encode.int decimalPlaces )
                         ]
 
-                PercentRenderer { countryCode, decimalPlaces } _ ->
+                ( DefaultEditor, PercentRenderer { countryCode, decimalPlaces } _ ) ->
                     Json.Encode.object
                         [ ( "countryCode", Json.Encode.string countryCode )
                         , ( "decimalPlaces", Json.Encode.int decimalPlaces )
                         ]
 
-                SelectionRenderer _ collection ->
+                ( DefaultEditor, SelectionRenderer _ collection ) ->
                     cellEditorParamsEncoder { values = collection }
+
+                ( AppEditor params, _ ) ->
+                    Json.Encode.object
+                        [ ( "componentName", Json.Encode.string params.componentName )
+                        , ( "componentParams", Maybe.withDefault Json.Encode.null params.componentParams )
+                        ]
 
                 _ ->
                     Json.Encode.null

@@ -197,7 +197,6 @@ viewGrid model =
         isDiscounted =
             Expression.lte (Expression.value "price") (Expression.int 3)
 
-
         columns =
             [ { field = "id"
               , renderer = IntRenderer .id
@@ -245,8 +244,8 @@ viewGrid model =
               , settings =
                     { gridSettings
                         | cellClassRules =
-                            [ ("discount", Expression.Expr isDiscounted )
-                            , ("high-price", Expression.Expr <|  Expression.not isDiscounted )
+                            [ ( "discount", Expression.Expr isDiscounted )
+                            , ( "high-price", Expression.Expr <| Expression.not isDiscounted )
                             ]
                         , filter = AgGrid.NumberFilter
                     }
