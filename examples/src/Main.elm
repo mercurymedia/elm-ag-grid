@@ -6,6 +6,7 @@ import Browser exposing (Document)
 import Browser.Navigation as Nav
 import Css
 import Css.Global
+import CustomEditor
 import Export
 import Grouping
 import Html.Styled exposing (Html, a, div, span, text)
@@ -43,6 +44,7 @@ type Page
     | Grouping Grouping.Model
     | RowSelection RowSelection.Model
     | Export Export.Model
+    | CustomEditor CustomEditor.Model
     | NotFound
 
 
@@ -91,6 +93,9 @@ subscriptions model =
             Sub.none
 
         Export _ ->
+            Sub.none
+
+        CustomEditor _ ->
             Sub.none
 
 
@@ -201,6 +206,7 @@ viewNavigation =
         , viewPageLink "Grouping" "/grouping"
         , viewPageLink "RowSelection" "/row-selection"
         , viewPageLink "Export" "/export"
+        , viewPageLink "Custom Editor" "/custom-editor"
         ]
 
 
@@ -243,6 +249,9 @@ viewPage page =
 
             Export pageModel ->
                 toPage (always NoOp) (Export.view pageModel)
+
+            CustomEditor pageModel ->
+                toPage (always NoOp) (CustomEditor.view pageModel)
         ]
 
 
@@ -263,6 +272,7 @@ changePageTo url model =
                 , Parser.map ( { model | page = Grouping Grouping.init }, Cmd.none ) (Parser.s "grouping")
                 , Parser.map ( { model | page = RowSelection RowSelection.init }, Cmd.none ) (Parser.s "row-selection")
                 , Parser.map ( { model | page = Export Export.init }, Cmd.none ) (Parser.s "export")
+                , Parser.map ( { model | page = CustomEditor CustomEditor.init }, Cmd.none ) (Parser.s "custom-editor")
                 ]
     in
     Parser.parse parser url

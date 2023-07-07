@@ -162,6 +162,28 @@ To respond to component updates while the component is already initialized, you 
 port componentRefresh : (Flags -> msg) -> Sub msg
 ```
 
+## Custom CellEditors
+
+While the default editor derives from the defined `renderer`, it can also be overridden. Either by using another existing ag-grid editor (e.g. "agLargeTextCellEditor") or by using another Elm app to render the editor.
+
+In order to use an Elm app, the component must be registered similar to the [custom view renderers](https://github.com/mercurymedia/elm-ag-grid/tree/main/#register-component). After that, the component can be used as a `customCellEditor` in your application.
+
+```elm
+    { field = "info"
+    , renderer = StringRenderer (.infos >> String.join ", ")
+    , headerName = "Info"
+    , settings = { defaultSettings | editable = Expression.Const True, customCellEditor = AgGrid.AppEditor { componentName = "editor", componentParams = Nothing } }
+    }
+```
+
+To notify ag-grid of the changed value for the cell, you need to set up a `currentValue` port in your cell editor component. This needs to be called every time the cell value is changed.
+
+```elm
+port currentValue : String -> Cmd msg
+```
+
+Normally this can be any type - the renderer just has to be able to interpret it. So it's even possible to work with JSON in the cells as long as the editor understands it and the renderer can interpret it. In combination with a custom cell renderer, this could lead to fancy data representations.
+
 ## Saving/Restoring grid columns and filters
 
 The current column state is sent whenever a column changes.

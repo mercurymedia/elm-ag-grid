@@ -3,6 +3,7 @@ import { Grid, ComponentUtil } from "ag-grid-community";
 import cellRenderer from "./cell_renderer";
 import cellEditor from "./cell_editor";
 import appRenderer from "./app_renderer";
+import appEditor from "./app_editor";
 import expression from "./expression";
 
 let CUSTOM_AGGREGATIONS = {};
@@ -238,6 +239,7 @@ class AgGrid extends HTMLElement {
         ...cellRenderer,
         ...cellEditor,
         appRenderer,
+        appEditor
       },
 
       aggFuncs: CUSTOM_AGGREGATIONS,
