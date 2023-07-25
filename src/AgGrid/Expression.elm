@@ -1,7 +1,7 @@
 module AgGrid.Expression exposing
     ( Eval(..), Expression, Literal, Operator
     , or, and, eq, lte, gte, not, includes
-    , int, string, float, list
+    , bool, int, string, float, list
     , value
     , encode
     )
@@ -23,7 +23,7 @@ For more information take a look at <https://github.com/mercurymedia/elm-ag-grid
 
 # Literals
 
-@docs int, string, float, list
+@docs bool, int, string, float, list
 
 
 # Row values
@@ -65,7 +65,8 @@ type Expression
 {-| The `Literal` type represents literals for strings, ints and floats.
 -}
 type Literal
-    = StringLiteral String
+    = BoolLiteral Bool
+    | StringLiteral String
     | IntLiteral Int
     | FloatLiteral Float
     | ListLiteral (List String)
@@ -152,6 +153,9 @@ encodeOperator operator =
 encodeLiteral : Literal -> Encode.Value
 encodeLiteral literal =
     case literal of
+        BoolLiteral b ->
+            Encode.bool b
+
         StringLiteral s ->
             Encode.string s
 
@@ -295,7 +299,7 @@ includes left right =
     Op (Includes left right)
 
 
-{-| A int Literal
+{-| An int Literal
 
     Expression.int 18
 
@@ -315,9 +319,9 @@ string s =
     Lit (StringLiteral s)
 
 
-{-| A string Literal
+{-| A float Literal
 
-    Expression.string 13.37
+    Expression.float 13.37
 
 -}
 float : Float -> Expression
@@ -325,6 +329,21 @@ float f =
     Lit (FloatLiteral f)
 
 
+{-| A string-list literal
+
+    Expression.list [ "a", "b" ]
+
+-}
 list : List String -> Expression
 list items =
     Lit (ListLiteral items)
+
+
+{-| A bool literal
+
+    Expression.bool True
+
+-}
+bool : Bool -> Expression
+bool b =
+    Lit (BoolLiteral b)
