@@ -1,5 +1,9 @@
 # Elm Changelog
 
+## [14.1.0]
+
+- Added `bool` and `list` literal for expressions.
+
 ## [14.0.0]
 
 - Added `customCellEditor` attribute on `ColumnSettings`. This allows to alter the cell editor used for the column.
