@@ -1,7 +1,7 @@
 module AgGrid.Expression exposing
     ( Eval(..), Expression, Literal, Operator
     , or, and, eq, lte, gte, not, includes
-    , int, string, float
+    , int, string, float, list
     , value
     , encode
     )
@@ -23,7 +23,7 @@ For more information take a look at <https://github.com/mercurymedia/elm-ag-grid
 
 # Literals
 
-@docs int, string, float
+@docs int, string, float, list
 
 
 # Row values
@@ -68,6 +68,7 @@ type Literal
     = StringLiteral String
     | IntLiteral Int
     | FloatLiteral Float
+    | ListLiteral (List String)
 
 
 {-| A `Operator` take expression(s) and evaluate the result in javascript.
@@ -159,6 +160,9 @@ encodeLiteral literal =
 
         FloatLiteral f ->
             Encode.float f
+
+        ListLiteral items ->
+            Encode.list Encode.string items
 
 
 operatorToString : Operator -> String
@@ -319,3 +323,8 @@ string s =
 float : Float -> Expression
 float f =
     Lit (FloatLiteral f)
+
+
+list : List String -> Expression
+list items =
+    Lit (ListLiteral items)
