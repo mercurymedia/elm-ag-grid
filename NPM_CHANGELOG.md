@@ -1,5 +1,8 @@
 # NPM Changelog
 
+## [3.4.1]
+
+- Remove unintended space for expression operator OR
 
 ## [3.4.0]
 

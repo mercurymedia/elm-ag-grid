@@ -29,7 +29,7 @@ const applyOperator = (data, operator, body) => {
         case "&&":
             return and(apply(data, body.left), apply(data, body.right))
 
-        case "|| ":
+        case "||":
             return or(apply(data, body.left), apply(data, body.right))
 
         case "==":
