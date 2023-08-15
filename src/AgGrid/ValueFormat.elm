@@ -1,7 +1,7 @@
 module AgGrid.ValueFormat exposing
     ( currencyValueFormatter, decimalValueFormatter, percentValueFormatter
     , numberValueGetter
-    , currencyFilterValueGetter, decimalFilterValueGetter, percentFilterValueGetter
+    , booleanFilterValueGetter, numberFilterValueGetter, percentFilterValueGetter
     )
 
 {-| Formatting of values in the AgGrid table.
@@ -21,7 +21,7 @@ Allows to format values as currencies, decimal, and percent.
 
 # filterValueGetter
 
-@docs currencyFilterValueGetter, decimalFilterValueGetter, percentFilterValueGetter
+@docs booleanFilterValueGetter, numberFilterValueGetter, percentFilterValueGetter
 
 -}
 
@@ -148,58 +148,56 @@ numberValueGetter fieldName =
 -- FILTER VALUE FORMATTER
 
 
-{-| Format a filter value as localized CURRENCY value utilizing the Javascript `Intl.NumberFormat` class.
+{-| Format a PERCENT cell value as DECIMAL value to be more in line with the PERCENT cell formatter.
 
-    price = "1200.35"
+This is similar to using a normal Value Getter, but is specific to the filter.
 
-    currencyFilterValueGetter { currency = "EUR", countryCode = "de-DE", field = "price" }
-    > "1.200,35 €"
+    cellValue = 0.15
 
-    currencyFilterValueGetter { currency = "EUR", countryCode = "en-US", field = "price" }
-    > "€1,200.35"
-
--}
-currencyFilterValueGetter : { currency : String, countryCode : String, field : String } -> String
-currencyFilterValueGetter { currency, countryCode, field } =
-    String.Interpolate.interpolate """
-        if (!data.{2}) { return null; }
-
-        return new Intl.NumberFormat('{0}', { style: 'currency', currency: '{1}' }).format(data.{2})
-    """ [ countryCode, currency, field ]
-
-
-{-| Format a filter value as localized DECIMAL value utilizing the Javascript `Intl.NumberFormat` class.
-
-    volume = 1200.35
-
-    decimalFilterValueGetter { countryCode = "de-DE", decimalPlaces = 1, field = "volume" }
-    > "1.200,4"
-
-    decimalFilterValueGetter { countryCode = "en-US", decimalPlaces = 0, field = "volume" }
-    > "1,200"
+    percentFilterValueGetter "pctField"
+    > "15"
 
 -}
-decimalFilterValueGetter : { countryCode : String, decimalPlaces : Int, field : String } -> String
-decimalFilterValueGetter { countryCode, decimalPlaces, field } =
+percentFilterValueGetter : String -> String
+percentFilterValueGetter field =
     String.Interpolate.interpolate """
-        if (!data.{2}) { return null; }
+        if (!data.{0}) { return null; }
 
-        return new Intl.NumberFormat('{0}', { style: 'decimal', maximumFractionDigits: '{1}' }).format(data.{2})
-    """ [ countryCode, String.fromInt decimalPlaces, field ]
+        return Number(data.{0} * 100)
+    """ [ field ]
 
 
-{-| Format a filter value as localized PERCENT value utilizing the Javascript `Intl.NumberFormat` class.
+{-| Format a cell value as number.
 
-    discount = 0.15
+This is similar to using a normal Value Getter, but is specific to the filter.
 
-    percentFilterValueGetter { countryCode = "de-DE", field = "discount" }
-    > "15%"
+    cellValue = "15"
+
+    numberFilterValueGetter "numberField"
+    > 15
 
 -}
-percentFilterValueGetter : { countryCode : String, field : String } -> String
-percentFilterValueGetter { countryCode, field } =
+numberFilterValueGetter : String -> String
+numberFilterValueGetter field =
     String.Interpolate.interpolate """
-        if (!data.{1}) { return null; }
+        if (!data.{0}) { return null; }
 
-        return new Intl.NumberFormat('{0}', { style: 'percent' }).format(data.{1})
-    """ [ countryCode, field ]
+        return Number(data.{0})
+    """ [ field ]
+
+
+{-| Format a boolean cell value with a proper translation.
+
+This is similar to using a normal Value Getter, but is specific to the filter.
+
+    cellValue = true
+
+    booleanFilterValueGetter "boolField"
+    > "Yes"
+
+-}
+booleanFilterValueGetter : { true : String, false : String, field : String } -> String
+booleanFilterValueGetter { true, false, field } =
+    String.Interpolate.interpolate """
+        return data.{2} ? '{0}' : '{1}'
+    """ [ true, false, field ]

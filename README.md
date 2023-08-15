@@ -225,6 +225,10 @@ The package provides preconfigured value formatting for currencies, decimals, an
 - **DecimalRenderer** to format floats into localized strings (e.g. 1000.8 --> '1.000,8')
 - **PercentRenderer** to format floats into localized percent strings (e.g. 0.22 --> '22%')
 
+## Filtering
+
+By default, each column will use a `filter` and a `filterValueGetter` depending on the renderer. To override it, you can change the `filter` and `filterValueGetter` on the `ColumnSettings`.
+
 ## Master-Detail
 
 **Requires AgGrid Enterprise**

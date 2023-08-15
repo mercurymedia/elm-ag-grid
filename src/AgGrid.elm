@@ -106,7 +106,8 @@ type alias ExcelExportParams =
 {-| Possible filter options for columns.
 -}
 type FilterType
-    = NumberFilter
+    = DefaultFilter
+    | NumberFilter
     | StringFilter
     | SetFilter
     | NoFilter
@@ -443,7 +444,7 @@ Default column settings:
     , enablePivot = True
     , enableRowGroup = True
     , enableValue = True
-    , filter = SetFilter
+    , filter = Nothing
     , filterParams =
         { buttons = [ ClearButton ]
         , closeOnApply = False
@@ -481,7 +482,7 @@ defaultSettings =
     , enablePivot = True
     , enableRowGroup = True
     , enableValue = True
-    , filter = SetFilter
+    , filter = DefaultFilter
     , filterParams =
         { buttons = [ ClearButton ]
         , closeOnApply = False
@@ -830,6 +831,10 @@ cellEditorParamsEncoder params =
 
 columnDefEncoder : GridConfig dataType -> ColumnDef dataType -> Json.Encode.Value
 columnDefEncoder gridConfig columnDef =
+    let
+        { encodedFilter, encodedFilterValueGetter } =
+            encodeFilterProperties columnDef
+    in
     Json.Encode.object
         [ ( "aggFunc"
           , case columnDef.settings.aggFunc of
@@ -954,42 +959,13 @@ columnDefEncoder gridConfig columnDef =
         , ( "enableRowGroup", Json.Encode.bool columnDef.settings.enableRowGroup )
         , ( "enableValue", Json.Encode.bool columnDef.settings.enableValue )
         , ( "field", Json.Encode.string columnDef.field )
-        , ( "filter"
-          , case columnDef.settings.filter of
-                NumberFilter ->
-                    Json.Encode.string "agNumberColumnFilter"
-
-                StringFilter ->
-                    Json.Encode.string "agTextColumnFilter"
-
-                SetFilter ->
-                    Json.Encode.string "agSetColumnFilter"
-
-                NoFilter ->
-                    Json.Encode.bool False
-          )
+        , ( "filter", encodedFilter )
         , ( "filterParams"
           , Json.Encode.object
                 [ ( "buttons", Json.Encode.list encodeFilterButtonType columnDef.settings.filterParams.buttons )
                 ]
           )
-        , ( "filterValueGetter"
-          , case ( columnDef.settings.filterValueGetter, columnDef.renderer ) of
-                ( Just overwrittenGetter, _ ) ->
-                    Json.Encode.string overwrittenGetter
-
-                ( Nothing, CurrencyRenderer { currency, countryCode } _ ) ->
-                    Json.Encode.string (ValueFormat.currencyFilterValueGetter { currency = currency, countryCode = countryCode, field = columnDef.field })
-
-                ( Nothing, DecimalRenderer { countryCode, decimalPlaces } _ ) ->
-                    Json.Encode.string (ValueFormat.decimalFilterValueGetter { countryCode = countryCode, decimalPlaces = decimalPlaces, field = columnDef.field })
-
-                ( Nothing, PercentRenderer { countryCode } _ ) ->
-                    Json.Encode.string (ValueFormat.percentFilterValueGetter { countryCode = countryCode, field = columnDef.field })
-
-                ( Nothing, _ ) ->
-                    Json.Encode.null
-          )
+        , ( "filterValueGetter", encodedFilterValueGetter )
         , ( "headerCheckboxSelection", Json.Encode.bool columnDef.settings.headerCheckboxSelection )
         , ( "headerName", Json.Encode.string columnDef.headerName )
         , ( "hide", Json.Encode.bool columnDef.settings.hide )
@@ -1499,3 +1475,86 @@ encodeData gridConfig columns data =
 cellUpdateDecoder : Decoder Decode.Value
 cellUpdateDecoder =
     Decode.at [ "agGridDetails", "data" ] Decode.value
+
+
+defaultColumnFilter : ColumnDef dataType -> ( FilterType, Maybe String )
+defaultColumnFilter column =
+    case column.renderer of
+        AppRenderer _ _ ->
+            ( NoFilter, Nothing )
+
+        BoolRenderer _ ->
+            ( SetFilter, Just (ValueFormat.booleanFilterValueGetter { field = column.field, true = "Yes", false = "No" }) )
+
+        CurrencyRenderer _ _ ->
+            ( NumberFilter, Just (ValueFormat.numberFilterValueGetter column.field) )
+
+        DecimalRenderer _ _ ->
+            ( NumberFilter, Just (ValueFormat.numberFilterValueGetter column.field) )
+
+        FloatRenderer _ ->
+            ( NumberFilter, Just (ValueFormat.numberFilterValueGetter column.field) )
+
+        GroupRenderer _ ->
+            ( NoFilter, Nothing )
+
+        IntRenderer _ ->
+            ( NumberFilter, Just (ValueFormat.numberFilterValueGetter column.field) )
+
+        MaybeFloatRenderer _ ->
+            ( NumberFilter, Just (ValueFormat.numberFilterValueGetter column.field) )
+
+        MaybeIntRenderer _ ->
+            ( NumberFilter, Just (ValueFormat.numberFilterValueGetter column.field) )
+
+        MaybeStringRenderer _ ->
+            ( StringFilter, Nothing )
+
+        NoRenderer ->
+            ( NoFilter, Nothing )
+
+        PercentRenderer _ _ ->
+            ( NumberFilter, Just (ValueFormat.percentFilterValueGetter column.field) )
+
+        SelectionRenderer _ _ ->
+            ( SetFilter, Nothing )
+
+        StringRenderer _ ->
+            ( StringFilter, Nothing )
+
+
+encodeFilterProperties : ColumnDef entity -> { encodedFilter : Json.Encode.Value, encodedFilterValueGetter : Json.Encode.Value }
+encodeFilterProperties columnDef =
+    let
+        ( defaultFilter, defaultFilterValueFormatter ) =
+            defaultColumnFilter columnDef
+
+        encodeFilter filter =
+            case filter of
+                DefaultFilter ->
+                    if defaultFilter == DefaultFilter then
+                        -- This prevents the possible infinite loop
+                        Json.Encode.null
+
+                    else
+                        encodeFilter defaultFilter
+
+                NumberFilter ->
+                    Json.Encode.string "agNumberColumnFilter"
+
+                StringFilter ->
+                    Json.Encode.string "agTextColumnFilter"
+
+                SetFilter ->
+                    Json.Encode.string "agSetColumnFilter"
+
+                NoFilter ->
+                    Json.Encode.bool False
+    in
+    { encodedFilter = encodeFilter columnDef.settings.filter
+    , encodedFilterValueGetter =
+        columnDef.settings.filterValueGetter
+            |> Maybe.map Just
+            |> Maybe.withDefault defaultFilterValueFormatter
+            |> encodeMaybe Json.Encode.string
+    }
