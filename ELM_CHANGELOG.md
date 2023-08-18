@@ -1,5 +1,9 @@
 # Elm Changelog
 
+## [15.1.0]
+
+- Exposing `AgGrid.ValueFormat` module
+
 ## [15.0.0]
 
 - Changed default `filter` on `ColumnDef` to the new `DefaultFilter` variant (was `SetFilter`). The `DefaultFilter` will determine a default filter and filterValueFormatter by the column renderer. The default values can be overriden by explicitely setting a different `filter` or `filterValueGetter`.
