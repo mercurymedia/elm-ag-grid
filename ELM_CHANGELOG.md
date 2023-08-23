@@ -1,5 +1,10 @@
 # Elm Changelog
 
+## [16.0.0]
+
+- BREAKING CHANGE: Removed `percentFilterValueGetter`
+- BREAKING CHANGE: `PercentRenderer` now requires the value to be the percentage (e.g. `"15" == 15%`, before this was given as decimal `0.15`). The value in the editor will also be the percentage (`15`).
+
 ## [15.1.0]
 
 - Exposing `AgGrid.ValueFormat` module

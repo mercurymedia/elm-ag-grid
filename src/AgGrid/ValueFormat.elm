@@ -1,7 +1,7 @@
 module AgGrid.ValueFormat exposing
     ( currencyValueFormatter, decimalValueFormatter, percentValueFormatter
     , numberValueGetter
-    , booleanFilterValueGetter, numberFilterValueGetter, percentFilterValueGetter
+    , booleanFilterValueGetter, numberFilterValueGetter
     )
 
 {-| Formatting of values in the AgGrid table.
@@ -21,7 +21,7 @@ Allows to format values as currencies, decimal, and percent.
 
 # filterValueGetter
 
-@docs booleanFilterValueGetter, numberFilterValueGetter, percentFilterValueGetter
+@docs booleanFilterValueGetter, numberFilterValueGetter
 
 -}
 
@@ -121,7 +121,7 @@ percentValueFormatter { countryCode, decimalPlaces } =
 
         if (input === null || input === undefined) { return null; }
 
-        return new Intl.NumberFormat('{0}', { style: 'percent', maximumFractionDigits: {1} }).format(value)
+        return new Intl.NumberFormat('{0}', { style: 'percent', maximumFractionDigits: {1} }).format(value / 100)
     """ [ countryCode, String.fromInt <| Basics.max (decimalPlaces - 2) 0 ]
 
 
@@ -146,25 +146,6 @@ numberValueGetter fieldName =
 
 
 -- FILTER VALUE FORMATTER
-
-
-{-| Format a PERCENT cell value as DECIMAL value to be more in line with the PERCENT cell formatter.
-
-This is similar to using a normal Value Getter, but is specific to the filter.
-
-    cellValue = 0.15
-
-    percentFilterValueGetter "pctField"
-    > "15"
-
--}
-percentFilterValueGetter : String -> String
-percentFilterValueGetter field =
-    String.Interpolate.interpolate """
-        if (!data.{0}) { return null; }
-
-        return Number(data.{0} * 100)
-    """ [ field ]
 
 
 {-| Format a cell value as number.
