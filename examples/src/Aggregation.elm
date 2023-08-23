@@ -176,7 +176,7 @@ viewGrid model =
               , settings = { gridSettings | aggFunc = AgGrid.SumAggregation }
               }
             , { field = "discountDE"
-              , renderer = PercentRenderer { countryCode = "de", decimalPlaces = 2 } (.de >> .discount >> Maybe.map String.fromFloat)
+              , renderer = PercentRenderer { countryCode = "de", decimalPlaces = 2 } (.de >> .discount >> Maybe.map (toPct >> String.fromFloat))
               , headerName = "Discount DE"
               , settings = { gridSettings | aggFunc = AgGrid.AvgAggregation }
               }
@@ -191,12 +191,12 @@ viewGrid model =
               , settings = { gridSettings | aggFunc = AgGrid.AvgAggregation }
               }
             , { field = "discountUS"
-              , renderer = PercentRenderer { countryCode = "us", decimalPlaces = 2 } (.us >> .discount >> Maybe.map String.fromFloat)
+              , renderer = PercentRenderer { countryCode = "us", decimalPlaces = 2 } (.us >> .discount >> Maybe.map (toPct >> String.fromFloat))
               , headerName = "Discount US"
               , settings = { gridSettings | aggFunc = AgGrid.AvgAggregation }
               }
             , { field = "minAndMax"
-              , renderer = MaybeStringRenderer (.us >> .discount >> Maybe.map String.fromFloat)
+              , renderer = MaybeStringRenderer (.us >> .discount >> Maybe.map (toPct >> String.fromFloat))
               , headerName = "Min & Max (Custom aggregation)"
               , settings = { gridSettings | aggFunc = AgGrid.CustomAggregation "Min&Max" }
               }
@@ -234,7 +234,7 @@ changeDecoder =
             Decode.succeed Cost
                 |> DecodePipeline.optional priceField (Decode.nullable Decode.string) Nothing
                 |> DecodePipeline.optional volumeField (Decode.string |> Decode.map String.toInt) Nothing
-                |> DecodePipeline.optional discountField (Decode.string |> Decode.map String.toFloat) Nothing
+                |> DecodePipeline.optional discountField (Decode.string |> Decode.map (String.toFloat >> Maybe.map toDecimal)) Nothing
     in
     Decode.succeed LineItem
         |> DecodePipeline.required "id" Decode.int
@@ -245,3 +245,13 @@ changeDecoder =
 idDecoder : Decode.Decoder Int
 idDecoder =
     Decode.field "id" Decode.int
+
+
+toPct : Float -> Float
+toPct decimal =
+    decimal * 100
+
+
+toDecimal : Float -> Float
+toDecimal pct =
+    pct / 100

@@ -1514,7 +1514,7 @@ defaultColumnFilter column =
             ( NoFilter, Nothing )
 
         PercentRenderer _ _ ->
-            ( NumberFilter, Just (ValueFormat.percentFilterValueGetter column.field) )
+            ( NumberFilter, Just (ValueFormat.numberFilterValueGetter column.field) )
 
         SelectionRenderer _ _ ->
             ( SetFilter, Nothing )
