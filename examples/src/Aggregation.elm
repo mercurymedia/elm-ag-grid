@@ -23,7 +23,7 @@ init =
 initialModel : Model
 initialModel =
     { costs =
-        [ { id = 1, de = { price = Just "472.08", volume = Just 8356, discount = Just 0.19 }, us = { price = Just "8293.27", volume = Just 6299, discount = Just 0.23 } }
+        [ { id = 1, de = { price = Just "472.08", volume = Just 8356, discount = Just 0.1921321 }, us = { price = Just "8293.27", volume = Just 6299, discount = Just 0.23 } }
         , { id = 2, de = { price = Just "5872.03", volume = Just 7353, discount = Just 0.06 }, us = { price = Just "3403.07", volume = Just 9578, discount = Nothing } }
         , { id = 3, de = { price = Just "214.27", volume = Just 7077, discount = Just 0.2 }, us = { price = Just "7805.74", volume = Just 4274, discount = Just 0.19 } }
         , { id = 4, de = { price = Just "6757.93", volume = Just 4279, discount = Just 0.04 }, us = { price = Nothing, volume = Just 6469, discount = Just 0.04 } }
