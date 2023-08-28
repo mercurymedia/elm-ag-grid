@@ -1,5 +1,10 @@
 # Elm Changelog
 
+## [17.0.0]
+
+- BREAKING_CHANGE: Submenu actions of a custom ContextAction no longer need to be wrapped with `ChildContextAction`
+- Percentage formatting now reflects the defined decimal value correctly - e.g. the float `15.5678` with given `decimalPlaces = 2` will be `15.57`
+
 ## [16.0.0]
 
 - BREAKING CHANGE: Removed `percentFilterValueGetter`
