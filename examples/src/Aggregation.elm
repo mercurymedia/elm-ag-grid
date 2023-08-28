@@ -142,9 +142,9 @@ viewGrid model =
                             { defaultActionAttributes
                                 | name = "Edit"
                                 , subMenu =
-                                    [ AgGridContextMenu.ChildContextAction AgGridContextMenu.copyContextAction
-                                    , AgGridContextMenu.ChildContextAction AgGridContextMenu.contextSeparator
-                                    , AgGridContextMenu.ChildContextAction AgGridContextMenu.pasteContextAction
+                                    [ AgGridContextMenu.copyContextAction
+                                    , AgGridContextMenu.contextSeparator
+                                    , AgGridContextMenu.pasteContextAction
                                     ]
                             }
                         , AgGridContextMenu.contextAction
