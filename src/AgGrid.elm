@@ -49,7 +49,7 @@ module AgGrid exposing
 
 -}
 
-import AgGrid.ContextMenu exposing (ContextMenu)
+import AgGrid.ContextMenu as ContextMenu exposing (ContextMenu, defaultActionAttributes)
 import AgGrid.Expression as Expression exposing (Eval(..))
 import AgGrid.ValueFormat as ValueFormat
 import Dict
@@ -566,7 +566,16 @@ defaultGridConfig =
     , autoSizeColumns = False
     , cacheQuickFilter = False
     , columnStates = []
-    , contextMenu = Nothing
+    , contextMenu =
+        Just
+            [ ContextMenu.cutContextAction
+            , ContextMenu.copyContextAction
+            , ContextMenu.copyWithHeadersContextAction
+            , ContextMenu.copyWithGroupHeadersContextAction
+            , ContextMenu.pasteContextAction
+            , ContextMenu.excelExportContextAction
+            , ContextMenu.csvExportContextAction
+            ]
     , csvExport = Nothing
     , detailRenderer = Nothing
     , disableResizeOnScroll = False
@@ -1235,7 +1244,7 @@ generateGridConfigAttributes gridConfig =
             , ( "defaultCsvExportParams", encodeMaybe encodeCsvExportParams gridConfig.csvExport )
             , ( "filterState", filterStatesEncoder gridConfig.filterStates )
             , ( "headerHeight", Json.Encode.int 48 )
-            , ( "getContextMenuItems", encodeMaybe AgGrid.ContextMenu.encode gridConfig.contextMenu )
+            , ( "getContextMenuItems", encodeMaybe ContextMenu.encode gridConfig.contextMenu )
             , ( "quickFilterText"
               , if String.isEmpty gridConfig.quickFilterText then
                     Json.Encode.null

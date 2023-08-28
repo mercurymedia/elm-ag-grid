@@ -1,5 +1,5 @@
 module AgGrid.ContextMenu exposing
-    ( ContextAction, ChildContextAction(..), ContextMenu
+    ( ContextAction, ContextMenu
     , contextAction, defaultActionAttributes
     , autoSizeAllContextAction, chartRangeContextAction, contractAllContextAction, copyContextAction, copyWithGroupHeadersContextAction, copyWithHeadersContextAction
     , csvExportContextAction, cutContextAction, excelExportContextAction, expandAllContextAction, exportContextAction, pasteContextAction, pivotChartContextAction
@@ -12,7 +12,7 @@ module AgGrid.ContextMenu exposing
 
 # Definition
 
-@docs ContextAction, ChildContextAction, ContextMenu
+@docs ContextAction, ContextMenu
 
 
 # Custom context action
@@ -51,12 +51,6 @@ type ContextAction
     | PredefinedMenuItem String
 
 
-{-| Child Context action configuration.
--}
-type ChildContextAction
-    = ChildContextAction ContextAction
-
-
 {-| Context action attributes
 
 This can be used to define a custom context action.
@@ -68,7 +62,7 @@ type alias ContextActionAttributes =
     , actionName : Maybe String
     , icon : Maybe String
     , disabled : Eval Bool
-    , subMenu : List ChildContextAction
+    , subMenu : List ContextAction
     }
 
 
@@ -84,7 +78,7 @@ contextAction :
     , actionName : Maybe String
     , disabled : Eval Bool
     , icon : Maybe String
-    , subMenu : List ChildContextAction
+    , subMenu : List ContextAction
     }
     -> ContextAction
 contextAction config =
@@ -298,10 +292,5 @@ encodeCustomContextAction action =
         , ( "actionName", Json.Encode.Extra.encodeMaybe Json.Encode.string action.actionName )
         , ( "disabledCallback", Expression.encode Json.Encode.bool action.disabled )
         , ( "icon", Json.Encode.Extra.encodeMaybe Json.Encode.string action.icon )
-        , ( "subMenu", Json.Encode.list encodeSubMenuItem action.subMenu )
+        , ( "subMenu", Json.Encode.list encodeContextAction action.subMenu )
         ]
-
-
-encodeSubMenuItem : ChildContextAction -> Json.Encode.Value
-encodeSubMenuItem (ChildContextAction action) =
-    encodeContextAction action
