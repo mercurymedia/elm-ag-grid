@@ -122,7 +122,7 @@ percentValueFormatter { countryCode, decimalPlaces } =
         if (input === null || input === undefined) { return null; }
 
         return new Intl.NumberFormat('{0}', { style: 'percent', maximumFractionDigits: {1} }).format(value / 100)
-    """ [ countryCode, String.fromInt <| Basics.max (decimalPlaces - 2) 0 ]
+    """ [ countryCode, String.fromInt decimalPlaces ]
 
 
 
