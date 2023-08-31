@@ -2,7 +2,7 @@
 
 ## [3.4.2]
 
-- Publish transpiled webcomponent
+- Publish bundled webcomponent
 
 ## [3.4.1]
 
