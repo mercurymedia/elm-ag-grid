@@ -1,16 +1,22 @@
 {
   "name": "@mercurymedia/elm-ag-grid",
-  "version": "3.4.1",
+  "version": "3.4.2",
   "description": "",
-  "main": "ag-grid-webcomponent/index.js",
+  "main": "lib/index.js",
   "files": [
-    "ag-grid-webcomponent/",
+    "lib/",
     "LICENSE"
   ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "npm-publish": "npm publish --access public",
-    "start": "parcel serve examples/index.html"
+    "start": "parcel serve examples/index.html",
+    "prepublishOnly": "babel ag-grid-webcomponent --out-dir lib"
+  },
+  "babel": {
+    "presets": [
+      "@babel/preset-env"
+    ]
   },
   "author": "",
   "repository": "git://github.com/mercurymedia/elm-ag-grid.git",
@@ -20,6 +26,9 @@
     "ag-grid-enterprise": "^29.1.0"
   },
   "devDependencies": {
+    "@babel/cli": "^7.22.10",
+    "@babel/core": "^7.22.11",
+    "@babel/preset-env": "^7.22.14",
     "@parcel/transformer-elm": "^2.3.2",
     "@webcomponents/custom-elements": "^1.5.0",
     "ag-grid-community": "^29.1.0",
