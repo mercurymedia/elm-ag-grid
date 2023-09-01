@@ -1,16 +1,20 @@
 {
   "name": "@mercurymedia/elm-ag-grid",
-  "version": "3.4.1",
+  "version": "3.4.2",
   "description": "",
-  "main": "ag-grid-webcomponent/index.js",
+  "main": "dist/index.js",
   "files": [
-    "ag-grid-webcomponent/",
+    "dist/index.js",
     "LICENSE"
   ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "npm-publish": "npm publish --access public",
-    "start": "parcel serve examples/index.html"
+    "start": "parcel serve examples/index.html",
+    "prepublishOnly": "parcel build ag-grid-webcomponent/index.js --target bundle --no-source-maps"
+  },
+  "targets": {
+    "bundle": {}
   },
   "author": "",
   "repository": "git://github.com/mercurymedia/elm-ag-grid.git",
