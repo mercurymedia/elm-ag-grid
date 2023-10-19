@@ -392,22 +392,23 @@ type alias GridConfig dataType =
     , groupIncludeTotalFooter : Bool
     , groupSelectsChildren : Bool
     , isRowSelectable : dataType -> Bool
+    , maintainColumnOrder : Bool
     , pagination : Bool
     , quickFilterText : String
+    , rowGroupPanelShow : RowGroupPanelVisibility
     , rowHeight : Maybe Int
     , rowId : Maybe (dataType -> String)
-    , rowGroupPanelShow : RowGroupPanelVisibility
     , rowMultiSelectWithClick : Bool
     , rowSelection : RowSelection
     , selectedIds : List String
     , sideBar : Sidebar
     , size : String
-    , suppressMenuHide : Bool
-    , suppressRowClickSelection : Bool
     , sizeToFitAfterFirstDataRendered : Bool
     , stopEditingWhenCellsLoseFocus : Bool
-    , themeClasses : Maybe String
+    , suppressMenuHide : Bool
+    , suppressRowClickSelection : Bool
     , suppressRowDeselection : Bool
+    , themeClasses : Maybe String
     }
 
 
@@ -586,11 +587,12 @@ defaultGridConfig =
     , groupIncludeTotalFooter = False
     , groupSelectsChildren = False
     , isRowSelectable = always True
+    , maintainColumnOrder = False
     , pagination = False
     , quickFilterText = ""
-    , rowId = Nothing
     , rowGroupPanelShow = NeverVisible
     , rowHeight = Nothing
+    , rowId = Nothing
     , rowMultiSelectWithClick = False
     , rowSelection = MultipleRowSelection
     , selectedIds = []
@@ -1258,6 +1260,7 @@ generateGridConfigAttributes gridConfig =
             , ( "groupIncludeFooter", Json.Encode.bool gridConfig.groupIncludeFooter )
             , ( "groupIncludeTotalFooter", Json.Encode.bool gridConfig.groupIncludeTotalFooter )
             , ( "groupSelectsChildren", Json.Encode.bool gridConfig.groupSelectsChildren )
+            , ( "maintainColumnOrder", Json.Encode.bool gridConfig.maintainColumnOrder)
             , ( "masterDetail"
               , Json.Encode.bool <|
                     case gridConfig.detailRenderer of

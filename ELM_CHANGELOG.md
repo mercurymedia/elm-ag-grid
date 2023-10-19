@@ -1,5 +1,9 @@
 # Elm Changelog
 
+## [18.0.0]
+
+- Add `maintainColumnOrder` to `GridConfig`
+
 ## [17.0.0]
 
 - BREAKING_CHANGE: Submenu actions of a custom ContextAction no longer need to be wrapped with `ChildContextAction`
