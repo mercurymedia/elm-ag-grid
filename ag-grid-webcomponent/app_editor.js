@@ -24,7 +24,10 @@ class AppEditor {
         flags: params,
       });
 
-      const _this = this
+      // Set initial editor value according to the cell value
+      this.currentValue = params.value;
+
+      const _this = this;
       // Listen for populated changes to the current value
       this.application?.ports?.currentValue.subscribe((value) => {
         _this.currentValue = value;
