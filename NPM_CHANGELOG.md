@@ -1,5 +1,9 @@
 # NPM Changelog
 
+## [3.4.2]
+
+- Set initial cell editor value
+
 ## [3.4.1]
 
 - Remove unintended space for expression operator OR
