@@ -1,12 +1,13 @@
 module AgGrid exposing
-    ( Aggregation(..), CellEditor(..), ColumnDef, ColumnSettings, FilterType(..), LockPosition(..), PinningType(..), Renderer(..)
-    , RowGroupPanelVisibility(..), RowSelection(..), StateChange, CsvExportParams, ExcelExportParams
+    ( Aggregation(..), CellEditor(..), ColumnDef, ColumnSettings, EventType(..), FilterType(..), LockPosition(..), PinningType(..), Renderer(..)
+    , RowGroupPanelVisibility(..), RowSelection(..), Sorting(..), StateChange, CsvExportParams, ExcelExportParams
     , GridConfig, grid
     , defaultGridConfig, defaultSettings
     , onCellChanged, onCellDoubleClicked, onSelectionChange, onContextMenu
     , ColumnState, onColumnStateChanged, columnStatesDecoder, columnStatesEncoder
     , FilterState, onFilterStateChanged, filterStatesEncoder, filterStatesDecoder
     , Sidebar, SidebarType(..), SidebarPosition(..), defaultSidebar
+    , aggregationToString, pinningTypeToString, sortingToString, toAggregation, toPinningType, toSorting
     )
 
 {-| AgGrid integration for elm.
@@ -14,8 +15,8 @@ module AgGrid exposing
 
 # Data Types
 
-@docs Aggregation, CellEditor, ColumnDef, ColumnSettings, FilterType, LockPosition, PinningType, Renderer
-@docs RowGroupPanelVisibility, RowSelection, StateChange, CsvExportParams, ExcelExportParams
+@docs Aggregation, CellEditor, ColumnDef, ColumnSettings, EventType, FilterType, LockPosition, PinningType, Renderer
+@docs RowGroupPanelVisibility, RowSelection, Sorting, StateChange, CsvExportParams, ExcelExportParams
 
 
 # Grid
@@ -47,9 +48,14 @@ module AgGrid exposing
 
 @docs Sidebar, SidebarType, SidebarPosition, defaultSidebar
 
+
+# Type parser
+
+@docs aggregationToString, pinningTypeToString, sortingToString, toAggregation, toPinningType, toSorting
+
 -}
 
-import AgGrid.ContextMenu as ContextMenu exposing (ContextMenu, defaultActionAttributes)
+import AgGrid.ContextMenu as ContextMenu exposing (ContextMenu)
 import AgGrid.Expression as Expression exposing (Eval(..))
 import AgGrid.ValueFormat as ValueFormat
 import Dict
@@ -93,6 +99,9 @@ type EventType
     | FilterChanged
     | GridColumnsChanged
     | SortChanged
+    | ColumnPinned
+    | ColumnRowGroupChanged
+    | ColumnValueChanged
 
 
 {-| Possible configuration for the Excel export.
@@ -214,6 +223,14 @@ type SidebarPosition
     | SidebarRight
 
 
+{-| Possible pre-configured column sorting.
+-}
+type Sorting
+    = SortAscending
+    | SortDescending
+    | NoSorting
+
+
 {-| CellEditor
 
   - `DefaultEditor` will set an editor derived from the renderer
@@ -298,15 +315,21 @@ type alias ColumnSettings =
         , closeOnApply : Bool
         }
     , filterValueGetter : Maybe String
+    , flex : Maybe Int
     , headerCheckboxSelection : Bool
     , hide : Bool
     , lockPosition : LockPosition
     , minWidth : Maybe Int
     , pinned : PinningType
+    , pivot : Bool
+    , pivotIndex : Maybe Int
     , resizable : Bool
     , rowGroup : Bool
+    , rowGroupIndex : Maybe Int
     , showDisabledCheckboxes : Bool
     , sortable : Bool
+    , sort : Sorting
+    , sortIndex : Maybe Int
     , suppressColumnsToolPanel : Bool
     , suppressFiltersToolPanel : Bool
     , suppressMenu : Bool
@@ -489,15 +512,21 @@ defaultSettings =
         , closeOnApply = False
         }
     , filterValueGetter = Nothing
+    , flex = Nothing
     , headerCheckboxSelection = False
     , hide = False
     , lockPosition = NoPositionLock
     , minWidth = Nothing
     , pinned = Unpinned
+    , pivot = False
+    , pivotIndex = Nothing
     , resizable = True
     , rowGroup = False
+    , rowGroupIndex = Nothing
     , showDisabledCheckboxes = False
     , sortable = True
+    , sort = NoSorting
+    , sortIndex = Nothing
     , suppressColumnsToolPanel = False
     , suppressFiltersToolPanel = False
     , suppressMenu = False
@@ -671,6 +700,7 @@ grid gridConfig events columnDefs data =
         columns =
             columnDefs
                 |> prepareColumns gridConfig
+                |> applyColumnState gridConfig
                 |> Json.Encode.list (columnDefEncoder gridConfig)
                 |> Json.Encode.encode 0
 
@@ -686,6 +716,64 @@ grid gridConfig events columnDefs data =
             ++ events
         )
         []
+
+
+applyColumnState : GridConfig dataType -> List (ColumnDef dataType) -> List (ColumnDef dataType)
+applyColumnState gridConfig columnDefs =
+    let
+        indexedStorage : Dict.Dict String ( Int, ColumnState )
+        indexedStorage =
+            gridConfig.columnStates
+                |> List.indexedMap Tuple.pair
+                |> List.map (\( index, col ) -> ( col.colId, ( index, col ) ))
+                |> Dict.fromList
+
+        applyCache : ColumnDef dataType -> ColumnState -> ColumnDef dataType
+        applyCache ({ settings } as column) cachedState =
+            { column
+                | settings =
+                    { settings
+                        | aggFunc = toAggregation cachedState.aggFunc
+                        , flex = cachedState.flex
+                        , hide = Maybe.withDefault settings.hide cachedState.hide
+                        , pinned = toPinningType cachedState.pinned
+                        , pivot = Maybe.withDefault settings.pivot cachedState.pivot
+                        , pivotIndex = cachedState.pivotIndex
+                        , rowGroup = Maybe.withDefault settings.rowGroup cachedState.rowGroup
+                        , rowGroupIndex = cachedState.rowGroupIndex
+                        , sort = toSorting cachedState.sort
+                        , sortIndex = cachedState.sortIndex
+                        , width = Just cachedState.width
+                    }
+            }
+
+        sorter : ( Maybe Int, any ) -> ( Maybe Int, any ) -> Order
+        sorter ( position1, _ ) ( position2, _ ) =
+            case ( position1, position2 ) of
+                ( Just pos1, Just pos2 ) ->
+                    compare pos1 pos2
+
+                ( Nothing, Just _ ) ->
+                    GT
+
+                ( Just _, Nothing ) ->
+                    LT
+
+                ( Nothing, Nothing ) ->
+                    EQ
+    in
+    columnDefs
+        |> List.map
+            (\column ->
+                case Dict.get column.field indexedStorage of
+                    Just ( position, cachedState ) ->
+                        ( Just position, applyCache column cachedState )
+
+                    Nothing ->
+                        ( Nothing, column )
+            )
+        |> List.sortWith sorter
+        |> List.map Tuple.second
 
 
 prepareColumns : GridConfig dataType -> List (ColumnDef dataType) -> List (ColumnDef dataType)
@@ -847,35 +935,7 @@ columnDefEncoder gridConfig columnDef =
             encodeFilterProperties columnDef
     in
     Json.Encode.object
-        [ ( "aggFunc"
-          , case columnDef.settings.aggFunc of
-                AvgAggregation ->
-                    Json.Encode.string "avg"
-
-                CountAggregation ->
-                    Json.Encode.string "count"
-
-                CustomAggregation name ->
-                    Json.Encode.string name
-
-                FirstAggregation ->
-                    Json.Encode.string "first"
-
-                LastAggregation ->
-                    Json.Encode.string "last"
-
-                MaxAggregation ->
-                    Json.Encode.string "max"
-
-                MinAggregation ->
-                    Json.Encode.string "min"
-
-                NoAggregation ->
-                    Json.Encode.null
-
-                SumAggregation ->
-                    Json.Encode.string "sum"
-          )
+        [ ( "aggFunc", encodeMaybe Json.Encode.string (aggregationToString columnDef.settings.aggFunc) )
         , ( "autoHeaderHeight", Json.Encode.bool columnDef.settings.autoHeaderHeight )
         , ( "cellClassRules"
           , Json.Encode.object <|
@@ -977,6 +1037,7 @@ columnDefEncoder gridConfig columnDef =
                 ]
           )
         , ( "filterValueGetter", encodedFilterValueGetter )
+        , ( "flex", encodeMaybe Json.Encode.int columnDef.settings.flex )
         , ( "headerCheckboxSelection", Json.Encode.bool columnDef.settings.headerCheckboxSelection )
         , ( "headerName", Json.Encode.string columnDef.headerName )
         , ( "hide", Json.Encode.bool columnDef.settings.hide )
@@ -992,20 +1053,15 @@ columnDefEncoder gridConfig columnDef =
                     Json.Encode.null
           )
         , ( "minWidth", encodeMaybe Json.Encode.int columnDef.settings.minWidth )
-        , ( "pinned"
-          , case columnDef.settings.pinned of
-                PinnedToLeft ->
-                    Json.Encode.string "left"
-
-                PinnedToRight ->
-                    Json.Encode.string "right"
-
-                Unpinned ->
-                    Json.Encode.null
-          )
+        , ( "pinned", encodeMaybe Json.Encode.string (pinningTypeToString columnDef.settings.pinned) )
+        , ( "pivot", Json.Encode.bool columnDef.settings.pivot )
+        , ( "pivotIndex", encodeMaybe Json.Encode.int columnDef.settings.pivotIndex )
         , ( "resizable", Json.Encode.bool columnDef.settings.resizable )
         , ( "rowGroup", Json.Encode.bool columnDef.settings.rowGroup )
+        , ( "rowGroupIndex", encodeMaybe Json.Encode.int columnDef.settings.rowGroupIndex )
         , ( "sortable", Json.Encode.bool columnDef.settings.sortable )
+        , ( "sort", encodeMaybe Json.Encode.string (sortingToString columnDef.settings.sort) )
+        , ( "sortIndex", encodeMaybe Json.Encode.int columnDef.settings.sortIndex )
         , ( "showDisabledCheckboxes", Json.Encode.bool columnDef.settings.showDisabledCheckboxes )
         , ( "suppressColumnsToolPanel", Json.Encode.bool columnDef.settings.suppressColumnsToolPanel )
         , ( "suppressFiltersToolPanel", Json.Encode.bool columnDef.settings.suppressFiltersToolPanel )
@@ -1191,6 +1247,15 @@ eventTypeDecoder =
                     "filterChanged" ->
                         Decode.succeed FilterChanged
 
+                    "columnPinned" ->
+                        Decode.succeed ColumnPinned
+
+                    "columnRowGroupChanged" ->
+                        Decode.succeed ColumnRowGroupChanged
+
+                    "columnValueChanged" ->
+                        Decode.succeed ColumnValueChanged
+
                     unexpectedType ->
                         Decode.fail ("unexpected event type: " ++ unexpectedType)
             )
@@ -1260,7 +1325,7 @@ generateGridConfigAttributes gridConfig =
             , ( "groupIncludeFooter", Json.Encode.bool gridConfig.groupIncludeFooter )
             , ( "groupIncludeTotalFooter", Json.Encode.bool gridConfig.groupIncludeTotalFooter )
             , ( "groupSelectsChildren", Json.Encode.bool gridConfig.groupSelectsChildren )
-            , ( "maintainColumnOrder", Json.Encode.bool gridConfig.maintainColumnOrder)
+            , ( "maintainColumnOrder", Json.Encode.bool gridConfig.maintainColumnOrder )
             , ( "masterDetail"
               , Json.Encode.bool <|
                     case gridConfig.detailRenderer of
@@ -1570,3 +1635,153 @@ encodeFilterProperties columnDef =
             |> Maybe.withDefault defaultFilterValueFormatter
             |> encodeMaybe Json.Encode.string
     }
+
+
+{-| Parse a string to a PinningType.
+
+This can be used in combination with the value on the `ColumnState`.
+Further, it can be used for external communication if necessary.
+
+-}
+toPinningType : Maybe String -> PinningType
+toPinningType value =
+    case value of
+        Just "left" ->
+            PinnedToLeft
+
+        Just "right" ->
+            PinnedToRight
+
+        _ ->
+            Unpinned
+
+
+{-| Stringify a PinningType.
+
+This matches the configuration for AgGrid and equals the value retrieved from the `ColumnState`.
+Further, it can be used for external communication if necessary.
+
+-}
+pinningTypeToString : PinningType -> Maybe String
+pinningTypeToString pinningType =
+    case pinningType of
+        PinnedToLeft ->
+            Just "left"
+
+        PinnedToRight ->
+            Just "right"
+
+        Unpinned ->
+            Nothing
+
+
+{-| Parse a string to an Aggregation.
+
+This can be used in combination with the value on the `ColumnState`.
+Further, it can be used for external communication if necessary.
+
+-}
+toAggregation : Maybe String -> Aggregation
+toAggregation value =
+    case value of
+        Just "avg" ->
+            AvgAggregation
+
+        Just "count" ->
+            CountAggregation
+
+        Just "first" ->
+            FirstAggregation
+
+        Just "last" ->
+            LastAggregation
+
+        Just "max" ->
+            MaxAggregation
+
+        Just "min" ->
+            MinAggregation
+
+        Just "sum" ->
+            SumAggregation
+
+        Nothing ->
+            NoAggregation
+
+        Just aggFunc ->
+            CustomAggregation aggFunc
+
+
+{-| Stringify an Aggregation.
+
+This matches the configuration for AgGrid and equals the value retrieved from the `ColumnState`.
+Further, it can be used for external communication if necessary.
+
+-}
+aggregationToString : Aggregation -> Maybe String
+aggregationToString aggregation =
+    case aggregation of
+        AvgAggregation ->
+            Just "avg"
+
+        CountAggregation ->
+            Just "count"
+
+        CustomAggregation name ->
+            Just name
+
+        FirstAggregation ->
+            Just "first"
+
+        LastAggregation ->
+            Just "last"
+
+        MaxAggregation ->
+            Just "max"
+
+        MinAggregation ->
+            Just "min"
+
+        NoAggregation ->
+            Nothing
+
+        SumAggregation ->
+            Just "sum"
+
+
+{-| Parse a string to the Sorting type.
+
+This can be used in combination with the value on the `ColumnState`.
+Further, it can be used for external communication if necessary.
+
+-}
+toSorting : Maybe String -> Sorting
+toSorting value =
+    case value of
+        Just "asc" ->
+            SortAscending
+
+        Just "desc" ->
+            SortDescending
+
+        _ ->
+            NoSorting
+
+
+{-| Stringify the Sorting.
+
+This matches the configuration for AgGrid and equals the value retrieved from the `ColumnState`.
+Further, it can be used for external communication if necessary.
+
+-}
+sortingToString : Sorting -> Maybe String
+sortingToString sorting =
+    case sorting of
+        SortAscending ->
+            Just "asc"
+
+        SortDescending ->
+            Just "desc"
+
+        NoSorting ->
+            Nothing

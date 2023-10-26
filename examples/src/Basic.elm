@@ -17,22 +17,13 @@ import Result exposing (Result)
 port buttonClicked : (Int -> msg) -> Sub msg
 
 
-port setItem : ( String, Json.Encode.Value ) -> Cmd msg
-
-
-port requestItem : String -> Cmd msg
-
-
-port receivedItem : (( String, Json.Encode.Value ) -> msg) -> Sub msg
-
-
 
 -- INIT
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( initialModel, requestItem gridColumnStorageKey )
+    ( initialModel, Cmd.none )
 
 
 initialModel : Model
@@ -71,7 +62,6 @@ initialModel =
     { searchInput = ""
     , products = products
     , variant = "variant-1"
-    , initialColumnStates = Nothing
     }
 
 
@@ -83,7 +73,6 @@ type alias Model =
     { searchInput : String
     , products : Dict Int Product
     , variant : String
-    , initialColumnStates : Maybe (List AgGrid.ColumnState)
     }
 
 
@@ -92,8 +81,6 @@ type Msg
     | UpdateSearchInput String
     | UpdateProduct (Result Json.Decode.Error Product)
     | ClickedCellButton Int
-    | ColumnStateChanged (AgGrid.StateChange (List AgGrid.ColumnState))
-    | ReceivedColumnStates (Result Json.Decode.Error (List AgGrid.ColumnState))
 
 
 type Category
@@ -134,10 +121,10 @@ update msg model =
             in
             ( { model | products = updatedProducts }, Cmd.none )
 
-        UpdateProduct (Err err) ->
+        UpdateProduct (Err _) ->
             ( model, Cmd.none )
 
-        ClickedCellButton id ->
+        ClickedCellButton _ ->
             let
                 updatedVariant =
                     case model.variant of
@@ -148,12 +135,6 @@ update msg model =
                             "variant-1"
             in
             ( { model | variant = updatedVariant }, Cmd.none )
-
-        ColumnStateChanged { states } ->
-            ( { model | initialColumnStates = Just states }, setItem ( gridColumnStorageKey, AgGrid.columnStatesEncoder states ) )
-
-        ReceivedColumnStates states ->
-            ( { model | initialColumnStates = Result.toMaybe states }, Cmd.none )
 
 
 
@@ -185,7 +166,6 @@ viewGrid model =
                 , quickFilterText = model.searchInput
                 , cacheQuickFilter = True
                 , themeClasses = Just "ag-theme-balham ag-basic"
-                , columnStates = Maybe.withDefault [] model.initialColumnStates
             }
 
         gridSettings =
@@ -280,7 +260,6 @@ viewGrid model =
             []
         , AgGrid.grid gridConfig
             [ AgGrid.onCellChanged rowDecoder UpdateProduct
-            , AgGrid.onColumnStateChanged ColumnStateChanged
 
             -- Eventlistener is not attached. Communication happens through ports.
             -- , onCellClicked ClickedCellButton
@@ -359,19 +338,7 @@ onCellClicked toMsg =
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    Sub.batch
-        [ buttonClicked ClickedCellButton
-        , receivedItem
-            (\( key, value ) ->
-                if key == gridColumnStorageKey then
-                    value
-                        |> Json.Decode.decodeValue AgGrid.columnStatesDecoder
-                        |> ReceivedColumnStates
-
-                else
-                    NoOp
-            )
-        ]
+    buttonClicked ClickedCellButton
 
 
 
@@ -399,11 +366,6 @@ decodeCategory categoryString =
 
         _ ->
             Json.Decode.fail "Failed decoding category"
-
-
-gridColumnStorageKey : String
-gridColumnStorageKey =
-    "elm-ag-grid-columns"
 
 
 rowDecoder : Json.Decode.Decoder Product

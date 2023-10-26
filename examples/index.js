@@ -18,7 +18,6 @@ import ButtonRenderer from "./src/Components/Button.elm";
 import LinkRenderer from "./src/Components/Link.elm";
 import Editor from "./src/Components/Editor.elm";
 
-
 let app;
 
 window.AgGrid = {
@@ -83,7 +82,12 @@ window.AgGrid = {
     });
 
     app.ports.requestItem.subscribe(function (key) {
-      app.ports.receivedItem.send([key, JSON.parse(localStorage.getItem(key))]);
+      requestAnimationFrame(function () {
+        app.ports.receivedItem.send([
+          key,
+          JSON.parse(localStorage.getItem(key)),
+        ]);
+      });
     });
   },
 };

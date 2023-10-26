@@ -4,6 +4,7 @@ import Aggregation
 import Basic
 import Browser exposing (Document)
 import Browser.Navigation as Nav
+import ColumnState
 import Css
 import Css.Global
 import CustomEditor
@@ -45,6 +46,7 @@ type Page
     | RowSelection RowSelection.Model
     | Export Export.Model
     | CustomEditor CustomEditor.Model
+    | ColumnState ColumnState.Model
     | NotFound
 
 
@@ -54,6 +56,7 @@ type Msg
     | AggregationMsg Aggregation.Msg
     | BasicMsg Basic.Msg
     | RowSelectionMsg RowSelection.Msg
+    | ColumnStateMsg ColumnState.Msg
     | NoOp
 
 
@@ -62,7 +65,7 @@ type Msg
 
 
 init : () -> Url -> Nav.Key -> ( Model, Cmd Msg )
-init flags url navKey =
+init _ url navKey =
     let
         initialModel =
             { page = NotFound, navKey = navKey }
@@ -97,6 +100,9 @@ subscriptions model =
 
         CustomEditor _ ->
             Sub.none
+
+        ColumnState columnStateModel ->
+            Sub.map ColumnStateMsg (ColumnState.subscriptions columnStateModel)
 
 
 
@@ -141,6 +147,13 @@ update msg model =
                     RowSelection.update subMsg rowSelectionModel
             in
             ( { model | page = RowSelection updatedRowSelectionModel }, Cmd.map RowSelectionMsg pageCmd )
+
+        ( ColumnStateMsg subMsg, ColumnState columnStateModel ) ->
+            let
+                ( updatedColumnStateModel, pageCmd ) =
+                    ColumnState.update subMsg columnStateModel
+            in
+            ( { model | page = ColumnState updatedColumnStateModel }, Cmd.map ColumnStateMsg pageCmd )
 
         ( NoOp, _ ) ->
             ( model, Cmd.none )
@@ -207,6 +220,7 @@ viewNavigation =
         , viewPageLink "RowSelection" "/row-selection"
         , viewPageLink "Export" "/export"
         , viewPageLink "Custom Editor" "/custom-editor"
+        , viewPageLink "Column State" "/column-state"
         ]
 
 
@@ -252,6 +266,9 @@ viewPage page =
 
             CustomEditor pageModel ->
                 toPage (always NoOp) (CustomEditor.view pageModel)
+
+            ColumnState pageModel ->
+                toPage ColumnStateMsg (ColumnState.view pageModel)
         ]
 
 
@@ -273,6 +290,7 @@ changePageTo url model =
                 , Parser.map ( { model | page = RowSelection RowSelection.init }, Cmd.none ) (Parser.s "row-selection")
                 , Parser.map ( { model | page = Export Export.init }, Cmd.none ) (Parser.s "export")
                 , Parser.map ( { model | page = CustomEditor CustomEditor.init }, Cmd.none ) (Parser.s "custom-editor")
+                , Parser.map (ColumnState.init |> toPage ColumnState ColumnStateMsg) (Parser.s "column-state")
                 ]
     in
     Parser.parse parser url

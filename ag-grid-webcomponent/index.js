@@ -93,7 +93,7 @@ class AgGrid extends HTMLElement {
     this._addEventHandler(
       "onBodyScroll",
       "disableResizeOnScroll",
-      function(params) {
+      function (params) {
         if (!disabled) params.api.sizeColumnsToFit();
       }
     );
@@ -107,7 +107,7 @@ class AgGrid extends HTMLElement {
     this._addEventHandler(
       "onFirstDataRendered",
       "sizeToFitAfterFirstDataRendered",
-      function(params) {
+      function (params) {
         if (sizeToFit) params.api.sizeColumnsToFit();
       }
     );
@@ -141,7 +141,7 @@ class AgGrid extends HTMLElement {
           def.cellClassRules,
           (v) => (params) => expression.apply(params.node.data, v)
         ),
-      }
+      };
     }
     this.api.setColumnDefs(defs.map(applyCallbacks));
   }
@@ -156,11 +156,11 @@ class AgGrid extends HTMLElement {
             detail: {
               action: item.actionName,
               data: params.node.data,
-            }
+            },
           });
 
-          this.dispatchEvent(contextMenuEvent)
-        }
+          this.dispatchEvent(contextMenuEvent);
+        };
       }
 
       item.subMenu =
@@ -169,13 +169,16 @@ class AgGrid extends HTMLElement {
           : null;
 
       if (typeof item.disabledCallback === "object") {
-        item.disabled = expression.apply(params.node.data, item.disabledCallback);
+        item.disabled = expression.apply(
+          params.node.data,
+          item.disabledCallback
+        );
       } else {
         item.disabled = item.disabledCallback;
       }
 
       return item;
-    }
+    };
 
     this._applyChange("getContextMenuItems", (params) =>
       data.map((item) => prepareContextAction(item, params))
@@ -195,7 +198,7 @@ class AgGrid extends HTMLElement {
 
     this._events = collection;
 
-    this._gridOptions[eventName] = function(args) {
+    this._gridOptions[eventName] = function (args) {
       Object.values(collection).map((event) => event(args));
     };
   }
@@ -239,7 +242,7 @@ class AgGrid extends HTMLElement {
         ...cellRenderer,
         ...cellEditor,
         appRenderer,
-        appEditor
+        appEditor,
       },
 
       aggFuncs: CUSTOM_AGGREGATIONS,
@@ -248,7 +251,7 @@ class AgGrid extends HTMLElement {
         return !!params.data && params.data.rowCallbackValues.isRowSelectable;
       },
 
-      onSelectionChanged: function(event) {
+      onSelectionChanged: function (event) {
         const nodes = event.api.getSelectedNodes();
         const selectionEvent = new CustomEvent("selectionChanged", {
           detail: { nodes },
@@ -293,11 +296,14 @@ class AgGrid extends HTMLElement {
       "onGridColumnsChanged",
       "onColumnResized",
       "onColumnVisible",
+      "onColumnPinned",
+      "onColumnRowGroupChanged",
+      "onColumnValueChanged",
     ];
     const _this = this;
 
     columnEvents.map((event) =>
-      this._addEventHandler(event, "columnEvents", function(params) {
+      this._addEventHandler(event, "columnEvents", function (params) {
         const stateChangeEvent = new CustomEvent("columnStateChanged", {
           detail: {
             event: params,
@@ -314,7 +320,7 @@ class AgGrid extends HTMLElement {
     const _this = this;
 
     filterEvents.map((event) =>
-      this._addEventHandler(event, "filterEvents", function(params) {
+      this._addEventHandler(event, "filterEvents", function (params) {
         const stateChangeEvent = new CustomEvent("filterStateChanged", {
           detail: {
             event: params,

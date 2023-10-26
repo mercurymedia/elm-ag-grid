@@ -8,7 +8,9 @@
     "LICENSE"
   ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test:docs": "elm make --docs=docs.json && rm docs.json",
+    "test:format": "elm-format --validate src tests",
+    "test": "elm-test tests && npm run test:format && npm run test:docs",
     "npm-publish": "npm publish --access public",
     "start": "parcel serve examples/index.html"
   },
@@ -25,6 +27,8 @@
     "ag-grid-community": "^29.1.0",
     "ag-grid-enterprise": "^29.1.0",
     "elm": "^0.19.1-5",
+    "elm-format": "^0.8.7",
+    "elm-test": "^0.19.1-revision12",
     "parcel": "^2.3.2"
   }
 }
