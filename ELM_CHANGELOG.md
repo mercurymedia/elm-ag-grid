@@ -1,5 +1,10 @@
 # Elm Changelog
 
+## [19.0.0]
+
+- Added `flex`, `pivot`, `pivotIndex`, `rowGroupIndex`, `sort`, and `sortIndex` to `ColumnSettings`
+- Using `ColumnState` passed to `GridConfig` to override the `ColumnDefs` passed to the grid view. This allows the `ColumnDefs` to be updated after the component is rendered without overwriting the column states. This resolves a column state caching issue.
+
 ## [18.0.0]
 
 - Add `maintainColumnOrder` to `GridConfig`
