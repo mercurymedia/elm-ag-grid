@@ -2,9 +2,10 @@ module Export exposing (Model, init, view)
 
 import AgGrid exposing (Renderer(..), defaultGridConfig, defaultSettings)
 import AgGrid.ContextMenu as ContextMenu
+import Components.Components as Components
 import Css
-import Html.Styled exposing (Html, a, div, node, span, text)
-import Html.Styled.Attributes exposing (css, href, target)
+import Html.Styled exposing (Html, div, node, text)
+import Html.Styled.Attributes exposing (css)
 
 
 
@@ -72,14 +73,8 @@ type alias LineItem =
 
 view : Model -> Html msg
 view model =
-    div [ css [ Css.width (Css.pct 100), Css.margin2 (Css.rem 0) (Css.rem 1) ] ]
-        [ div [ css [ Css.margin2 (Css.rem 1) (Css.px 0), Css.displayFlex, Css.alignItems Css.center ] ]
-            [ span [ css [ Css.fontSize (Css.rem 1.8), Css.marginRight (Css.px 5) ] ] [ text "Export" ]
-            , a [ href "https://github.com/mercurymedia/elm-ag-grid/blob/main/examples/src/Export.elm", target "_blank" ] [ text "[source]" ]
-            ]
-        , div [ css [] ]
-            [ div [] [ text "Excel & CSV Export" ]
-            ]
+    Components.viewPage { headline = "Export", pageUrl = "https://github.com/mercurymedia/elm-ag-grid/blob/main/examples/src/Export.elm" }
+        [ div [] [ text "Excel & CSV Export" ]
         , viewGrid model
         ]
 

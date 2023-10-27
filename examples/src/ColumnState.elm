@@ -2,9 +2,10 @@ port module ColumnState exposing (Model, Msg, init, subscriptions, update, view)
 
 import AgGrid exposing (Renderer(..), defaultGridConfig, defaultSettings, defaultSidebar)
 import AgGrid.Expression as Expression exposing (Eval(..))
+import Components.Components as Components
 import Css
-import Html.Styled exposing (Html, a, button, div, node, span, text)
-import Html.Styled.Attributes exposing (css, disabled, href, target, type_)
+import Html.Styled exposing (Html, button, div, node, text)
+import Html.Styled.Attributes exposing (css, disabled, type_)
 import Html.Styled.Events exposing (onClick)
 import Json.Decode as Decode
 import Json.Encode as Encode
@@ -137,30 +138,24 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    div [ css [ Css.width (Css.pct 100), Css.margin2 (Css.rem 0) (Css.rem 1) ] ]
-        [ div [ css [ Css.margin2 (Css.rem 1) (Css.px 0), Css.displayFlex, Css.alignItems Css.center ] ]
-            [ span [ css [ Css.fontSize (Css.rem 1.8), Css.marginRight (Css.px 5) ] ] [ text "ColumnState" ]
-            , a [ href "https://github.com/mercurymedia/elm-ag-grid/blob/main/examples/src/ColumnState.elm", target "_blank" ] [ text "[source]" ]
+    Components.viewPage { headline = "ColumnState", pageUrl = "https://github.com/mercurymedia/elm-ag-grid/blob/main/examples/src/ColumnState.elm" }
+        [ div []
+            [ [ "The column state listens for certain events in the Ag-Grid (e.g. onSortChanged, onColumnMoved, onGridColumnsChanged, onColumnResized, onColumnVisible) and populates the current column state into an event."
+              , "This event can then be retrieved in Elm using \"onColumnStateChanged\". In addition, the state can be stored in external storage (e.g. Localstorage) and passed to the grid as \"columnStates\"."
+              , "AgGrid then updates the columns (hide, pinning, sort, order, ...) of the grid according to the column states. The absence of the \"columnStates\" resets the columns according to the defined ColumnDefs."
+              ]
+                |> List.map String.trim
+                |> String.join " "
+                |> text
             ]
-        , div [ css [] ]
-            [ div []
-                [ [ "The column state listens for certain events in the Ag-Grid (e.g. onSortChanged, onColumnMoved, onGridColumnsChanged, onColumnResized, onColumnVisible) and populates the current column state into an event."
-                  , "This event can then be retrieved in Elm using \"onColumnStateChanged\". In addition, the state can be stored in external storage (e.g. Localstorage) and passed to the grid as \"columnStates\"."
-                  , "AgGrid then updates the columns (hide, pinning, sort, order, ...) of the grid according to the column states. The absence of the \"columnStates\" resets the columns according to the defined ColumnDefs."
-                  ]
-                    |> List.map String.trim
-                    |> String.join " "
-                    |> text
-                ]
-            , div [ css [ Css.marginTop (Css.rem 1) ] ]
-                [ [ "It is worth mentioning that we also update the ColumnDefs passed to the AgGrid view according to the \"columnStates\" in the GridConfig."
-                  , "This is to ensure that updates to the ColumnDefs do not overwrite the \"columnState\"."
-                  , "If you actually want to overwrite the cached column state, you can do so by simply deleting the columnStates on the GridConfig. Any change listeners that persist column state to external storage are then automatically retriggered."
-                  ]
-                    |> List.map String.trim
-                    |> String.join " "
-                    |> text
-                ]
+        , div [ css [ Css.marginTop (Css.rem 1) ] ]
+            [ [ "It is worth mentioning that we also update the ColumnDefs passed to the AgGrid view according to the \"columnStates\" in the GridConfig."
+              , "This is to ensure that updates to the ColumnDefs do not overwrite the \"columnState\"."
+              , "If you actually want to overwrite the cached column state, you can do so by simply deleting the columnStates on the GridConfig. Any change listeners that persist column state to external storage are then automatically retriggered."
+              ]
+                |> List.map String.trim
+                |> String.join " "
+                |> text
             ]
         , viewViewSelector model.gridView
         , case model.columnStorage of

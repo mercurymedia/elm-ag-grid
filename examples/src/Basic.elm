@@ -2,11 +2,12 @@ port module Basic exposing (Model, Msg, init, subscriptions, update, view)
 
 import AgGrid exposing (Renderer(..), defaultGridConfig, defaultSettings, defaultSidebar)
 import AgGrid.Expression as Expression
+import Components.Components as Components
 import Css
 import Css.Global
 import Dict exposing (Dict)
-import Html.Styled exposing (Html, a, div, input, span, text)
-import Html.Styled.Attributes exposing (css, href, placeholder, style, target, value)
+import Html.Styled exposing (Html, div, input, text)
+import Html.Styled.Attributes exposing (css, placeholder, style, value)
 import Html.Styled.Events exposing (onInput)
 import Json.Decode
 import Json.Decode.Pipeline as DecodePipeline
@@ -143,15 +144,9 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    div [ css [ Css.width (Css.pct 100), Css.margin2 (Css.rem 0) (Css.rem 1) ] ]
-        [ div [ css [ Css.margin2 (Css.rem 1) (Css.px 0), Css.displayFlex, Css.alignItems Css.center ] ]
-            [ span [ css [ Css.fontSize (Css.rem 1.8), Css.marginRight (Css.px 5) ] ] [ text "Basic Grid" ]
-            , a [ href "https://github.com/mercurymedia/elm-ag-grid/blob/main/examples/src/Basic.elm", target "_blank" ] [ text "[source]" ]
-            ]
-        , div [ css [] ]
-            [ div [] [ text "Basic grid example display various CellRenderer for different data types (Strings, Integers, Boolean, Floats, Selection, Maybe values)." ]
-            , div [] [ text "Also displays the possibility to search, sort, pin columns, and rendering Elm apps into cells for a custom view that also communicate with the Main app." ]
-            ]
+    Components.viewPage { headline = "Basic Grid", pageUrl = "https://github.com/mercurymedia/elm-ag-grid/blob/main/examples/src/Basic.elm" }
+        [ div [] [ text "Basic grid example display various CellRenderer for different data types (Strings, Integers, Boolean, Floats, Selection, Maybe values)." ]
+        , div [] [ text "Also displays the possibility to search, sort, pin columns, and rendering Elm apps into cells for a custom view that also communicate with the Main app." ]
         , viewGrid model
         ]
 
