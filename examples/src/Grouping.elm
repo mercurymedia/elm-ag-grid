@@ -1,9 +1,10 @@
 module Grouping exposing (Model, init, view)
 
 import AgGrid exposing (Renderer(..), defaultGridConfig, defaultSettings, defaultSidebar)
+import Components.Components as Components
 import Css
-import Html.Styled exposing (Html, a, div, node, span, text)
-import Html.Styled.Attributes exposing (css, href, target)
+import Html.Styled exposing (Html, div, node, text)
+import Html.Styled.Attributes exposing (css)
 
 
 
@@ -71,15 +72,9 @@ type alias LineItem =
 
 view : Model -> Html ()
 view model =
-    div [ css [ Css.width (Css.pct 100), Css.margin2 (Css.rem 0) (Css.rem 1) ] ]
-        [ div [ css [ Css.margin2 (Css.rem 1) (Css.px 0), Css.displayFlex, Css.alignItems Css.center ] ]
-            [ span [ css [ Css.fontSize (Css.rem 1.8), Css.marginRight (Css.px 5) ] ] [ text "Grouping" ]
-            , a [ href "https://github.com/mercurymedia/elm-ag-grid/blob/main/examples/src/Grouping.elm", target "_blank" ] [ text "[source]" ]
-            ]
-        , div [ css [] ]
-            [ div [] [ text "Columns can be grouped programmatically by setting the rowGroup property on the ColumnSettings." ]
-            , div [ css [ Css.marginTop (Css.rem 1) ] ] [ text "The appearance of the AutoGroupColumn can be changed to a certain extent if required. And it is also possible to define the levels of groups that are expanded by default." ]
-            ]
+    Components.viewPage { headline = "Grouping", pageUrl = "https://github.com/mercurymedia/elm-ag-grid/blob/main/examples/src/Grouping.elm" }
+        [ div [] [ text "Columns can be grouped programmatically by setting the rowGroup property on the ColumnSettings." ]
+        , div [ css [ Css.marginTop (Css.rem 1) ] ] [ text "The appearance of the AutoGroupColumn can be changed to a certain extent if required. And it is also possible to define the levels of groups that are expanded by default." ]
         , viewGrid model
         ]
 

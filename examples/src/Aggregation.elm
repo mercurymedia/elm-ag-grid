@@ -3,10 +3,11 @@ module Aggregation exposing (Model, Msg, init, subscriptions, update, view)
 import AgGrid exposing (Renderer(..), defaultGridConfig, defaultSettings)
 import AgGrid.ContextMenu as AgGridContextMenu exposing (defaultActionAttributes)
 import AgGrid.Expression as Expression exposing (Eval(..))
+import Components.Components as Components
 import Css
 import Dict exposing (Dict)
-import Html.Styled exposing (Html, a, div, h3, node, span, text)
-import Html.Styled.Attributes exposing (css, href, target)
+import Html.Styled exposing (Html, div, h3, node, text)
+import Html.Styled.Attributes exposing (css)
 import Json.Decode as Decode
 import Json.Decode.Pipeline as DecodePipeline
 
@@ -91,7 +92,7 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        CellChanged (Err err) ->
+        CellChanged (Err _) ->
             ( model, Cmd.none )
 
         CellChanged (Ok change) ->
@@ -112,18 +113,11 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    div [ css [ Css.width (Css.pct 100), Css.margin2 (Css.rem 0) (Css.rem 1) ] ]
-        [ div [ css [ Css.margin2 (Css.rem 1) (Css.px 0), Css.displayFlex, Css.alignItems Css.center ] ]
-            [ span [ css [ Css.fontSize (Css.rem 1.8), Css.marginRight (Css.px 5) ] ] [ text "Aggregations & Formatting" ]
-            , a [ href "https://github.com/mercurymedia/elm-ag-grid/blob/main/examples/src/Aggregation.elm", target "_blank" ] [ text "[source]" ]
-            ]
-        , div [ css [] ]
-            [ div [] [ text "Formatting values as currencies, decimals, or percentages utilizing the predefined CurrencyRenderer/DecimalRenderer/PercentRenderer and aggregating those values in the footer." ]
-            , div [ css [ Css.marginTop (Css.rem 1) ] ] [ text "This formatting can be customized by overwriting the valueFormatter expression on the column settings." ]
-            ]
+    Components.viewPage { headline = "Aggregations & Formatting", pageUrl = "https://github.com/mercurymedia/elm-ag-grid/blob/main/examples/src/Aggregation.elm" }
+        [ div [] [ text "Formatting values as currencies, decimals, or percentages utilizing the predefined CurrencyRenderer/DecimalRenderer/PercentRenderer and aggregating those values in the footer." ]
+        , div [ css [ Css.marginTop (Css.rem 1) ] ] [ text "This formatting can be customized by overwriting the valueFormatter expression on the column settings." ]
         , viewGrid model
-        , div []
-            [ h3 [] [ text ("You increased the counter from the context menu " ++ String.fromInt model.counter ++ " times!") ] ]
+        , div [] [ h3 [] [ text ("You increased the counter from the context menu " ++ String.fromInt model.counter ++ " times!") ] ]
         ]
 
 

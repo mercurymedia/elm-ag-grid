@@ -2,13 +2,11 @@ module CustomEditor exposing (Model, init, view)
 
 import AgGrid exposing (Renderer(..), defaultGridConfig, defaultSettings)
 import AgGrid.Expression as Expression
+import Components.Components as Components
 import Components.Editor as Editor
 import Css
-import Html.Styled exposing (Html, a, button, div, node, span, text)
-import Html.Styled.Attributes exposing (css, href, target)
-import Html.Styled.Events exposing (onClick)
-import Json.Decode as Decode exposing (Decoder)
-import Set exposing (Set)
+import Html.Styled exposing (Html, div, node, text)
+import Html.Styled.Attributes exposing (css)
 
 
 
@@ -77,14 +75,8 @@ type alias LineItem =
 
 view : Model -> Html msg
 view model =
-    div [ css [ Css.width (Css.pct 100), Css.margin2 (Css.rem 0) (Css.rem 1) ] ]
-        [ div [ css [ Css.margin2 (Css.rem 1) (Css.px 0), Css.displayFlex, Css.alignItems Css.center ] ]
-            [ span [ css [ Css.fontSize (Css.rem 1.8), Css.marginRight (Css.px 5) ] ] [ text "CustomEditor" ]
-            , a [ href "https://github.com/mercurymedia/elm-ag-grid/blob/main/examples/src/CustomEditor.elm", target "_blank" ] [ text "[source]" ]
-            ]
-        , div [ css [] ]
-            [ div [] [ text "The editor is usually derived from the defined Renderer. But the default editor that is associated with the renderer can also be overwritten. Either by using another existing editor (i.e. for the athlete) or using another Elm app to render the editor (i.e. for the info)." ]
-            ]
+    Components.viewPage { headline = "CustomEditor", pageUrl = "https://github.com/mercurymedia/elm-ag-grid/blob/main/examples/src/CustomEditor.elm" }
+        [ div [] [ text "The editor is usually derived from the defined Renderer. But the default editor that is associated with the renderer can also be overwritten. Either by using another existing editor (i.e. for the athlete) or using another Elm app to render the editor (i.e. for the info)." ]
         , viewGrid model
         ]
 
