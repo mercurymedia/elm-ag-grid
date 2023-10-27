@@ -4,7 +4,7 @@ module AgGrid exposing
     , GridConfig, grid
     , defaultGridConfig, defaultSettings
     , onCellChanged, onCellDoubleClicked, onSelectionChange, onContextMenu
-    , ColumnState, onColumnStateChanged, columnStatesDecoder, columnStatesEncoder
+    , ColumnState, onColumnStateChanged, columnStatesDecoder, columnStatesEncoder, applyColumnState
     , FilterState, onFilterStateChanged, filterStatesEncoder, filterStatesDecoder
     , Sidebar, SidebarType(..), SidebarPosition(..), defaultSidebar
     , aggregationToString, pinningTypeToString, sortingToString, toAggregation, toPinningType, toSorting
@@ -36,7 +36,7 @@ module AgGrid exposing
 
 # ColumnState
 
-@docs ColumnState, onColumnStateChanged, columnStatesDecoder, columnStatesEncoder
+@docs ColumnState, onColumnStateChanged, columnStatesDecoder, columnStatesEncoder, applyColumnState
 
 
 # FilterState
@@ -718,6 +718,14 @@ grid gridConfig events columnDefs data =
         []
 
 
+{-| Apply the column state from the `GridConfig` to the given `ColumnDefs`.
+
+The values from the cache overwrite the values on the ColumnDef. The order is also according
+to the order in the column state. New columns, that don't exist in the column state, are appended to the end.
+
+**This function is mainly exposed to allow unit-testing, as this is automatically applied to ColumnDefs passed to the `grid`.**
+
+-}
 applyColumnState : GridConfig dataType -> List (ColumnDef dataType) -> List (ColumnDef dataType)
 applyColumnState gridConfig columnDefs =
     let
