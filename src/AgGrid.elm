@@ -102,6 +102,7 @@ type EventType
     | ColumnPinned
     | ColumnRowGroupChanged
     | ColumnValueChanged
+    | ResetColumns
 
 
 {-| Possible configuration for the Excel export.
@@ -1263,6 +1264,9 @@ eventTypeDecoder =
 
                     "columnValueChanged" ->
                         Decode.succeed ColumnValueChanged
+
+                    "resetColumns" ->
+                        Decode.succeed ResetColumns
 
                     unexpectedType ->
                         Decode.fail ("unexpected event type: " ++ unexpectedType)
