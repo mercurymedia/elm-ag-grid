@@ -246,6 +246,32 @@ class AgGrid extends HTMLElement {
       },
 
       aggFuncs: CUSTOM_AGGREGATIONS,
+      getMainMenuItems: (params) => {
+        // Override the default resetColumns actions to additionally trigger an explicit column state change event on the webcomponent
+        let defaultItems = params.defaultItems.filter(
+          (item) => item != "resetColumns"
+        );
+
+        const localeTextFunc =
+          params.api.navigationService.localeService.getLocaleTextFunc();
+
+        // Original implemenation of the "resetColumns" actions
+        // https://github.com/ag-grid/ag-grid/blob/latest/grid-enterprise-modules/menu/src/menu/menuItemMapper.ts#L155
+        defaultItems.push({
+          name: localeTextFunc("resetColumns", "Reset Columns"),
+          action: function () {
+            const changeEvent = columnStateChangedEvent(
+              { type: "resetColumns" },
+              []
+            );
+
+            self.dispatchEvent(changeEvent);
+            return params.columnApi.columnModel.resetColumnState("contextMenu");
+          },
+        });
+
+        return defaultItems;
+      },
 
       isRowSelectable: (params) => {
         return !!params.data && params.data.rowCallbackValues.isRowSelectable;
@@ -304,12 +330,11 @@ class AgGrid extends HTMLElement {
 
     columnEvents.map((event) =>
       this._addEventHandler(event, "columnEvents", function (params) {
-        const stateChangeEvent = new CustomEvent("columnStateChanged", {
-          detail: {
-            event: params,
-            columnState: params.columnApi.getColumnState(),
-          },
-        });
+        const stateChangeEvent = columnStateChangedEvent(
+          params,
+          params.columnApi.getColumnState()
+        );
+
         _this.dispatchEvent(stateChangeEvent);
       })
     );
@@ -352,4 +377,13 @@ export default class ElmAgGrid {
 
     customElements.define("ag-grid", AgGrid);
   }
+}
+
+function columnStateChangedEvent(params, columnState) {
+  return new CustomEvent("columnStateChanged", {
+    detail: {
+      event: params,
+      columnState: columnState,
+    },
+  });
 }
