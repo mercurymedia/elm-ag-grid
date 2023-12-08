@@ -1,5 +1,9 @@
 # Elm Changelog
 
+## [20.0.0]
+
+- Convert width from an `Int` to a `Float` type on the `ColumnSettings` and `ColumnState`. This fixes an issue where a column with a float width would fail the ColumnState decoder.
+
 ## [19.0.0]
 
 - Added `flex`, `pivot`, `pivotIndex`, `rowGroupIndex`, `sort`, and `sortIndex` to `ColumnSettings`

@@ -339,7 +339,7 @@ type alias ColumnSettings =
     , valueGetter : Maybe String
     , valueParser : Maybe String
     , valueSetter : Maybe String
-    , width : Maybe Int
+    , width : Maybe Float
     , wrapHeaderText : Bool
     }
 
@@ -365,7 +365,7 @@ type alias ColumnState =
     , rowGroupIndex : Maybe Int
     , sort : Maybe String
     , sortIndex : Maybe Int
-    , width : Int
+    , width : Float
     }
 
 
@@ -1129,7 +1129,7 @@ columnDefEncoder gridConfig columnDef =
         , ( "width"
           , case columnDef.settings.width of
                 Just width ->
-                    Json.Encode.int width
+                    Json.Encode.float width
 
                 Nothing ->
                     Json.Encode.null
@@ -1152,7 +1152,7 @@ columnStateDecoder =
         |> DecodePipeline.optional "rowGroupIndex" (Decode.nullable Decode.int) Nothing
         |> DecodePipeline.optional "sort" (Decode.nullable Decode.string) Nothing
         |> DecodePipeline.optional "sortIndex" (Decode.nullable Decode.int) Nothing
-        |> DecodePipeline.required "width" Decode.int
+        |> DecodePipeline.required "width" Decode.float
 
 
 {-| Decoder for the current column states.
@@ -1208,7 +1208,7 @@ columnStateEncoder columnState =
         , ( "rowGroupIndex", encodeMaybe Json.Encode.int columnState.rowGroupIndex )
         , ( "sort", encodeMaybe Json.Encode.string columnState.sort )
         , ( "sortIndex", encodeMaybe Json.Encode.int columnState.sortIndex )
-        , ( "width", Json.Encode.int columnState.width )
+        , ( "width", Json.Encode.float columnState.width )
         ]
 
 
