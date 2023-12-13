@@ -9,6 +9,7 @@ import Css
 import Css.Global
 import CustomEditor
 import Export
+import FilterState
 import Grouping
 import Html.Styled exposing (Html, a, div, span, text)
 import Html.Styled.Attributes exposing (css, href, target)
@@ -42,6 +43,7 @@ type alias Model =
 type Page
     = Aggregation Aggregation.Model
     | Basic Basic.Model
+    | FilterState FilterState.Model
     | Grouping Grouping.Model
     | RowSelection RowSelection.Model
     | Export Export.Model
@@ -55,6 +57,7 @@ type Msg
     | ClickedLink Browser.UrlRequest
     | AggregationMsg Aggregation.Msg
     | BasicMsg Basic.Msg
+    | FilterStateMsg FilterState.Msg
     | RowSelectionMsg RowSelection.Msg
     | ColumnStateMsg ColumnState.Msg
     | NoOp
@@ -103,6 +106,9 @@ subscriptions model =
 
         ColumnState columnStateModel ->
             Sub.map ColumnStateMsg (ColumnState.subscriptions columnStateModel)
+
+        FilterState filterStateModel ->
+            Sub.map FilterStateMsg (FilterState.subscriptions filterStateModel)
 
 
 
@@ -154,6 +160,13 @@ update msg model =
                     ColumnState.update subMsg columnStateModel
             in
             ( { model | page = ColumnState updatedColumnStateModel }, Cmd.map ColumnStateMsg pageCmd )
+
+        ( FilterStateMsg subMsg, FilterState filterStateModel ) ->
+            let
+                ( updatedFilterStateModel, pageCmd ) =
+                    FilterState.update subMsg filterStateModel
+            in
+            ( { model | page = FilterState updatedFilterStateModel }, Cmd.map FilterStateMsg pageCmd )
 
         ( NoOp, _ ) ->
             ( model, Cmd.none )
@@ -221,6 +234,7 @@ viewNavigation =
         , viewPageLink "Export" "/export"
         , viewPageLink "Custom Editor" "/custom-editor"
         , viewPageLink "Column State" "/column-state"
+        , viewPageLink "Filter State" "/filter-state"
         ]
 
 
@@ -269,6 +283,9 @@ viewPage page =
 
             ColumnState pageModel ->
                 toPage ColumnStateMsg (ColumnState.view pageModel)
+
+            FilterState pageModel ->
+                toPage FilterStateMsg (FilterState.view pageModel)
         ]
 
 
@@ -291,6 +308,7 @@ changePageTo url model =
                 , Parser.map ( { model | page = Export Export.init }, Cmd.none ) (Parser.s "export")
                 , Parser.map ( { model | page = CustomEditor CustomEditor.init }, Cmd.none ) (Parser.s "custom-editor")
                 , Parser.map (ColumnState.init |> toPage ColumnState ColumnStateMsg) (Parser.s "column-state")
+                , Parser.map (FilterState.init |> toPage FilterState FilterStateMsg) (Parser.s "filter-state")
                 ]
     in
     Parser.parse parser url
