@@ -89,5 +89,15 @@ window.AgGrid = {
         ]);
       });
     });
+
+    app.ports.setFilterState.subscribe(function (state) {
+      localStorage.setItem("filter-state", JSON.stringify(state));
+    });
+
+    app.ports.requestFilterState.subscribe(function () {
+      requestAnimationFrame(function () {
+        app.ports.receivedFilterState.send(JSON.parse(localStorage.getItem("filter-state")))
+      });
+    });
   },
 };
