@@ -5,7 +5,7 @@ module AgGrid exposing
     , defaultGridConfig, defaultSettings
     , onCellChanged, onCellDoubleClicked, onSelectionChange, onContextMenu
     , ColumnState, onColumnStateChanged, columnStatesDecoder, columnStatesEncoder, applyColumnState
-    , FilterState, onFilterStateChanged, filterStatesEncoder, filterStatesDecoder
+    , FilterState(..), onFilterStateChanged, filterStatesEncoder, filterStatesDecoder
     , Sidebar, SidebarType(..), SidebarPosition(..), defaultSidebar
     , aggregationToString, pinningTypeToString, sortingToString, toAggregation, toPinningType, toSorting
     )
@@ -378,12 +378,65 @@ Can be used to evaluate the current filter configuration whenever a filter on a 
 Might be used to persist the filters applied to the table for the users to the localstorage or some
 other external storage. Filter states can be restored through the `filterState` on the `GridConfig`.
 
+AG Grid reference: <https://www.ag-grid.com/javascript-data-grid/filtering/#column-filter-types>
+
 -}
-type alias FilterState =
-    { filterType : String
-    , filter : Maybe String
+type FilterState
+    = TextFilterState TextFilterAttrs
+    | NumberFilterState NumberFilterAttrs
+    | DateFilterState DateFilterAttrs
+    | SetFilterState SetFilterAttrs
+
+
+type alias TextFilterAttrs =
+    { filter : Maybe String
     , type_ : Maybe String
-    , values : List String
+    , operator : Maybe String
+    , condition1 : Maybe TextFilterCondition
+    , condition2 : Maybe TextFilterCondition
+    }
+
+
+type alias TextFilterCondition =
+    { type_ : String
+    , filter : String
+    }
+
+
+type alias NumberFilterAttrs =
+    { filter : Maybe Int
+    , type_ : Maybe String
+    , operator : Maybe String
+    , condition1 : Maybe NumberFilterCondition
+    , condition2 : Maybe NumberFilterCondition
+    }
+
+
+type alias NumberFilterCondition =
+    { type_ : String
+    , filter : Int
+    }
+
+
+type alias DateFilterAttrs =
+    { dateFrom : Maybe String
+    , dateTo : Maybe String
+    , type_ : Maybe String
+    , operator : Maybe String
+    , condition1 : Maybe DateFilterCondition
+    , condition2 : Maybe DateFilterCondition
+    }
+
+
+type alias DateFilterCondition =
+    { dateFrom : Maybe String
+    , dateTo : Maybe String
+    , type_ : String
+    }
+
+
+type alias SetFilterAttrs =
+    { values : List String
     }
 
 
@@ -1178,11 +1231,84 @@ columnStatesDecoder =
 
 filterStateDecoder : Decoder FilterState
 filterStateDecoder =
-    Decode.succeed FilterState
-        |> DecodePipeline.required "filterType" Decode.string
+    Decode.field "filterType" Decode.string
+        |> Decode.andThen
+            (\filterType ->
+                case filterType of
+                    "date" ->
+                        Decode.map DateFilterState dateFilterDecoder
+
+                    "number" ->
+                        Decode.map NumberFilterState numberFilterDecoder
+
+                    "set" ->
+                        Decode.map SetFilterState setFilterDecoder
+
+                    "text" ->
+                        Decode.map TextFilterState textFilterDecoder
+
+                    _ ->
+                        Decode.fail <| "unknown filter state type: " ++ filterType
+            )
+
+
+textFilterDecoder : Decoder TextFilterAttrs
+textFilterDecoder =
+    Decode.succeed TextFilterAttrs
         |> DecodePipeline.optional "filter" (Decode.nullable Decode.string) Nothing
         |> DecodePipeline.optional "type" (Decode.nullable Decode.string) Nothing
-        |> DecodePipeline.optional "values" (Decode.oneOf [ Decode.list Decode.string, Decode.null [] ]) []
+        |> DecodePipeline.optional "operator" (Decode.nullable Decode.string) Nothing
+        |> DecodePipeline.optional "condition1" (Decode.nullable textFilterConditionDecoder) Nothing
+        |> DecodePipeline.optional "condition2" (Decode.nullable textFilterConditionDecoder) Nothing
+
+
+textFilterConditionDecoder : Decoder TextFilterCondition
+textFilterConditionDecoder =
+    Decode.succeed TextFilterCondition
+        |> DecodePipeline.required "type" Decode.string
+        |> DecodePipeline.required "filter" Decode.string
+
+
+numberFilterDecoder : Decoder NumberFilterAttrs
+numberFilterDecoder =
+    Decode.succeed NumberFilterAttrs
+        |> DecodePipeline.optional "filter" (Decode.nullable Decode.int) Nothing
+        |> DecodePipeline.optional "type" (Decode.nullable Decode.string) Nothing
+        |> DecodePipeline.optional "operator" (Decode.nullable Decode.string) Nothing
+        |> DecodePipeline.optional "condition1" (Decode.nullable numberFilterConditionDecoder) Nothing
+        |> DecodePipeline.optional "condition2" (Decode.nullable numberFilterConditionDecoder) Nothing
+
+
+numberFilterConditionDecoder : Decoder NumberFilterCondition
+numberFilterConditionDecoder =
+    Decode.succeed NumberFilterCondition
+        |> DecodePipeline.required "type" Decode.string
+        |> DecodePipeline.required "filter" Decode.int
+
+
+dateFilterDecoder : Decoder DateFilterAttrs
+dateFilterDecoder =
+    Decode.succeed DateFilterAttrs
+        |> DecodePipeline.optional "dateFrom" (Decode.nullable Decode.string) Nothing
+        |> DecodePipeline.optional "dateTo" (Decode.nullable Decode.string) Nothing
+        |> DecodePipeline.optional "type" (Decode.nullable Decode.string) Nothing
+        |> DecodePipeline.optional "operator" (Decode.nullable Decode.string) Nothing
+        |> DecodePipeline.optional "condition1" (Decode.nullable dateFilterConditionDecoder) Nothing
+        |> DecodePipeline.optional "condition2" (Decode.nullable dateFilterConditionDecoder) Nothing
+
+
+dateFilterConditionDecoder : Decoder DateFilterCondition
+dateFilterConditionDecoder =
+    Decode.succeed DateFilterCondition
+        |> DecodePipeline.optional "dateFrom" (Decode.nullable Decode.string) Nothing
+        |> DecodePipeline.optional "dateTo" (Decode.nullable Decode.string) Nothing
+        |> DecodePipeline.required "type" Decode.string
+
+
+setFilterDecoder : Decoder SetFilterAttrs
+setFilterDecoder =
+    Decode.succeed SetFilterAttrs
+        |> DecodePipeline.required "values" (Decode.list Decode.string)
 
 
 {-| Decoder for the filter states.
@@ -1235,11 +1361,70 @@ filterStatesEncoder =
 
 filterStateEncoder : FilterState -> Json.Encode.Value
 filterStateEncoder filterState =
+    case filterState of
+        DateFilterState attrs ->
+            Json.Encode.object
+                [ ( "filterType", Json.Encode.string "date" )
+                , ( "dateFrom", encodeMaybe Json.Encode.string attrs.dateFrom )
+                , ( "dateTo", encodeMaybe Json.Encode.string attrs.dateTo )
+                , ( "type", encodeMaybe Json.Encode.string attrs.type_ )
+                , ( "operator", encodeMaybe Json.Encode.string attrs.operator )
+                , ( "condition1", encodeMaybe dateFilterConditionEncoder attrs.condition1 )
+                , ( "condition2", encodeMaybe dateFilterConditionEncoder attrs.condition2 )
+                ]
+
+        NumberFilterState attrs ->
+            Json.Encode.object
+                [ ( "filterType", Json.Encode.string "number" )
+                , ( "filter", encodeMaybe Json.Encode.int attrs.filter )
+                , ( "type", encodeMaybe Json.Encode.string attrs.type_ )
+                , ( "operator", encodeMaybe Json.Encode.string attrs.operator )
+                , ( "condition1", encodeMaybe numberFilterConditionEncoder attrs.condition1 )
+                , ( "condition2", encodeMaybe numberFilterConditionEncoder attrs.condition2 )
+                ]
+
+        SetFilterState attrs ->
+            Json.Encode.object
+                [ ( "filterType", Json.Encode.string "set" )
+                , ( "values", Json.Encode.list Json.Encode.string attrs.values )
+                ]
+
+        TextFilterState attrs ->
+            Json.Encode.object
+                [ ( "filterType", Json.Encode.string "text" )
+                , ( "filter", encodeMaybe Json.Encode.string attrs.filter )
+                , ( "type", encodeMaybe Json.Encode.string attrs.type_ )
+                , ( "operator", encodeMaybe Json.Encode.string attrs.operator )
+                , ( "condition1", encodeMaybe textFilterConditionEncoder attrs.condition1 )
+                , ( "condition2", encodeMaybe textFilterConditionEncoder attrs.condition2 )
+                ]
+
+
+dateFilterConditionEncoder : DateFilterCondition -> Json.Encode.Value
+dateFilterConditionEncoder condition =
     Json.Encode.object
-        [ ( "filterType", Json.Encode.string filterState.filterType )
-        , ( "filter", encodeMaybe Json.Encode.string filterState.filter )
-        , ( "type", encodeMaybe Json.Encode.string filterState.type_ )
-        , ( "values", Json.Encode.list Json.Encode.string filterState.values )
+        [ ( "filterType", Json.Encode.string "date" )
+        , ( "type", Json.Encode.string condition.type_ )
+        , ( "dateFrom", encodeMaybe Json.Encode.string condition.dateFrom )
+        , ( "dateTo", encodeMaybe Json.Encode.string condition.dateTo )
+        ]
+
+
+textFilterConditionEncoder : TextFilterCondition -> Json.Encode.Value
+textFilterConditionEncoder condition =
+    Json.Encode.object
+        [ ( "filterType", Json.Encode.string "text" )
+        , ( "type", Json.Encode.string condition.type_ )
+        , ( "filter", Json.Encode.string condition.filter )
+        ]
+
+
+numberFilterConditionEncoder : NumberFilterCondition -> Json.Encode.Value
+numberFilterConditionEncoder condition =
+    Json.Encode.object
+        [ ( "filterType", Json.Encode.string "number" )
+        , ( "type", Json.Encode.string condition.type_ )
+        , ( "filter", Json.Encode.int condition.filter )
         ]
 
 
