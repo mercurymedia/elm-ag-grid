@@ -1,7 +1,7 @@
 module AgGrid.ValueFormat exposing
     ( currencyValueFormatter, decimalValueFormatter, percentValueFormatter
     , numberValueGetter
-    , booleanFilterValueGetter, numberFilterValueGetter
+    , booleanFilterValueGetter, numberFilterValueGetter, dateFilterValueGetter
     )
 
 {-| Formatting of values in the AgGrid table.
@@ -21,7 +21,7 @@ Allows to format values as currencies, decimal, and percent.
 
 # filterValueGetter
 
-@docs booleanFilterValueGetter, numberFilterValueGetter
+@docs booleanFilterValueGetter, numberFilterValueGetter, dateFilterValueGetter
 
 -}
 
@@ -164,6 +164,28 @@ numberFilterValueGetter field =
         if (!data.{0}) { return null; }
 
         return Number(data.{0})
+    """ [ field ]
+
+
+{-| Format a cell value as Date.
+
+This is similar to using a normal Value Getter, but is specific to the filter.
+
+    cellValue = "2023-12-12"
+
+    dateFilterValueGetter "dateField"
+    > const date = Date("2023-12-12");
+    > date.setHours(0,0,0);
+
+-}
+dateFilterValueGetter : String -> String
+dateFilterValueGetter field =
+    String.Interpolate.interpolate """
+        if (!data.{0}) { return null; }
+
+        const date = new Date(data.{0});
+        date.setHours(0,0,0);
+        return date;
     """ [ field ]
 
 
