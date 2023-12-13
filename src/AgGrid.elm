@@ -117,6 +117,7 @@ type alias ExcelExportParams =
 -}
 type FilterType
     = DefaultFilter
+    | DateFilter
     | NumberFilter
     | StringFilter
     | SetFilter
@@ -183,6 +184,7 @@ type Renderer dataType
     | MaybeFloatRenderer (dataType -> Maybe Float)
     | MaybeIntRenderer (dataType -> Maybe Int)
     | MaybeStringRenderer (dataType -> Maybe String)
+    | DateRenderer (dataType -> String)
     | NoRenderer
     | PercentRenderer { countryCode : String, decimalPlaces : Int } (dataType -> Maybe String)
     | SelectionRenderer (dataType -> String) (List String)
@@ -464,26 +466,35 @@ Can be used when implementing column configurations for the table.
 Default column settings:
 
     { aggFunc = NoAggregation
+    , autoHeaderHeight = False
+    , cellClassRules = []
     , checkboxSelection = False
-    , editable = False
+    , customCellEditor = DefaultEditor
+    , editable = Const False
     , enablePivot = True
     , enableRowGroup = True
     , enableValue = True
-    , filter = Nothing
+    , filter = DefaultFilter
     , filterParams =
         { buttons = [ ClearButton ]
         , closeOnApply = False
         }
     , filterValueGetter = Nothing
+    , flex = Nothing
     , headerCheckboxSelection = False
     , hide = False
-    , lockPosition = NoLock
+    , lockPosition = NoPositionLock
     , minWidth = Nothing
     , pinned = Unpinned
+    , pivot = False
+    , pivotIndex = Nothing
     , resizable = True
     , rowGroup = False
+    , rowGroupIndex = Nothing
     , showDisabledCheckboxes = False
     , sortable = True
+    , sort = NoSorting
+    , sortIndex = Nothing
     , suppressColumnsToolPanel = False
     , suppressFiltersToolPanel = False
     , suppressMenu = False
@@ -493,7 +504,7 @@ Default column settings:
     , valueParser = Nothing
     , valueSetter = Nothing
     , width = Nothing
-    }
+    , wrapHeaderText = False
 
 -}
 defaultSettings : ColumnSettings
@@ -1500,6 +1511,9 @@ encoder data column =
         CurrencyRenderer _ valueGetter ->
             encodeMaybe Json.Encode.string (valueGetter data)
 
+        DateRenderer valueGetter ->
+            Json.Encode.string (valueGetter data)
+
         DecimalRenderer _ valueGetter ->
             encodeMaybe Json.Encode.string (valueGetter data)
 
@@ -1578,6 +1592,9 @@ defaultColumnFilter column =
         CurrencyRenderer _ _ ->
             ( NumberFilter, Just (ValueFormat.numberFilterValueGetter column.field) )
 
+        DateRenderer _ ->
+            ( DateFilter, Just (ValueFormat.dateFilterValueGetter column.field) )
+
         DecimalRenderer _ _ ->
             ( NumberFilter, Just (ValueFormat.numberFilterValueGetter column.field) )
 
@@ -1627,6 +1644,9 @@ encodeFilterProperties columnDef =
 
                     else
                         encodeFilter defaultFilter
+
+                DateFilter ->
+                    Json.Encode.string "agDateColumnFilter"
 
                 NumberFilter ->
                     Json.Encode.string "agNumberColumnFilter"
