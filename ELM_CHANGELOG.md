@@ -1,5 +1,11 @@
 # Elm Changelog
 
+## [21.0.0]
+
+- ColumnDefs now support a FilterType `DateFilter`, which makes AGGrid intrepret the column as having dates and offering date type specific filtering with date pickers etc.
+- Fix: FilterStates as emitted by the `onFilterChanged` event are now encoded to handle all known cases from the AGGrid docs.
+
+
 ## [20.0.0]
 
 - Convert width from an `Int` to a `Float` type on the `ColumnSettings` and `ColumnState`. This fixes an issue where a column with a float width would fail the ColumnState decoder.
