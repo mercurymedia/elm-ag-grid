@@ -1,5 +1,10 @@
 # Elm Changelog
 
+## [22.0.0]
+
+- Added `cssClasses` attribute to context menu action
+- Added `floatingFilter` attribute to ColumnDefs
+
 ## [21.0.0]
 
 - ColumnDefs now support a FilterType `DateFilter`, which makes AGGrid intrepret the column as having dates and offering date type specific filtering with date pickers etc.
