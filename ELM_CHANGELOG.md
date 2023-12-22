@@ -1,5 +1,9 @@
 # Elm Changelog
 
+## [23.0.0]
+
+- Changed the `cssClasses` attribute on the custom context menu actions from `List String` to `List (List String, Eval Bool)` to apply certain CSS styles conditionally. This behaviour is similar to the `classList` of the elm/html package.
+
 ## [22.0.0]
 
 - Added `cssClasses` attribute to context menu action
