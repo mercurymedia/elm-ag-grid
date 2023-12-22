@@ -146,6 +146,10 @@ viewGrid model =
                                 | name = "Increase counter"
                                 , actionName = Just "incrementCounter"
                                 , disabled = Expression.Expr (Expression.lte (Expression.value "id") (Expression.int 10))
+                                , cssClasses =
+                                    [ ( [ "foo" ], Expression.Expr (Expression.lte (Expression.value "id") (Expression.int 10)) )
+                                    , ( [ "bar" ], Expression.Const True )
+                                    ]
                             }
                         ]
             }
