@@ -62,7 +62,7 @@ type alias ContextActionAttributes =
     , actionName : Maybe String
     , icon : Maybe String
     , disabled : Eval Bool
-    , cssClasses : List String
+    , cssClasses : List ( List String, Eval Bool )
     , subMenu : List ContextAction
     }
 
@@ -79,7 +79,7 @@ contextAction :
     , actionName : Maybe String
     , disabled : Eval Bool
     , icon : Maybe String
-    , cssClasses : List String
+    , cssClasses : List ( List String, Eval Bool )
     , subMenu : List ContextAction
     }
     -> ContextAction
@@ -295,6 +295,14 @@ encodeCustomContextAction action =
         , ( "actionName", Json.Encode.Extra.encodeMaybe Json.Encode.string action.actionName )
         , ( "disabledCallback", Expression.encode Json.Encode.bool action.disabled )
         , ( "icon", Json.Encode.Extra.encodeMaybe Json.Encode.string action.icon )
-        , ( "cssClasses", Json.Encode.list Json.Encode.string action.cssClasses )
+        , ( "cssClasses", Json.Encode.list encodeConditionalCssClasses action.cssClasses )
         , ( "subMenu", Json.Encode.list encodeContextAction action.subMenu )
+        ]
+
+
+encodeConditionalCssClasses : ( List String, Eval Bool ) -> Json.Encode.Value
+encodeConditionalCssClasses ( cssClasses, condition ) =
+    Json.Encode.object
+        [ ( "cssClasses", Json.Encode.list Json.Encode.string cssClasses )
+        , ( "condition", Expression.encode Json.Encode.bool condition )
         ]

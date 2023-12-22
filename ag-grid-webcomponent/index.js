@@ -149,9 +149,11 @@ class AgGrid extends HTMLElement {
   set getContextMenuItems(data) {
     const prepareContextAction = (item, params) => {
       if (typeof item === "string") return item;
+      // Create a copy that we update to retain the configuration on the `item`.
+      let actionItem = { ...item };
 
       if (typeof item.actionName === "string") {
-        item.action = () => {
+        actionItem.action = () => {
           const contextMenuEvent = new CustomEvent("contextActionClicked", {
             detail: {
               action: item.actionName,
@@ -163,21 +165,29 @@ class AgGrid extends HTMLElement {
         };
       }
 
-      item.subMenu =
+      actionItem.subMenu =
         item.subMenu && item.subMenu.length > 0
           ? item.subMenu.map((item) => prepareContextAction(item))
           : null;
 
       if (typeof item.disabledCallback === "object") {
-        item.disabled = expression.apply(
+        actionItem.disabled = expression.apply(
           params.node.data,
           item.disabledCallback
         );
       } else {
-        item.disabled = item.disabledCallback;
+        actionItem.disabled = item.disabledCallback;
       }
 
-      return item;
+      actionItem.cssClasses = item.cssClasses.flatMap(
+        ({ cssClasses, condition }) => {
+          if (typeof condition === "boolean" && condition) return cssClasses;
+          if (expression.apply(params.node.data, condition)) return cssClasses;
+          return [];
+        }
+      );
+
+      return actionItem;
     };
 
     this._applyChange("getContextMenuItems", (params) =>
