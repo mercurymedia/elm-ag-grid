@@ -319,6 +319,7 @@ type alias ColumnSettings =
         }
     , filterValueGetter : Maybe String
     , flex : Maybe Int
+    , floatingFilter : Bool
     , headerCheckboxSelection : Bool
     , hide : Bool
     , lockPosition : LockPosition
@@ -534,6 +535,7 @@ Default column settings:
         }
     , filterValueGetter = Nothing
     , flex = Nothing
+    , floatingFilter = False
     , headerCheckboxSelection = False
     , hide = False
     , lockPosition = NoPositionLock
@@ -558,6 +560,7 @@ Default column settings:
     , valueSetter = Nothing
     , width = Nothing
     , wrapHeaderText = False
+    }
 
 -}
 defaultSettings : ColumnSettings
@@ -578,6 +581,7 @@ defaultSettings =
         }
     , filterValueGetter = Nothing
     , flex = Nothing
+    , floatingFilter = False
     , headerCheckboxSelection = False
     , hide = False
     , lockPosition = NoPositionLock
@@ -1111,6 +1115,7 @@ columnDefEncoder gridConfig columnDef =
           )
         , ( "filterValueGetter", encodedFilterValueGetter )
         , ( "flex", encodeMaybe Json.Encode.int columnDef.settings.flex )
+        , ( "floatingFilter", Json.Encode.bool columnDef.settings.floatingFilter )
         , ( "headerCheckboxSelection", Json.Encode.bool columnDef.settings.headerCheckboxSelection )
         , ( "headerName", Json.Encode.string columnDef.headerName )
         , ( "hide", Json.Encode.bool columnDef.settings.hide )
