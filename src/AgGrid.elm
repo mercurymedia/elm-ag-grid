@@ -3,7 +3,7 @@ module AgGrid exposing
     , RowGroupPanelVisibility(..), RowSelection(..), Sorting(..), StateChange, CsvExportParams, ExcelExportParams
     , GridConfig, grid
     , defaultGridConfig, defaultSettings
-    , onCellChanged, onCellDoubleClicked, onSelectionChange, onContextMenu
+    , onCellChanged, onCellDoubleClicked, onCellClicked, onSelectionChange, onContextMenu
     , ColumnState, onColumnStateChanged, columnStatesDecoder, columnStatesEncoder, applyColumnState
     , FilterState(..), onFilterStateChanged, filterStatesEncoder, filterStatesDecoder
     , Sidebar, SidebarType(..), SidebarPosition(..), defaultSidebar
@@ -31,7 +31,7 @@ module AgGrid exposing
 
 # Events
 
-@docs onCellChanged, onCellDoubleClicked, onSelectionChange, onContextMenu
+@docs onCellChanged, onCellDoubleClicked, onCellClicked, onSelectionChange, onContextMenu
 
 
 # ColumnState
@@ -898,6 +898,30 @@ onCellChanged dataDecoder toMsg =
         |> Decode.map (Decode.decodeValue dataDecoder)
         |> Decode.map toMsg
         |> Html.Events.on "cellvaluechanged"
+
+
+{-| Detect click events on cells.
+
+Decodes the row of the clicked cell according to the provided `dataDecoder` and the field
+name of the clicked cells as tuple and passes the result to the message `toMsg`.
+
+Handles the `cellClicked` event from Ag Grid.
+
+-}
+onCellClicked : Decoder dataType -> (( Result Decode.Error dataType, String ) -> msg) -> Html.Attribute msg
+onCellClicked dataDecoder toMsg =
+    let
+        valueDecoder =
+            Decode.at [ "agGridDetails", "data" ] Decode.value
+                |> Decode.map (Decode.decodeValue dataDecoder)
+
+        elementDecoder =
+            Decode.at [ "agGridDetails", "event", "srcElement", "attributes", "col-id", "value" ] Decode.string
+
+        event =
+            Decode.map2 (\v e -> toMsg <| Tuple.pair v e) valueDecoder elementDecoder
+    in
+    Html.Events.on "cellclicked" event
 
 
 {-| Detect doubleclick events on cells.
