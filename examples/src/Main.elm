@@ -4,6 +4,7 @@ import Aggregation
 import Basic
 import Browser exposing (Document)
 import Browser.Navigation as Nav
+import ClickEvents
 import ColumnState
 import Css
 import Css.Global
@@ -43,6 +44,7 @@ type alias Model =
 type Page
     = Aggregation Aggregation.Model
     | Basic Basic.Model
+    | ClickEvents ClickEvents.Model
     | FilterState FilterState.Model
     | Grouping Grouping.Model
     | RowSelection RowSelection.Model
@@ -55,6 +57,7 @@ type Page
 type Msg
     = ChangedUrl Url
     | ClickedLink Browser.UrlRequest
+    | ClickEventsMsg ClickEvents.Msg
     | AggregationMsg Aggregation.Msg
     | BasicMsg Basic.Msg
     | FilterStateMsg FilterState.Msg
@@ -91,6 +94,9 @@ subscriptions model =
 
         Aggregation aggregationModel ->
             Sub.map AggregationMsg (Aggregation.subscriptions aggregationModel)
+
+        ClickEvents clickEventsModel ->
+            Sub.map ClickEventsMsg (ClickEvents.subscriptions clickEventsModel)
 
         Grouping _ ->
             Sub.none
@@ -146,6 +152,13 @@ update msg model =
                     Basic.update subMsg basicModel
             in
             ( { model | page = Basic updatedBasicModel }, Cmd.map BasicMsg pageCmd )
+
+        ( ClickEventsMsg subMsg, ClickEvents clickEventsModel ) ->
+            let
+                ( updatedClickEventsModel, pageCmd ) =
+                    ClickEvents.update subMsg clickEventsModel
+            in
+            ( { model | page = ClickEvents updatedClickEventsModel }, Cmd.map ClickEventsMsg pageCmd )
 
         ( RowSelectionMsg subMsg, RowSelection rowSelectionModel ) ->
             let
@@ -228,6 +241,7 @@ viewNavigation =
     div [ css [ Css.marginTop (Css.rem 2), Css.displayFlex, Css.flexDirection Css.column ] ]
         [ div [ css [ Css.color (Css.hex "#000000"), Css.fontWeight Css.normal ] ] [ text "Examples" ]
         , viewPageLink "Basic" "/"
+        , viewPageLink "Click Events" "/click-events"
         , viewPageLink "Aggregations & Formatting" "/aggregation"
         , viewPageLink "Grouping" "/grouping"
         , viewPageLink "RowSelection" "/row-selection"
@@ -266,6 +280,9 @@ viewPage page =
             Basic pageModel ->
                 toPage BasicMsg (Basic.view pageModel)
 
+            ClickEvents pageModel ->
+                toPage ClickEventsMsg (ClickEvents.view pageModel)
+
             Aggregation pageModel ->
                 toPage AggregationMsg (Aggregation.view pageModel)
 
@@ -303,6 +320,7 @@ changePageTo url model =
             Parser.oneOf
                 [ Parser.map (Basic.init |> toPage Basic BasicMsg) Parser.top
                 , Parser.map (Aggregation.init |> toPage Aggregation AggregationMsg) (Parser.s "aggregation")
+                , Parser.map (ClickEvents.init |> toPage ClickEvents ClickEventsMsg) (Parser.s "click-events")
                 , Parser.map ( { model | page = Grouping Grouping.init }, Cmd.none ) (Parser.s "grouping")
                 , Parser.map ( { model | page = RowSelection RowSelection.init }, Cmd.none ) (Parser.s "row-selection")
                 , Parser.map ( { model | page = Export Export.init }, Cmd.none ) (Parser.s "export")
