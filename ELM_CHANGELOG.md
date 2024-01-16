@@ -1,5 +1,9 @@
 # Elm Changelog
 
+## [23.1.0]
+
+- Added `onCellClick` event listener for single cell clicks.
+
 ## [23.0.0]
 
 - Changed the `cssClasses` attribute on the custom context menu actions from `List String` to `List (List String, Eval Bool)` to apply certain CSS styles conditionally. This behaviour is similar to the `classList` of the elm/html package.
