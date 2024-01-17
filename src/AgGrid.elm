@@ -304,6 +304,8 @@ type alias ColumnDef dataType =
 -}
 type alias ColumnSettings =
     { aggFunc : Aggregation
+    , allowedAggFuncs : Maybe (List Aggregation)
+    , defaultAggFunc : Aggregation
     , autoHeaderHeight : Bool
     , cellClassRules : List ( String, Expression.Eval Bool )
     , checkboxSelection : Bool
@@ -520,6 +522,8 @@ Can be used when implementing column configurations for the table.
 Default column settings:
 
     { aggFunc = NoAggregation
+    , allowedAggFuncs = Nothing
+    , defaultAggFunc = SumAggregation
     , autoHeaderHeight = False
     , cellClassRules = []
     , checkboxSelection = False
@@ -566,6 +570,8 @@ Default column settings:
 defaultSettings : ColumnSettings
 defaultSettings =
     { aggFunc = NoAggregation
+    , allowedAggFuncs = Nothing
+    , defaultAggFunc = SumAggregation
     , autoHeaderHeight = False
     , cellClassRules = []
     , checkboxSelection = False
@@ -1037,6 +1043,8 @@ columnDefEncoder gridConfig columnDef =
     in
     Json.Encode.object
         [ ( "aggFunc", encodeMaybe Json.Encode.string (aggregationToString columnDef.settings.aggFunc) )
+        , ( "allowedAggFuncs", encodeMaybe (List.filterMap aggregationToString >> Json.Encode.list Json.Encode.string) columnDef.settings.allowedAggFuncs )
+        , ( "defaultAggFunc", encodeMaybe Json.Encode.string (aggregationToString columnDef.settings.defaultAggFunc) )
         , ( "autoHeaderHeight", Json.Encode.bool columnDef.settings.autoHeaderHeight )
         , ( "cellClassRules"
           , Json.Encode.object <|

@@ -2,7 +2,6 @@ module AgGridTest exposing (suite)
 
 import AgGrid exposing (Aggregation(..), PinningType(..), Sorting(..), defaultGridConfig)
 import Expect
-import Html.Attributes exposing (default)
 import Test exposing (..)
 
 
@@ -84,6 +83,8 @@ suite =
                     |> (\settings ->
                             { settings
                                 | aggFunc = AgGrid.NoAggregation
+                                , allowedAggFuncs = Just [ AgGrid.SumAggregation, AgGrid.AvgAggregation ]
+                                , defaultAggFunc = AgGrid.SumAggregation
                                 , flex = Nothing
                                 , hide = False
                                 , pinned = AgGrid.Unpinned
@@ -147,6 +148,8 @@ suite =
                                 | settings =
                                     { defaultSettings
                                         | aggFunc = AgGrid.AvgAggregation
+                                        , allowedAggFuncs = Just [ AgGrid.SumAggregation, AgGrid.AvgAggregation ]
+                                        , defaultAggFunc = AgGrid.SumAggregation
                                         , flex = Just 5
                                         , hide = True
                                         , pinned = AgGrid.PinnedToLeft
