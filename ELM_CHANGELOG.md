@@ -1,5 +1,9 @@
 # Elm Changelog
 
+## [24.0.0]
+
+- Added `ClassRules` module to handle `rowClassRules` and `cellClassRules`.
+
 ## [23.1.0]
 
 - Added `onCellClick` event listener for single cell clicks.

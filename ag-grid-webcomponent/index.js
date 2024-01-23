@@ -40,6 +40,21 @@ class AgGrid extends HTMLElement {
     return gridElement ? JSON.parse(gridElement) : undefined;
   }
 
+  set rowClassRules(rules) {
+    if (rules) {
+      const updatedRowClassRules =
+        objectMap(
+          rules,
+          (v) => function(params) {
+            return expression.apply(params.node.data, v)
+          }
+        )
+
+      this._applyChange("rowClassRules", updatedRowClassRules);
+    }
+  }
+
+
   set gridOptions(options) {
     let globalEventListener = this.globalEventListener.bind(this);
 
@@ -47,6 +62,7 @@ class AgGrid extends HTMLElement {
       options,
       this._preInitAgGridAttributes
     );
+
 
     // Can only be instantiated once
     if (!this._initialised) {

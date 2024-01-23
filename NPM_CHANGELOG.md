@@ -1,5 +1,9 @@
 # NPM Changelog
 
+## [3.6.0]
+
+- Handling `rowClassRules` as expressions
+
 ## [3.5.0]
 
 - Menu items on column headers have been updated slightly to customize the default action "resetColumns". It now triggers a column state change event, besides the usual action.

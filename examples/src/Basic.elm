@@ -160,11 +160,15 @@ viewGrid model =
                 , pagination = True
                 , quickFilterText = model.searchInput
                 , cacheQuickFilter = True
+                , rowClassRules = [("apple", Expression.Expr isApple)]
                 , themeClasses = Just "ag-theme-balham ag-basic"
             }
 
         gridSettings =
             { defaultSettings | editable = Expression.Const True }
+
+        isApple =
+            Expression.eq (Expression.value "title") (Expression.string "Apple")
 
         isFruit =
             Expression.eq (Expression.value "category") (Expression.string "Fruit")
@@ -240,8 +244,9 @@ viewGrid model =
     div
         [ css
             [ Css.Global.descendants
-                [ Css.Global.class "discount" [ Css.backgroundColor (Css.hex "3cb371") ]
+                [ Css.Global.class "discount" [ Css.important (Css.backgroundColor (Css.hex "3cb371")) ]
                 , Css.Global.class "high-price" [ Css.backgroundColor (Css.hex "ff6347") ]
+                , Css.Global.class "apple" [ Css.backgroundColor (Css.hex "fca5a5") ]
                 ]
             , Css.margin2 (Css.rem 1) (Css.px 0)
             ]
