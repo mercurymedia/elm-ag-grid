@@ -2,7 +2,7 @@
 
 ## [24.0.0]
 
-- Added `ClassRules` module to handle `rowClassRules` and `cellClassRules`.
+- Added `rowClassRules` to `GridConfig`
 
 ## [23.1.0]
 
