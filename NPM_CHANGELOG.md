@@ -1,8 +1,12 @@
 # NPM Changelog
 
-## [3.6.0]
+## [3.7.0]
 
 - Handling `rowClassRules` as expressions
+
+## [3.6.0]
+
+- Added support for conditional `cssClasses` in context menu items
 
 ## [3.5.0]
 
