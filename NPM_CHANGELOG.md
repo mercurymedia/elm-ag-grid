@@ -3,6 +3,7 @@
 ## [3.7.0]
 
 - Handling `rowClassRules` as expressions
+- Dispatch column events when `finished` is set
 
 ## [3.6.0]
 
