@@ -1,5 +1,9 @@
 # Elm Changelog
 
+## [24.0.0]
+
+- Added `rowClassRules` to `GridConfig`
+
 ## [23.1.0]
 
 - Added `onCellClick` event listener for single cell clicks.

@@ -150,6 +150,10 @@ type PinningType
     | Unpinned
 
 
+type alias ClassRule =
+    ( String, Expression.Eval Bool )
+
+
 {-| The `Renderer` expresses how the data is retrieved from the list of data
 and rendered to the view.
 
@@ -307,7 +311,7 @@ type alias ColumnSettings =
     , allowedAggFuncs : Maybe (List Aggregation)
     , defaultAggFunc : Aggregation
     , autoHeaderHeight : Bool
-    , cellClassRules : List ( String, Expression.Eval Bool )
+    , cellClassRules : List ClassRule
     , checkboxSelection : Bool
     , customCellEditor : CellEditor
     , editable : Eval Bool
@@ -482,6 +486,7 @@ type alias GridConfig dataType =
     , rowId : Maybe (dataType -> String)
     , rowMultiSelectWithClick : Bool
     , rowSelection : RowSelection
+    , rowClassRules : List ClassRule
     , selectedIds : List String
     , sideBar : Sidebar
     , size : String
@@ -694,6 +699,7 @@ defaultGridConfig =
     , maintainColumnOrder = False
     , pagination = False
     , quickFilterText = ""
+    , rowClassRules = []
     , rowGroupPanelShow = NeverVisible
     , rowHeight = Nothing
     , rowId = Nothing
@@ -785,10 +791,12 @@ grid gridConfig events columnDefs data =
     node "ag-grid"
         ([ id "ag-grid"
          , attribute "columnDefs" columns
-         , attribute "rowData" (encodeData gridConfig columnDefs data)
          ]
             ++ configAttributes
             ++ events
+            -- The rowData attribute needs to set at the last position to make sure
+            -- that every other attribute is set / transformed.
+            ++ [ attribute "rowData" (encodeData gridConfig columnDefs data) ]
         )
         []
 
@@ -1046,10 +1054,7 @@ columnDefEncoder gridConfig columnDef =
         , ( "allowedAggFuncs", encodeMaybe (List.filterMap aggregationToString >> Json.Encode.list Json.Encode.string) columnDef.settings.allowedAggFuncs )
         , ( "defaultAggFunc", encodeMaybe Json.Encode.string (aggregationToString columnDef.settings.defaultAggFunc) )
         , ( "autoHeaderHeight", Json.Encode.bool columnDef.settings.autoHeaderHeight )
-        , ( "cellClassRules"
-          , Json.Encode.object <|
-                List.map (\( class, expression ) -> ( class, Expression.encode Json.Encode.bool expression )) columnDef.settings.cellClassRules
-          )
+        , ( "cellClassRules", encodeClassRules columnDef.settings.cellClassRules )
         , ( "checkboxSelection", Json.Encode.bool columnDef.settings.checkboxSelection )
         , ( "cellRenderer"
           , case columnDef.renderer of
@@ -1581,6 +1586,7 @@ generateGridConfigAttributes gridConfig =
                             False
               )
             , ( "pagination", Json.Encode.bool gridConfig.pagination )
+            , ( "rowClassRules", encodeClassRules gridConfig.rowClassRules )
             , ( "rowHeight"
               , case gridConfig.rowHeight of
                     Just rowHeight ->
@@ -1635,6 +1641,12 @@ generateGridConfigAttributes gridConfig =
     , style "height" gridConfig.size
     ]
         ++ configAttributes
+
+
+encodeClassRules : List ClassRule -> Json.Encode.Value
+encodeClassRules classRules =
+    Json.Encode.object <|
+        List.map (\( class, expression ) -> ( class, Expression.encode Json.Encode.bool expression )) classRules
 
 
 encodeExcelExportParams : ExcelExportParams -> Json.Encode.Value
