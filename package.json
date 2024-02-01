@@ -1,6 +1,6 @@
 {
   "name": "@mercurymedia/elm-ag-grid",
-  "version": "3.6.0",
+  "version": "3.7.0",
   "description": "",
   "main": "ag-grid-webcomponent/index.js",
   "files": [
