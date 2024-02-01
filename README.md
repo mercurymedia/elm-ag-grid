@@ -47,7 +47,7 @@ The latest [Elm package version](https://package.elm-lang.org/packages/mercuryme
 | 14.0.0 - 18.0.0 |   3.4.0 - 3.4.2    |
 | 19.0.0 - 22.0.0 |       3.5.0        |
 | 23.0.0 - 23.1.0 |       3.6.0        |
-|   24.0.0 - \*   |       3.7.0        |
+|   24.0.0 - \*   |   3.7.0 - 3.7.1    |
 
 ## Ag Grid Enterprise
 

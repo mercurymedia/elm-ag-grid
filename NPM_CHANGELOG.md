@@ -1,5 +1,9 @@
 # NPM Changelog
 
+## [3.7.1]
+
+- Explicitly check in column events for `finished === false`
+
 ## [3.7.0]
 
 - Handling `rowClassRules` as expressions
