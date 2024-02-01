@@ -107,7 +107,7 @@ class AgGrid extends HTMLElement {
 
   set disableResizeOnScroll(disabled) {
     this._addEventHandler(
-      "onBodyScroll",
+      "onBodyScrollEnd",
       "disableResizeOnScroll",
       function (params) {
         if (!disabled) params.api.sizeColumnsToFit();
@@ -356,6 +356,9 @@ class AgGrid extends HTMLElement {
 
     columnEvents.map((event) =>
       this._addEventHandler(event, "columnEvents", function (params) {
+        // column events should only dispatched when finished is set
+        if (!params.finished) { return }
+
         const stateChangeEvent = columnStateChangedEvent(
           params,
           params.columnApi.getColumnState()
