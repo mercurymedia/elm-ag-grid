@@ -357,7 +357,7 @@ class AgGrid extends HTMLElement {
     columnEvents.map((event) =>
       this._addEventHandler(event, "columnEvents", function (params) {
         // column events should only dispatched when finished is set
-        if (!params.finished) { return }
+        if (params.finished === false) { return }
 
         const stateChangeEvent = columnStateChangedEvent(
           params,
