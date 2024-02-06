@@ -96,6 +96,7 @@ viewGrid model =
                         , checkbox = True
                         }
                     , resizable = True
+                    , pinned = AgGrid.PinnedToLeft
                     }
                 , rowGroupPanelShow = AgGrid.AlwaysVisible
             }
