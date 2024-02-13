@@ -464,6 +464,7 @@ type alias GridConfig dataType =
     , autoSizeColumns : Bool
     , cacheQuickFilter : Bool
     , columnStates : List ColumnState
+    , columnHoverHighlight : Bool
     , contextMenu : Maybe ContextMenu
     , csvExport : Maybe CsvExportParams
     , detailRenderer :
@@ -489,6 +490,7 @@ type alias GridConfig dataType =
     , rowMultiSelectWithClick : Bool
     , rowSelection : RowSelection
     , rowClassRules : List ClassRule
+    , rowHoverHighlight : Bool
     , selectedIds : List String
     , sideBar : Sidebar
     , size : String
@@ -530,6 +532,7 @@ Default column settings:
 
     { aggFunc = NoAggregation
     , allowedAggFuncs = Nothing
+    , autoHeight = False
     , defaultAggFunc = SumAggregation
     , autoHeaderHeight = False
     , cellClassRules = []
@@ -571,6 +574,7 @@ Default column settings:
     , valueSetter = Nothing
     , width = Nothing
     , wrapHeaderText = False
+    , wrapText = False
     }
 
 -}
@@ -640,6 +644,7 @@ Can be used when implementing the grid.
         , autoSizeColumns = False
         , cacheQuickFilter = False
         , columnStates = []
+        , columnHoverHighlight = False
         , detailRenderer = Nothing
         , disableResizeOnScroll = False
         , filterStates = Dict.empty
@@ -652,6 +657,7 @@ Can be used when implementing the grid.
         , quickFilterText = ""
         , rowGroupPanelShow = NeverVisible
         , rowHeight = Nothing
+        , rowHoverHighlight = True
         , rowMultiSelectWithClick = False
         , rowSelection = MultipleRowSelection
         , selectedIds = []
@@ -680,6 +686,7 @@ defaultGridConfig =
     , autoSizeColumns = False
     , cacheQuickFilter = False
     , columnStates = []
+    , columnHoverHighlight = False
     , contextMenu =
         Just
             [ ContextMenu.cutContextAction
@@ -708,6 +715,7 @@ defaultGridConfig =
     , rowHeight = Nothing
     , rowId = Nothing
     , rowMultiSelectWithClick = False
+    , rowHoverHighlight = True
     , rowSelection = MultipleRowSelection
     , selectedIds = []
     , sideBar = defaultSidebar
@@ -1538,6 +1546,7 @@ generateGridConfigAttributes gridConfig =
             , ( "animateRows", Json.Encode.bool True )
             , ( "cacheQuickFilter", Json.Encode.bool gridConfig.cacheQuickFilter )
             , ( "columnState", columnStatesEncoder gridConfig.columnStates )
+            , ( "columnHoverHighlight", Json.Encode.bool gridConfig.columnHoverHighlight )
             , ( "customRowId", Json.Encode.bool (gridConfig.rowId /= Nothing) )
             , ( "detailCellRenderer"
               , case gridConfig.detailRenderer of
@@ -1601,6 +1610,7 @@ generateGridConfigAttributes gridConfig =
                     Nothing ->
                         Json.Encode.null
               )
+            , ( "suppressRowHoverHighlight", Json.Encode.bool (not gridConfig.rowHoverHighlight) )
             , ( "rowGroupPanelShow", encodeRowGroupPanelVisibility gridConfig.rowGroupPanelShow )
             , ( "rowMultiSelectWithClick", Json.Encode.bool gridConfig.rowMultiSelectWithClick )
             , ( "rowSelection"
