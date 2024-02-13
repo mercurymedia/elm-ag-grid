@@ -309,6 +309,7 @@ type alias ColumnDef dataType =
 type alias ColumnSettings =
     { aggFunc : Aggregation
     , allowedAggFuncs : Maybe (List Aggregation)
+    , autoHeight : Bool
     , defaultAggFunc : Aggregation
     , autoHeaderHeight : Bool
     , cellClassRules : List ClassRule
@@ -350,6 +351,7 @@ type alias ColumnSettings =
     , valueSetter : Maybe String
     , width : Maybe Float
     , wrapHeaderText : Bool
+    , wrapText : Bool
     }
 
 
@@ -576,6 +578,7 @@ defaultSettings : ColumnSettings
 defaultSettings =
     { aggFunc = NoAggregation
     , allowedAggFuncs = Nothing
+    , autoHeight = False
     , defaultAggFunc = SumAggregation
     , autoHeaderHeight = False
     , cellClassRules = []
@@ -617,6 +620,7 @@ defaultSettings =
     , valueSetter = Nothing
     , width = Nothing
     , wrapHeaderText = False
+    , wrapText = False
     }
 
 
@@ -1052,6 +1056,7 @@ columnDefEncoder gridConfig columnDef =
     Json.Encode.object
         [ ( "aggFunc", encodeMaybe Json.Encode.string (aggregationToString columnDef.settings.aggFunc) )
         , ( "allowedAggFuncs", encodeMaybe (List.filterMap aggregationToString >> Json.Encode.list Json.Encode.string) columnDef.settings.allowedAggFuncs )
+        , ( "autoHeight", Json.Encode.bool columnDef.settings.autoHeight )
         , ( "defaultAggFunc", encodeMaybe Json.Encode.string (aggregationToString columnDef.settings.defaultAggFunc) )
         , ( "autoHeaderHeight", Json.Encode.bool columnDef.settings.autoHeaderHeight )
         , ( "cellClassRules", encodeClassRules columnDef.settings.cellClassRules )
@@ -1241,6 +1246,7 @@ columnDefEncoder gridConfig columnDef =
                     Json.Encode.null
           )
         , ( "wrapHeaderText", Json.Encode.bool columnDef.settings.wrapHeaderText )
+        , ( "wrapText", Json.Encode.bool columnDef.settings.wrapText )
         ]
 
 

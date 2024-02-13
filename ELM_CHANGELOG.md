@@ -1,5 +1,9 @@
 # Elm Changelog
 
+## [25.0.0]
+
+- Add `autoHeight` and `wrapText` to `ColumnSettings`
+
 ## [24.0.0]
 
 - Added `rowClassRules` to `GridConfig`
