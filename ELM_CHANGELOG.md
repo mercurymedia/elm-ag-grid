@@ -1,5 +1,9 @@
 # Elm Changelog
 
+## [26.0.0]
+
+- Add `pinned` to `GridConfig.autoGroupColumnDef`
+
 ## [25.0.0]
 
 - Add `autoHeight` and `wrapText` to `ColumnSettings`
