@@ -1,5 +1,9 @@
 # Elm Changelog
 
+## [26.0.0]
+
+- Add `columnHoverHighlight` and `rowHoverHighlight` to `GridConfig`
+
 ## [25.0.0]
 
 - Add `autoHeight` and `wrapText` to `ColumnSettings`
