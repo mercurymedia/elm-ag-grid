@@ -99,6 +99,7 @@ viewGrid model =
                     , pinned = AgGrid.PinnedToLeft
                     }
                 , rowGroupPanelShow = AgGrid.AlwaysVisible
+                , suppressAggFuncInHeader = True
             }
 
         gridSettings =

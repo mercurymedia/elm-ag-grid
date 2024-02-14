@@ -495,6 +495,7 @@ type alias GridConfig dataType =
     , size : String
     , sizeToFitAfterFirstDataRendered : Bool
     , stopEditingWhenCellsLoseFocus : Bool
+    , suppressAggFuncInHeader : Bool
     , suppressMenuHide : Bool
     , suppressRowClickSelection : Bool
     , suppressRowDeselection : Bool
@@ -660,6 +661,7 @@ Can be used when implementing the grid.
         , size = "65vh"
         , sizeToFitAfterFirstDataRendered = True
         , stopEditingWhenCellsLoseFocus = True
+        , suppressAggFuncInHeader = False
         , suppressMenuHide = False
         , suppressRowClickSelection = False
         , suppressRowDeselection = False
@@ -716,6 +718,7 @@ defaultGridConfig =
     , size = "65vh"
     , sizeToFitAfterFirstDataRendered = True
     , stopEditingWhenCellsLoseFocus = True
+    , suppressAggFuncInHeader = False
     , suppressMenuHide = False
     , suppressRowClickSelection = False
     , suppressRowDeselection = False
@@ -1635,6 +1638,7 @@ generateGridConfigAttributes gridConfig =
               )
             , ( "sizeToFitAfterFirstDataRendered", Json.Encode.bool gridConfig.sizeToFitAfterFirstDataRendered )
             , ( "stopEditingWhenCellsLoseFocus", Json.Encode.bool gridConfig.stopEditingWhenCellsLoseFocus )
+            , ( "suppressAggFuncInHeader", Json.Encode.bool gridConfig.suppressAggFuncInHeader )
             , ( "suppressMenuHide", Json.Encode.bool gridConfig.suppressMenuHide )
             , ( "suppressRowClickSelection", Json.Encode.bool gridConfig.suppressRowClickSelection )
             , ( "suppressRowDeselection", Json.Encode.bool gridConfig.suppressRowDeselection )
