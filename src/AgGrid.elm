@@ -460,6 +460,7 @@ type alias GridConfig dataType =
         , headerName : Maybe String
         , minWidth : Maybe Int
         , resizable : Bool
+        , pinned : PinningType
         }
     , autoSizeColumns : Bool
     , cacheQuickFilter : Bool
@@ -678,6 +679,7 @@ defaultGridConfig =
         , headerName = Nothing
         , minWidth = Nothing
         , resizable = True
+        , pinned = Unpinned
         }
     , autoSizeColumns = False
     , cacheQuickFilter = False
@@ -1535,6 +1537,7 @@ generateGridConfigAttributes gridConfig =
                             ]
                       )
                     , ( "resizable", Json.Encode.bool gridConfig.autoGroupColumnDef.resizable )
+                    , ( "pinned", encodeMaybe Json.Encode.string (pinningTypeToString gridConfig.autoGroupColumnDef.pinned) )
                     ]
               )
             , ( "autoSizeColumns", Json.Encode.bool gridConfig.autoSizeColumns )

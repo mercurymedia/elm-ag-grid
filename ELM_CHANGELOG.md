@@ -3,6 +3,7 @@
 ## [26.0.0]
 
 - Add `suppressAggFuncInHeader` to `GridConfig`
+- Add `pinned` to `GridConfig.autoGroupColumnDef`
 
 ## [25.0.0]
 
