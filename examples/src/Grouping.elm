@@ -98,6 +98,7 @@ viewGrid model =
                     , resizable = True
                     }
                 , rowGroupPanelShow = AgGrid.AlwaysVisible
+                , suppressAggFuncInHeader = True
             }
 
         gridSettings =
