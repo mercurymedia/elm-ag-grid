@@ -2,6 +2,7 @@
 
 ## [26.0.0]
 
+- Add `columnHoverHighlight` and `rowHoverHighlight` to `GridConfig`
 - Add `suppressAggFuncInHeader` to `GridConfig`
 - Add `pinned` to `GridConfig.autoGroupColumnDef`
 
