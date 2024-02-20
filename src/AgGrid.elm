@@ -332,6 +332,7 @@ type alias ColumnSettings =
     , lockPosition : LockPosition
     , minWidth : Maybe Int
     , pinned : PinningType
+    , lockPinned : Bool
     , pivot : Bool
     , pivotIndex : Maybe Int
     , resizable : Bool
@@ -554,6 +555,7 @@ Default column settings:
     , floatingFilter = False
     , headerCheckboxSelection = False
     , hide = False
+    , lockPinned = False
     , lockPosition = NoPositionLock
     , minWidth = Nothing
     , pinned = Unpinned
@@ -607,6 +609,7 @@ defaultSettings =
     , lockPosition = NoPositionLock
     , minWidth = Nothing
     , pinned = Unpinned
+    , lockPinned = False
     , pivot = False
     , pivotIndex = Nothing
     , resizable = True
@@ -1187,6 +1190,7 @@ columnDefEncoder gridConfig columnDef =
           )
         , ( "minWidth", encodeMaybe Json.Encode.int columnDef.settings.minWidth )
         , ( "pinned", encodeMaybe Json.Encode.string (pinningTypeToString columnDef.settings.pinned) )
+        , ( "lockPinned", Json.Encode.bool columnDef.settings.lockPinned )
         , ( "pivot", Json.Encode.bool columnDef.settings.pivot )
         , ( "pivotIndex", encodeMaybe Json.Encode.int columnDef.settings.pivotIndex )
         , ( "resizable", Json.Encode.bool columnDef.settings.resizable )

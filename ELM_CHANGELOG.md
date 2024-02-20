@@ -1,5 +1,9 @@
 # Elm Changelog
 
+## [27.0.0]
+
+- Add `lockPinned` to `ColumnSettings`
+
 ## [26.0.0]
 
 - Add `columnHoverHighlight` and `rowHoverHighlight` to `GridConfig`
