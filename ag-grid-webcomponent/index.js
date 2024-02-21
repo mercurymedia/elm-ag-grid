@@ -1,4 +1,4 @@
-import { Grid, ComponentUtil } from "ag-grid-community";
+import { createGrid, ComponentUtil } from "@ag-grid-community/core";
 
 import cellRenderer from "./cell_renderer";
 import cellEditor from "./cell_editor";
@@ -58,20 +58,14 @@ class AgGrid extends HTMLElement {
   set gridOptions(options) {
     let globalEventListener = this.globalEventListener.bind(this);
 
-    this._gridOptions = ComponentUtil.copyAttributesToGridOptions(
-      options,
-      this._preInitAgGridAttributes
-    );
-
+    let mergedOptions = Object.assign(options, this._preInitAgGridAttributes)
 
     // Can only be instantiated once
     if (!this._initialised) {
       // prevent instantiating multiple grids
       let gridParams = { globalEventListener };
-      this._agGrid = new Grid(this, this._gridOptions, gridParams);
+      this._api = createGrid(this, mergedOptions, gridParams);
 
-      this.api = options.api;
-      this.columnApi = options.columnApi;
       this._initialised = true;
 
       Object.entries(this._preInitCustomAttributes).map(
@@ -102,7 +96,7 @@ class AgGrid extends HTMLElement {
   }
 
   set columnState(state) {
-    this.columnApi.applyColumnState({ state: state, applyOrder: true });
+    this._api.applyColumnState({ state: state, applyOrder: true });
   }
 
   set disableResizeOnScroll(disabled) {
@@ -116,7 +110,7 @@ class AgGrid extends HTMLElement {
   }
 
   set filterState(state) {
-    this.api.setFilterModel(state);
+    this._api.setFilterModel(state);
   }
 
   set sizeToFitAfterFirstDataRendered(sizeToFit) {
@@ -132,16 +126,16 @@ class AgGrid extends HTMLElement {
   set rowData(data) {
     this._applyChange("rowData", data);
 
-    if (this._agGrid.gridOptions.rowData === null) {
-      this.api.showNoRowsOverlay();
+    if (data == []) {
+      this._api.showNoRowsOverlay();
     }
   }
 
   set selectedIds(selectedIds) {
     if (selectedIds.length == 0) {
-      this.api.deselectAll();
+      this._api.deselectAll();
     } else {
-      this.api.forEachNode(function (node) {
+      this._api.forEachNode(function (node) {
         const selected = selectedIds.includes(node.id);
         node.setSelected(selected);
       });
@@ -159,7 +153,7 @@ class AgGrid extends HTMLElement {
         ),
       };
     }
-    this.api.setColumnDefs(defs.map(applyCallbacks));
+    this._api.updateGridOptions({columnDefs: defs.map(applyCallbacks)});
   }
 
   set getContextMenuItems(data) {
@@ -212,10 +206,7 @@ class AgGrid extends HTMLElement {
   }
 
   _applyChange(propertyName, newValue) {
-    let changeObject = {};
-    changeObject[propertyName] = { currentValue: newValue };
-
-    ComponentUtil.processOnChange(changeObject, this.api);
+    this._api.setGridOption(propertyName, newValue);
   }
 
   _addEventHandler(eventName, type, callback) {
@@ -224,9 +215,9 @@ class AgGrid extends HTMLElement {
 
     this._events = collection;
 
-    this._gridOptions[eventName] = function (args) {
+    this._api.setGridOption(eventName, function (args) {
       Object.values(collection).map((event) => event(args));
-    };
+    });
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
@@ -361,7 +352,7 @@ class AgGrid extends HTMLElement {
 
         const stateChangeEvent = columnStateChangedEvent(
           params,
-          params.columnApi.getColumnState()
+          params.api.getColumnState()
         );
 
         _this.dispatchEvent(stateChangeEvent);
