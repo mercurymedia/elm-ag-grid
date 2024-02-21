@@ -1,5 +1,49 @@
 # NPM Changelog
 
+## [4.0.0]
+
+- Updates AG Grid to 31.1.x
+- AG Grid dependencies now via modules (https://www.ag-grid.com/javascript-data-grid/modules/). If you are upgrading from an older version, you need to change your NPM dependencies to use the module-based imports. Also check your Browser console for warnings from AG Grid.
+
+   - Replace ag-grid-community dependency with @ag-grid-community/core
+   - Replace ag-grid-enterprise dependency with @ag-grid-enterprise/core
+   - Add module-based dependencies as needed:
+     ```json
+       "@ag-grid-community/styles": "^31.1.0",
+       "@ag-grid-community/client-side-row-model": "^31.1.0",
+       "@ag-grid-enterprise/column-tool-panel": "^31.1.0",
+       "@ag-grid-enterprise/filter-tool-panel": "^31.1.0",
+       "@ag-grid-enterprise/menu": "^31.1.0",
+       "@ag-grid-enterprise/range-selection": "^31.1.0",
+       "@ag-grid-enterprise/rich-select": "^31.1.0",
+       "@ag-grid-enterprise/row-grouping": "^31.1.0",
+       "@ag-grid-enterprise/side-bar": "^31.1.0",
+     ```
+   - Register AgGrid components as necessary:
+     ```js
+       import { ModuleRegistry } from '@ag-grid-community/core'
+       import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model'
+       import { LicenseManager } from '@ag-grid-enterprise/core'
+       import { ColumnsToolPanelModule } from '@ag-grid-enterprise/column-tool-panel'
+       import { FiltersToolPanelModule } from '@ag-grid-enterprise/filter-tool-panel'
+       import { MenuModule } from '@ag-grid-enterprise/menu'
+       import { RangeSelectionModule } from '@ag-grid-enterprise/range-selection'
+       import { RichSelectModule } from '@ag-grid-enterprise/rich-select'
+       import { RowGroupingModule } from '@ag-grid-enterprise/row-grouping'
+       import { SideBarModule } from '@ag-grid-enterprise/side-bar'
+
+       ModuleRegistry.registerModules([
+         ClientSideRowModelModule,
+         ColumnsToolPanelModule,
+         FiltersToolPanelModule,
+         MenuModule,
+         RangeSelectionModule,
+         RichSelectModule,
+         RowGroupingModule,
+         SideBarModule
+       ]);
+     ```
+
 ## [3.7.1]
 
 - Explicitly check in column events for `finished === false`

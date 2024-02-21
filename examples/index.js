@@ -1,17 +1,38 @@
 import "@webcomponents/custom-elements";
-import * as AgGridEnterprise from "ag-grid-enterprise";
 
-// This would usually be the pacakge import
+// This would usually be the package import
 // import ElmAgGrid from "@mercurymedia/elm-ag-grid";
 import ElmAgGrid from "../ag-grid-webcomponent";
 import { Elm } from "./src/Main.elm";
 
-import "ag-grid-community/styles/ag-grid.css";
-import "ag-grid-community/styles/ag-theme-balham.css";
-import "./styles/ag_grid_custom.css";
+import { ModuleRegistry } from '@ag-grid-community/core'
+import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model'
+import { LicenseManager } from '@ag-grid-enterprise/core'
+import { ColumnsToolPanelModule } from '@ag-grid-enterprise/column-tool-panel'
+import { FiltersToolPanelModule } from '@ag-grid-enterprise/filter-tool-panel'
+import { MenuModule } from '@ag-grid-enterprise/menu'
+import { RangeSelectionModule } from '@ag-grid-enterprise/range-selection'
+import { RichSelectModule } from '@ag-grid-enterprise/rich-select'
+import { RowGroupingModule } from '@ag-grid-enterprise/row-grouping'
+import { SideBarModule } from '@ag-grid-enterprise/side-bar'
 
-// For AG Grid Enterprise you can set license key by calling:
-// AgGridEnterprise.LicenseManager.setLicenseKey("YOUR-LICENSE-KEY");
+// For AG Grid Enterprise features set your license key here:
+// LicenseManager.setLicenseKey("YOUR LICENSE KEY");
+
+ModuleRegistry.registerModules([
+  ClientSideRowModelModule,
+  ColumnsToolPanelModule,
+  FiltersToolPanelModule,
+  MenuModule,
+  RangeSelectionModule,
+  RichSelectModule,
+  RowGroupingModule,
+  SideBarModule
+]);
+
+import "@ag-grid-community/styles/ag-grid.css";
+import "@ag-grid-community/styles/ag-theme-balham.css";
+import "./styles/ag_grid_custom.css";
 
 // Component import
 import ButtonRenderer from "./src/Components/Button.elm";

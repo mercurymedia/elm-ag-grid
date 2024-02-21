@@ -27,7 +27,18 @@ new ElmAgGrid();
 Elm.Main.init({ node: document.getElementById("app") });
 ```
 
-**Note:** The package requires at least `ag-grid-community` to be available in the project.
+For most features of AG Grid it is necessary to install modules and register them:
+
+```js
+import { ModuleRegistry } from '@ag-grid-community/core'
+import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model'
+
+ModuleRegistry.registerModules([
+  ClientSideRowModelModule
+]);
+```
+
+AG Grid will print warnings into the browser console if modules are missing. For a full list of modules, see https://www.ag-grid.com/javascript-data-grid/modules/.
 
 ## Package version requirements
 
@@ -47,16 +58,16 @@ The latest [Elm package version](https://package.elm-lang.org/packages/mercuryme
 | 14.0.0 - 18.0.0 |   3.4.0 - 3.4.2    |
 | 19.0.0 - 22.0.0 |       3.5.0        |
 | 23.0.0 - 23.1.0 |       3.6.0        |
-|   24.0.0 - \*   |   3.7.0 - 3.7.1    |
+|   24.0.0 - \*   |   3.7.0 - 4.0.0    |
 
 ## Ag Grid Enterprise
 
-The `elm-ag-grid` package uses Ag Grid Enterprise features. To enable them install the `ag-grid-enterprise` package and activate it by setting the license key. See the [official Ag Grid documentation](http://54.222.217.254/javascript-grid-set-license/) for further details.
+The `elm-ag-grid` package uses Ag Grid Enterprise features. To enable them install the `@ag-grid-enterprise/core` package and activate it by setting the license key. See the [official Ag Grid documentation](http://54.222.217.254/javascript-grid-set-license/) for further details.
 
 ```js
-import * as AgGridEnterprise from "ag-grid-enterprise";
+import { LicenseManager } from '@ag-grid-enterprise/core'
 
-AgGridEnterprise.LicenseManager.setLicenseKey("YOUR-LICENSE-KEY");
+LicenseManager.setLicenseKey("YOUR LICENSE KEY");
 ```
 
 ## Themes

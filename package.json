@@ -1,6 +1,6 @@
 {
   "name": "@mercurymedia/elm-ag-grid",
-  "version": "3.7.1",
+  "version": "4.0.0",
   "description": "",
   "main": "ag-grid-webcomponent/index.js",
   "files": [
@@ -18,14 +18,20 @@
   "repository": "git://github.com/mercurymedia/elm-ag-grid.git",
   "license": "MIT",
   "peerDependencies": {
-    "ag-grid-community": "^29.1.0",
-    "ag-grid-enterprise": "^29.1.0"
+    "@ag-grid-community/core": "^31.1.0"
   },
   "devDependencies": {
     "@parcel/transformer-elm": "^2.3.2",
+    "@ag-grid-community/styles": "^31.1.0",
+    "@ag-grid-community/client-side-row-model": "^31.1.0",
+    "@ag-grid-enterprise/column-tool-panel": "^31.1.0",
+    "@ag-grid-enterprise/filter-tool-panel": "^31.1.0",
+    "@ag-grid-enterprise/menu": "^31.1.0",
+    "@ag-grid-enterprise/range-selection": "^31.1.0",
+    "@ag-grid-enterprise/rich-select": "^31.1.0",
+    "@ag-grid-enterprise/row-grouping": "^31.1.0",
+    "@ag-grid-enterprise/side-bar": "^31.1.0",
     "@webcomponents/custom-elements": "^1.5.0",
-    "ag-grid-community": "^29.1.0",
-    "ag-grid-enterprise": "^29.1.0",
     "elm": "^0.19.1-5",
     "elm-format": "^0.8.7",
     "elm-test": "^0.19.1-revision12",
