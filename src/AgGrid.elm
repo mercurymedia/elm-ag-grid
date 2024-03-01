@@ -931,7 +931,7 @@ onCellChanged dataDecoder toMsg =
     cellUpdateDecoder
         |> Decode.map (Decode.decodeValue dataDecoder)
         |> Decode.map toMsg
-        |> Html.Events.on "cellvaluechanged"
+        |> Html.Events.on "editRequest"
 
 
 {-| Detect click events on cells.
@@ -1838,7 +1838,7 @@ encodeData gridConfig columns data =
 
 cellUpdateDecoder : Decoder Decode.Value
 cellUpdateDecoder =
-    Decode.at [ "agGridDetails", "data" ] Decode.value
+    Decode.at [ "detail", "data" ] Decode.value
 
 
 defaultColumnFilter : ColumnDef dataType -> ( FilterType, Maybe String )
