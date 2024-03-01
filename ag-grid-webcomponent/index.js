@@ -255,6 +255,7 @@ class AgGrid extends HTMLElement {
     const self = this;
 
     let gridOptions = {
+      readOnlyEdit: true,
       components: {
         ...cellRenderer,
         ...cellEditor,
@@ -294,7 +295,18 @@ class AgGrid extends HTMLElement {
         return !!params.data && params.data.rowCallbackValues.isRowSelectable;
       },
 
-      onSelectionChanged: function (event) {
+      onCellEditRequest: function(e) {
+        let newData = Object.assign({}, e.data);
+        newData[e.column.colId] = e.newValue;
+        const editEvent = new CustomEvent("editRequest", {
+          detail: {
+            data: newData
+          }
+        });
+        self.dispatchEvent(editEvent);
+      },
+
+      onSelectionChanged: function(event) {
         const nodes = event.api.getSelectedNodes();
         const selectionEvent = new CustomEvent("selectionChanged", {
           detail: { nodes },
