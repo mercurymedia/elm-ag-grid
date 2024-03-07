@@ -1,5 +1,9 @@
 # Elm Changelog
 
+## [27.0.1]
+
+- Listening for `editRequest` to handle cell changes
+
 ## [27.0.0]
 
 - Add `lockPinned` to `ColumnSettings`

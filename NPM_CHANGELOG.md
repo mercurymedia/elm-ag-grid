@@ -2,6 +2,7 @@
 
 ## [4.0.0]
 
+- Enabled `readOnlyEdit` in AgGrid and sending `editRequest` events to notify about changes
 - Updates AG Grid to 31.1.x
 - AG Grid dependencies now via modules (https://www.ag-grid.com/javascript-data-grid/modules/). If you are upgrading from an older version, you need to change your NPM dependencies to use the module-based imports. Also check your Browser console for warnings from AG Grid.
 
