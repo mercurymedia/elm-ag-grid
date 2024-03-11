@@ -1,5 +1,9 @@
 # NPM Changelog
 
+## [4.0.1]
+
+- AgGrid API now exposed again as `<custom-element>.api` as it was before 4.0.0
+
 ## [4.0.0]
 
 - Enabled `readOnlyEdit` in AgGrid and sending `editRequest` events to notify about changes

@@ -64,7 +64,7 @@ class AgGrid extends HTMLElement {
     if (!this._initialised) {
       // prevent instantiating multiple grids
       let gridParams = { globalEventListener };
-      this._api = createGrid(this, mergedOptions, gridParams);
+      this.api = createGrid(this, mergedOptions, gridParams);
 
       this._initialised = true;
 
@@ -96,7 +96,7 @@ class AgGrid extends HTMLElement {
   }
 
   set columnState(state) {
-    this._api.applyColumnState({ state: state, applyOrder: true });
+    this.api.applyColumnState({ state: state, applyOrder: true });
   }
 
   set disableResizeOnScroll(disabled) {
@@ -110,7 +110,7 @@ class AgGrid extends HTMLElement {
   }
 
   set filterState(state) {
-    this._api.setFilterModel(state);
+    this.api.setFilterModel(state);
   }
 
   set sizeToFitAfterFirstDataRendered(sizeToFit) {
@@ -127,15 +127,15 @@ class AgGrid extends HTMLElement {
     this._applyChange("rowData", data);
 
     if (data == []) {
-      this._api.showNoRowsOverlay();
+      this.api.showNoRowsOverlay();
     }
   }
 
   set selectedIds(selectedIds) {
     if (selectedIds.length == 0) {
-      this._api.deselectAll();
+      this.api.deselectAll();
     } else {
-      this._api.forEachNode(function (node) {
+      this.api.forEachNode(function (node) {
         const selected = selectedIds.includes(node.id);
         node.setSelected(selected);
       });
@@ -153,7 +153,7 @@ class AgGrid extends HTMLElement {
         ),
       };
     }
-    this._api.updateGridOptions({columnDefs: defs.map(applyCallbacks)});
+    this.api.updateGridOptions({columnDefs: defs.map(applyCallbacks)});
   }
 
   set getContextMenuItems(data) {
@@ -206,7 +206,7 @@ class AgGrid extends HTMLElement {
   }
 
   _applyChange(propertyName, newValue) {
-    this._api.setGridOption(propertyName, newValue);
+    this.api.setGridOption(propertyName, newValue);
   }
 
   _addEventHandler(eventName, type, callback) {
@@ -215,7 +215,7 @@ class AgGrid extends HTMLElement {
 
     this._events = collection;
 
-    this._api.setGridOption(eventName, function (args) {
+    this.api.setGridOption(eventName, function (args) {
       Object.values(collection).map((event) => event(args));
     });
   }
