@@ -1,6 +1,5 @@
 import { createGrid, ComponentUtil } from "@ag-grid-community/core";
 
-import cellRenderer from "./cell_renderer";
 import cellEditor from "./cell_editor";
 import appRenderer from "./app_renderer";
 import appEditor from "./app_editor";
@@ -257,7 +256,6 @@ class AgGrid extends HTMLElement {
     let gridOptions = {
       readOnlyEdit: true,
       components: {
-        ...cellRenderer,
         ...cellEditor,
         appRenderer,
         appEditor,
