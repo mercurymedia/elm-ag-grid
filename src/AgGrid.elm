@@ -1083,7 +1083,7 @@ columnDefEncoder gridConfig columnDef =
                     Json.Encode.string "appRenderer"
 
                 BoolRenderer _ ->
-                    Json.Encode.string "booleanCellRenderer"
+                    Json.Encode.string "agCheckboxCellRenderer"
 
                 GroupRenderer _ ->
                     Json.Encode.string "agGroupCellRenderer"
@@ -1105,7 +1105,7 @@ columnDefEncoder gridConfig columnDef =
         , ( "cellEditor"
           , case ( columnDef.settings.customCellEditor, columnDef.renderer ) of
                 ( DefaultEditor, BoolRenderer _ ) ->
-                    Json.Encode.string "booleanCellEditor"
+                    Json.Encode.string "agCheckboxCellEditor"
 
                 ( DefaultEditor, CurrencyRenderer _ _ ) ->
                     Json.Encode.string "decimalEditor"
@@ -1210,7 +1210,7 @@ columnDefEncoder gridConfig columnDef =
                 else
                     columnDef.settings.suppressSizeToFit
           )
-        , ( "suppressMenu", Json.Encode.bool columnDef.settings.suppressMenu )
+        , ( "suppressHeaderMenuButton", Json.Encode.bool columnDef.settings.suppressMenu )
         , ( "valueFormatter"
           , case ( columnDef.settings.valueFormatter, columnDef.renderer ) of
                 ( Just overwrittenFormatter, _ ) ->

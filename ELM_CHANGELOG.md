@@ -1,5 +1,9 @@
 # Elm Changelog
 
+## [27.0.2]
+
+- Use AgGrid default bool renderer
+
 ## [27.0.1]
 
 - Listening for `editRequest` to handle cell changes

@@ -1,6 +1,7 @@
 #ag-grid {
   width: 100%;
 }
+
 .ag-header-cell {
   display: flex;
 }
@@ -13,4 +14,8 @@
 .ag-theme-balham .ag-header-cell::after,
 .ag-theme-balham .ag-header-group-cell::after {
   height: 32px;
+}
+
+.ag-cell-wrapper.ag-checkbox-cell {
+  justify-content: center;
 }
