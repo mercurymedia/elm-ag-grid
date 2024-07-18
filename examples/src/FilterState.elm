@@ -151,26 +151,30 @@ viewGrid persons filterStates =
             { defaultSettings | editable = Expression.Const False }
 
         columns =
-            [ { field = "name"
-              , renderer = StringRenderer .name
-              , headerName = "Name"
-              , settings = gridSettings
-              }
-            , { field = "age"
-              , renderer = IntRenderer .age
-              , headerName = "Age"
-              , settings = gridSettings
-              }
-            , { field = "ship"
-              , renderer = StringRenderer .ship
-              , headerName = "Ship"
-              , settings = { gridSettings | filter = SetFilter }
-              }
-            , { field = "birthday"
-              , renderer = DateRenderer .birthday
-              , headerName = "Birthday"
-              , settings = { gridSettings | filter = DateFilter }
-              }
+            [ AgGrid.Column
+                { field = "name"
+                , renderer = StringRenderer .name
+                , headerName = "Name"
+                , settings = gridSettings
+                }
+            , AgGrid.Column
+                { field = "age"
+                , renderer = IntRenderer .age
+                , headerName = "Age"
+                , settings = gridSettings
+                }
+            , AgGrid.Column
+                { field = "ship"
+                , renderer = StringRenderer .ship
+                , headerName = "Ship"
+                , settings = { gridSettings | filter = SetFilter }
+                }
+            , AgGrid.Column
+                { field = "birthday"
+                , renderer = DateRenderer .birthday
+                , headerName = "Birthday"
+                , settings = { gridSettings | filter = DateFilter }
+                }
             ]
     in
     node "filterstate-grid"

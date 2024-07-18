@@ -102,7 +102,7 @@ class AgGrid extends HTMLElement {
     this._addEventHandler(
       "onBodyScrollEnd",
       "disableResizeOnScroll",
-      function (params) {
+      function(params) {
         if (!disabled) params.api.sizeColumnsToFit();
       }
     );
@@ -116,7 +116,7 @@ class AgGrid extends HTMLElement {
     this._addEventHandler(
       "onFirstDataRendered",
       "sizeToFitAfterFirstDataRendered",
-      function (params) {
+      function(params) {
         if (sizeToFit) params.api.sizeColumnsToFit();
       }
     );
@@ -134,7 +134,7 @@ class AgGrid extends HTMLElement {
     if (selectedIds.length == 0) {
       this.api.deselectAll();
     } else {
-      this.api.forEachNode(function (node) {
+      this.api.forEachNode(function(node) {
         const selected = selectedIds.includes(node.id);
         node.setSelected(selected);
       });
@@ -143,16 +143,24 @@ class AgGrid extends HTMLElement {
 
   set columnDefs(defs) {
     function applyCallbacks(def) {
-      return {
-        ...def,
-        editable: (params) => expression.apply(params.node.data, def.editable),
-        cellClassRules: objectMap(
-          def.cellClassRules,
-          (v) => (params) => expression.apply(params.node.data, v)
-        ),
-      };
+      // This is a group column def
+      if (def.children) {
+        return {
+          ...def,
+          children: def.children.map(applyCallbacks)
+        }
+      } else {
+        return {
+          ...def,
+          editable: (params) => expression.apply(params.node.data, def.editable),
+          cellClassRules: objectMap(
+            def.cellClassRules,
+            (v) => (params) => expression.apply(params.node.data, v)
+          ),
+        };
+      }
     }
-    this.api.updateGridOptions({columnDefs: defs.map(applyCallbacks)});
+    this.api.updateGridOptions({ columnDefs: defs.map(applyCallbacks) });
   }
 
   set getContextMenuItems(data) {
@@ -214,7 +222,7 @@ class AgGrid extends HTMLElement {
 
     this._events = collection;
 
-    this.api.setGridOption(eventName, function (args) {
+    this.api.setGridOption(eventName, function(args) {
       Object.values(collection).map((event) => event(args));
     });
   }
@@ -275,7 +283,7 @@ class AgGrid extends HTMLElement {
         // https://github.com/ag-grid/ag-grid/blob/latest/grid-enterprise-modules/menu/src/menu/menuItemMapper.ts#L155
         defaultItems.push({
           name: localeTextFunc("resetColumns", "Reset Columns"),
-          action: function () {
+          action: function() {
             const changeEvent = columnStateChangedEvent(
               { type: "resetColumns" },
               []
@@ -314,7 +322,7 @@ class AgGrid extends HTMLElement {
     };
 
     if (this.loadAttribute("customRowId")) {
-      gridOptions.getRowId = function (params) {
+      gridOptions.getRowId = function(params) {
         return params.data.rowCallbackValues.rowId;
       };
     }
@@ -356,7 +364,7 @@ class AgGrid extends HTMLElement {
     const _this = this;
 
     columnEvents.map((event) =>
-      this._addEventHandler(event, "columnEvents", function (params) {
+      this._addEventHandler(event, "columnEvents", function(params) {
         // column events should only dispatched when finished is set
         if (params.finished === false) { return }
 
@@ -375,7 +383,7 @@ class AgGrid extends HTMLElement {
     const _this = this;
 
     filterEvents.map((event) =>
-      this._addEventHandler(event, "filterEvents", function (params) {
+      this._addEventHandler(event, "filterEvents", function(params) {
         const stateChangeEvent = new CustomEvent("filterStateChanged", {
           detail: {
             event: params,

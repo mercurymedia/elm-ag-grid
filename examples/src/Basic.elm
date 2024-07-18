@@ -160,7 +160,7 @@ viewGrid model =
                 , pagination = True
                 , quickFilterText = model.searchInput
                 , cacheQuickFilter = True
-                , rowClassRules = [("apple", Expression.Expr isApple)]
+                , rowClassRules = [ ( "apple", Expression.Expr isApple ) ]
                 , themeClasses = Just "ag-theme-balham ag-basic"
             }
 
@@ -177,68 +177,84 @@ viewGrid model =
             Expression.lte (Expression.value "price") (Expression.int 3)
 
         columns =
-            [ { field = "id"
-              , renderer = IntRenderer .id
-              , headerName = "Id"
-              , settings = { gridSettings | hide = True }
-              }
-            , { field = "title"
-              , renderer = StringRenderer .title
-              , headerName = "Product"
-              , settings = { gridSettings | editable = Expression.Const False, pinned = AgGrid.PinnedToLeft }
-              }
-            , { field = "details"
-              , renderer = AppRenderer { componentName = "linkRenderer", componentParams = Nothing } encodeDetails
-              , headerName = "Details"
-              , settings = { gridSettings | editable = Expression.Const False }
-              }
-            , { field = "detailsUrl"
-              , renderer = StringRenderer .detailsUrl
-              , headerName = ""
-              , settings = { gridSettings | hide = True }
-              }
-            , { field = "category"
-              , renderer = SelectionRenderer (.category >> categoryToString) (List.map categoryToString [ Fruit, Vegetable ])
-              , headerName = "Category"
-              , settings = gridSettings
-              }
-            , { field = "description"
-              , renderer = MaybeStringRenderer .description
-              , headerName = "Description"
-              , settings = { gridSettings | editable = Expression.Expr isFruit }
-              }
-            , { field = "favorite"
-              , renderer = BoolRenderer .favorite
-              , headerName = "Favorite"
-              , settings = gridSettings
-              }
-            , { field = "offer-until"
-              , renderer = StringRenderer .offerUntil
-              , headerName = "Offer until"
-              , settings = gridSettings
-              }
-            , { field = "price"
-              , renderer = FloatRenderer .price
-              , headerName = "Price"
-              , settings =
-                    { gridSettings
-                        | cellClassRules =
-                            [ ( "discount", Expression.Expr isDiscounted )
-                            , ( "high-price", Expression.Expr <| Expression.not isDiscounted )
-                            ]
-                        , filter = AgGrid.NumberFilter
-                    }
-              }
-            , { field = "amount-left"
-              , renderer = MaybeIntRenderer .amountLeft
-              , headerName = "Amount Left"
-              , settings = gridSettings
-              }
-            , { field = "table-button-column"
-              , renderer = AppRenderer (buttonConfig model) (always "")
-              , headerName = ""
-              , settings = { gridSettings | editable = Expression.Const False }
-              }
+            [ AgGrid.Column
+                { field = "id"
+                , renderer = IntRenderer .id
+                , headerName = "Id"
+                , settings = { gridSettings | hide = True }
+                }
+            , AgGrid.Column
+                { field = "title"
+                , renderer = StringRenderer .title
+                , headerName = "Product"
+                , settings = { gridSettings | editable = Expression.Const False, pinned = AgGrid.PinnedToLeft }
+                }
+            , AgGrid.Column
+                { field = "details"
+                , renderer = AppRenderer { componentName = "linkRenderer", componentParams = Nothing } encodeDetails
+                , headerName = "Details"
+                , settings = { gridSettings | editable = Expression.Const False }
+                }
+            , AgGrid.Column
+                { field = "detailsUrl"
+                , renderer = StringRenderer .detailsUrl
+                , headerName = ""
+                , settings = { gridSettings | hide = True }
+                }
+            , AgGrid.Column
+                { field = "category"
+                , renderer = SelectionRenderer (.category >> categoryToString) (List.map categoryToString [ Fruit, Vegetable ])
+                , headerName = "Category"
+                , settings = gridSettings
+                }
+            , AgGrid.Column
+                { field = "description"
+                , renderer = MaybeStringRenderer .description
+                , headerName = "Description"
+                , settings = { gridSettings | editable = Expression.Expr isFruit }
+                }
+            , AgGrid.Column
+                { field = "favorite"
+                , renderer = BoolRenderer .favorite
+                , headerName = "Favorite"
+                , settings = gridSettings
+                }
+            , AgGrid.Column
+                { field = "offer-until"
+                , renderer = StringRenderer .offerUntil
+                , headerName = "Offer until"
+                , settings = gridSettings
+                }
+            , AgGrid.ColumnGroup
+                { headerName = "Prices"
+                , children =
+                    [ AgGrid.Column
+                        { field = "price"
+                        , renderer = FloatRenderer .price
+                        , headerName = "Price"
+                        , settings =
+                            { gridSettings
+                                | cellClassRules =
+                                    [ ( "discount", Expression.Expr isDiscounted )
+                                    , ( "high-price", Expression.Expr <| Expression.not isDiscounted )
+                                    ]
+                                , filter = AgGrid.NumberFilter
+                            }
+                        }
+                    , AgGrid.Column
+                        { field = "amount-left"
+                        , renderer = MaybeIntRenderer .amountLeft
+                        , headerName = "Amount Left"
+                        , settings = gridSettings
+                        }
+                    ]
+                }
+            , AgGrid.Column
+                { field = "table-button-column"
+                , renderer = AppRenderer (buttonConfig model) (always "")
+                , headerName = ""
+                , settings = { gridSettings | editable = Expression.Const False }
+                }
             ]
     in
     div

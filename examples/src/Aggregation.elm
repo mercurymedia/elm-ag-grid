@@ -158,46 +158,54 @@ viewGrid model =
             { defaultSettings | editable = Expression.Const True }
 
         columns =
-            [ { field = "id"
-              , renderer = IntRenderer .id
-              , headerName = "ID"
-              , settings = gridSettings
-              }
-            , { field = "priceDE"
-              , renderer = CurrencyRenderer { currency = "EUR", countryCode = "de" } (.de >> .price)
-              , headerName = "Price DE"
-              , settings = { gridSettings | aggFunc = AgGrid.MinAggregation }
-              }
-            , { field = "volumeDE"
-              , renderer = DecimalRenderer { countryCode = "de", decimalPlaces = 0 } (.de >> .volume >> Maybe.map String.fromInt)
-              , headerName = "Volume DE"
-              , settings = { gridSettings | aggFunc = AgGrid.SumAggregation }
-              }
-            , { field = "discountDE"
-              , renderer = PercentRenderer { countryCode = "de", decimalPlaces = 2 } (.de >> .discount >> Maybe.map (toPct >> String.fromFloat))
-              , headerName = "Discount DE"
-              , settings = { gridSettings | aggFunc = AgGrid.AvgAggregation }
-              }
-            , { field = "priceUS"
-              , renderer = CurrencyRenderer { countryCode = "us", currency = "USD" } (.us >> .price)
-              , headerName = "Price US"
-              , settings = { gridSettings | aggFunc = AgGrid.AvgAggregation }
-              }
-            , { field = "volumeUS"
-              , renderer = DecimalRenderer { countryCode = "us", decimalPlaces = 0 } (.us >> .volume >> Maybe.map String.fromInt)
-              , headerName = "Volume US"
-              , settings = { gridSettings | aggFunc = AgGrid.AvgAggregation }
-              }
-            , { field = "discountUS"
-              , renderer = PercentRenderer { countryCode = "us", decimalPlaces = 2 } (.us >> .discount >> Maybe.map (toPct >> String.fromFloat))
-              , headerName = "Discount US"
-              , settings = { gridSettings | aggFunc = AgGrid.AvgAggregation }
-              }
-            , { field = "minAndMax"
-              , renderer = MaybeStringRenderer (.us >> .discount >> Maybe.map (toPct >> String.fromFloat))
-              , headerName = "Min & Max (Custom aggregation)"
-              , settings = { gridSettings | aggFunc = AgGrid.CustomAggregation "Min&Max" }
-              }
+            [ AgGrid.Column
+                { field = "id"
+                , renderer = IntRenderer .id
+                , headerName = "ID"
+                , settings = gridSettings
+                }
+            , AgGrid.Column
+                { field = "priceDE"
+                , renderer = CurrencyRenderer { currency = "EUR", countryCode = "de" } (.de >> .price)
+                , headerName = "Price DE"
+                , settings = { gridSettings | aggFunc = AgGrid.MinAggregation }
+                }
+            , AgGrid.Column
+                { field = "volumeDE"
+                , renderer = DecimalRenderer { countryCode = "de", decimalPlaces = 0 } (.de >> .volume >> Maybe.map String.fromInt)
+                , headerName = "Volume DE"
+                , settings = { gridSettings | aggFunc = AgGrid.SumAggregation }
+                }
+            , AgGrid.Column
+                { field = "discountDE"
+                , renderer = PercentRenderer { countryCode = "de", decimalPlaces = 2 } (.de >> .discount >> Maybe.map (toPct >> String.fromFloat))
+                , headerName = "Discount DE"
+                , settings = { gridSettings | aggFunc = AgGrid.AvgAggregation }
+                }
+            , AgGrid.Column
+                { field = "priceUS"
+                , renderer = CurrencyRenderer { countryCode = "us", currency = "USD" } (.us >> .price)
+                , headerName = "Price US"
+                , settings = { gridSettings | aggFunc = AgGrid.AvgAggregation }
+                }
+            , AgGrid.Column
+                { field = "volumeUS"
+                , renderer = DecimalRenderer { countryCode = "us", decimalPlaces = 0 } (.us >> .volume >> Maybe.map String.fromInt)
+                , headerName = "Volume US"
+                , settings = { gridSettings | aggFunc = AgGrid.AvgAggregation }
+                }
+            , AgGrid.Column
+                { field = "discountUS"
+                , renderer = PercentRenderer { countryCode = "us", decimalPlaces = 2 } (.us >> .discount >> Maybe.map (toPct >> String.fromFloat))
+                , headerName = "Discount US"
+                , settings = { gridSettings | aggFunc = AgGrid.AvgAggregation }
+                }
+            , AgGrid.Column
+                { field = "minAndMax"
+                , renderer = MaybeStringRenderer (.us >> .discount >> Maybe.map (toPct >> String.fromFloat))
+                , headerName = "Min & Max (Custom aggregation)"
+                , settings = { gridSettings | aggFunc = AgGrid.CustomAggregation "Min&Max" }
+                }
             ]
     in
     node "aggregation-grid"
