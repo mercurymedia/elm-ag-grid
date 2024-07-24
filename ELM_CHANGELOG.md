@@ -1,5 +1,12 @@
 # Elm Changelog
 
+## [28.0.0]
+
+- Add `Column` custom type to differentiate between columns and column groups
+- Add `ColumnGroups`
+
+**Note**: Now the column needs to be wrapped into an `AgGrid.Column` constructor.
+
 ## [27.0.2]
 
 - Use AgGrid default bool renderer

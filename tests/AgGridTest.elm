@@ -144,26 +144,27 @@ suite =
                             }
 
                         expected =
-                            { defaultColumn
-                                | settings =
-                                    { defaultSettings
-                                        | aggFunc = AgGrid.AvgAggregation
-                                        , allowedAggFuncs = Just [ AgGrid.SumAggregation, AgGrid.AvgAggregation ]
-                                        , defaultAggFunc = AgGrid.SumAggregation
-                                        , flex = Just 5
-                                        , hide = True
-                                        , pinned = AgGrid.PinnedToLeft
-                                        , pivot = True
-                                        , pivotIndex = Just 1
-                                        , rowGroup = True
-                                        , rowGroupIndex = Just 2
-                                        , sort = AgGrid.SortAscending
-                                        , sortIndex = Just 3
-                                        , width = Just 150
-                                    }
-                            }
+                            AgGrid.Column
+                                { defaultColumn
+                                    | settings =
+                                        { defaultSettings
+                                            | aggFunc = AgGrid.AvgAggregation
+                                            , allowedAggFuncs = Just [ AgGrid.SumAggregation, AgGrid.AvgAggregation ]
+                                            , defaultAggFunc = AgGrid.SumAggregation
+                                            , flex = Just 5
+                                            , hide = True
+                                            , pinned = AgGrid.PinnedToLeft
+                                            , pivot = True
+                                            , pivotIndex = Just 1
+                                            , rowGroup = True
+                                            , rowGroupIndex = Just 2
+                                            , sort = AgGrid.SortAscending
+                                            , sortIndex = Just 3
+                                            , width = Just 150
+                                        }
+                                }
                     in
-                    AgGrid.applyColumnState config [ defaultColumn ]
+                    AgGrid.applyColumnState config [ AgGrid.Column defaultColumn ]
                         |> Expect.equal [ expected ]
             , test "should apply the order from the column state" <|
                 \_ ->
@@ -178,14 +179,14 @@ suite =
                             }
                     in
                     AgGrid.applyColumnState config
-                        [ { defaultColumn | field = "foo" }
-                        , { defaultColumn | field = "bar" }
-                        , { defaultColumn | field = "bazz" }
+                        [ AgGrid.Column { defaultColumn | field = "foo" }
+                        , AgGrid.Column { defaultColumn | field = "bar" }
+                        , AgGrid.Column { defaultColumn | field = "bazz" }
                         ]
                         |> Expect.equal
-                            [ { defaultColumn | field = "bazz" }
-                            , { defaultColumn | field = "foo" }
-                            , { defaultColumn | field = "bar" }
+                            [ AgGrid.Column { defaultColumn | field = "bazz" }
+                            , AgGrid.Column { defaultColumn | field = "foo" }
+                            , AgGrid.Column { defaultColumn | field = "bar" }
                             ]
             , test "should append columns that are not in the state to the end" <|
                 \_ ->
@@ -199,14 +200,14 @@ suite =
                             }
                     in
                     AgGrid.applyColumnState config
-                        [ { defaultColumn | field = "foo" }
-                        , { defaultColumn | field = "bazz" }
-                        , { defaultColumn | field = "bar" }
+                        [ AgGrid.Column { defaultColumn | field = "foo" }
+                        , AgGrid.Column { defaultColumn | field = "bazz" }
+                        , AgGrid.Column { defaultColumn | field = "bar" }
                         ]
                         |> Expect.equal
-                            [ { defaultColumn | field = "foo" }
-                            , { defaultColumn | field = "bar" }
-                            , { defaultColumn | field = "bazz" }
+                            [ AgGrid.Column { defaultColumn | field = "foo" }
+                            , AgGrid.Column { defaultColumn | field = "bar" }
+                            , AgGrid.Column { defaultColumn | field = "bazz" }
                             ]
             ]
         ]

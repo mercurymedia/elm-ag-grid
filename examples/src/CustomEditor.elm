@@ -88,36 +88,42 @@ viewGrid model =
             { defaultGridConfig | themeClasses = Just "ag-theme-balham" }
 
         columns =
-            [ { field = "id"
-              , renderer = IntRenderer .id
-              , headerName = "ID"
-              , settings = defaultSettings
-              }
-            , { field = "country"
-              , renderer = StringRenderer .country
-              , headerName = "Country"
-              , settings = defaultSettings
-              }
-            , { field = "info"
-              , renderer = StringRenderer (.infos >> String.join ", ")
-              , headerName = "Info"
-              , settings = { defaultSettings | editable = Expression.Const True, customCellEditor = AgGrid.AppEditor Editor.config }
-              }
-            , { field = "year"
-              , renderer = IntRenderer .year
-              , headerName = "Year"
-              , settings = defaultSettings
-              }
-            , { field = "name"
-              , renderer = StringRenderer .name
-              , headerName = "Athlete"
-              , settings = { defaultSettings | editable = Expression.Const True, customCellEditor = AgGrid.PredefinedEditor "agLargeTextCellEditor" }
-              }
-            , { field = "sport"
-              , renderer = StringRenderer .sport
-              , headerName = "Sport"
-              , settings = defaultSettings
-              }
+            [ AgGrid.Column
+                { field = "id"
+                , renderer = IntRenderer .id
+                , headerName = "ID"
+                , settings = defaultSettings
+                }
+            , AgGrid.Column
+                { field = "country"
+                , renderer = StringRenderer .country
+                , headerName = "Country"
+                , settings = defaultSettings
+                }
+            , AgGrid.Column
+                { field = "info"
+                , renderer = StringRenderer (.infos >> String.join ", ")
+                , headerName = "Info"
+                , settings = { defaultSettings | editable = Expression.Const True, customCellEditor = AgGrid.AppEditor Editor.config }
+                }
+            , AgGrid.Column
+                { field = "year"
+                , renderer = IntRenderer .year
+                , headerName = "Year"
+                , settings = defaultSettings
+                }
+            , AgGrid.Column
+                { field = "name"
+                , renderer = StringRenderer .name
+                , headerName = "Athlete"
+                , settings = { defaultSettings | editable = Expression.Const True, customCellEditor = AgGrid.PredefinedEditor "agLargeTextCellEditor" }
+                }
+            , AgGrid.Column
+                { field = "sport"
+                , renderer = StringRenderer .sport
+                , headerName = "Sport"
+                , settings = defaultSettings
+                }
             ]
     in
     node "custom-editor-grid"

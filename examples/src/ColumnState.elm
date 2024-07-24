@@ -207,38 +207,44 @@ viewGrid winners gridView time columnStorage =
 
         columns =
             -- Lazy columns; columns change after receiving more data (in this example `time` is only added when available)
-            [ { field = "id"
-              , renderer = IntRenderer .id
-              , headerName = "ID"
-              , settings = gridSettings
-              }
-            , { field = "name"
-              , renderer = StringRenderer .name
-              , headerName = "Name"
-              , settings = gridSettings
-              }
-            , { field = "country"
-              , renderer = StringRenderer .country
-              , headerName = "Country"
-              , settings = { gridSettings | hide = not isViewTwo }
-              }
-            , { field = "sport"
-              , renderer = StringRenderer .sport
-              , headerName = "Sport"
-              , settings = { gridSettings | hide = not isViewTwo }
-              }
-            , { field = "year"
-              , renderer = IntRenderer .year
-              , headerName = "Year"
-              , settings = { gridSettings | hide = not isViewTwo }
-              }
+            [ AgGrid.Column
+                { field = "id"
+                , renderer = IntRenderer .id
+                , headerName = "ID"
+                , settings = gridSettings
+                }
+            , AgGrid.Column
+                { field = "name"
+                , renderer = StringRenderer .name
+                , headerName = "Name"
+                , settings = gridSettings
+                }
+            , AgGrid.Column
+                { field = "country"
+                , renderer = StringRenderer .country
+                , headerName = "Country"
+                , settings = { gridSettings | hide = not isViewTwo }
+                }
+            , AgGrid.Column
+                { field = "sport"
+                , renderer = StringRenderer .sport
+                , headerName = "Sport"
+                , settings = { gridSettings | hide = not isViewTwo }
+                }
+            , AgGrid.Column
+                { field = "year"
+                , renderer = IntRenderer .year
+                , headerName = "Year"
+                , settings = { gridSettings | hide = not isViewTwo }
+                }
             ]
                 ++ (if Time.posixToMillis time > 0 then
-                        [ { field = "POSIX time"
-                          , renderer = IntRenderer (\_ -> Time.posixToMillis time)
-                          , headerName = "POSIX time"
-                          , settings = gridSettings
-                          }
+                        [ AgGrid.Column
+                            { field = "POSIX time"
+                            , renderer = IntRenderer (\_ -> Time.posixToMillis time)
+                            , headerName = "POSIX time"
+                            , settings = gridSettings
+                            }
                         ]
 
                     else

@@ -1,5 +1,5 @@
 module AgGrid exposing
-    ( Aggregation(..), CellEditor(..), ColumnDef, ColumnSettings, EventType(..), FilterType(..), LockPosition(..), PinningType(..), Renderer(..)
+    ( Aggregation(..), CellEditor(..), Column(..), ColumnSettings, EventType(..), FilterType(..), LockPosition(..), PinningType(..), Renderer(..)
     , RowGroupPanelVisibility(..), RowSelection(..), Sorting(..), StateChange, CsvExportParams, ExcelExportParams
     , GridConfig, grid
     , defaultGridConfig, defaultSettings
@@ -15,7 +15,7 @@ module AgGrid exposing
 
 # Data Types
 
-@docs Aggregation, CellEditor, ColumnDef, ColumnSettings, EventType, FilterType, LockPosition, PinningType, Renderer
+@docs Aggregation, CellEditor, Column, ColumnSettings, EventType, FilterType, LockPosition, PinningType, Renderer
 @docs RowGroupPanelVisibility, RowSelection, Sorting, StateChange, CsvExportParams, ExcelExportParams
 
 
@@ -279,11 +279,12 @@ for each column.
         defaultSettings =
             AgGrid.defaultSettings
     in
-    [ { field = "id"
-      , renderer = IntRenderer .id
-      , headerName = "Id"
-      , settings = defaultSettings
-      }
+    [ AgGrid.Column
+        { field = "id"
+        , renderer = IntRenderer .id
+        , headerName = "Id"
+        , settings = defaultSettings
+        }
     , { field = "title"
       , renderer = StringRenderer .title
       , headerName = "Product"
@@ -302,6 +303,41 @@ type alias ColumnDef dataType =
     , headerName : String
     , settings : ColumnSettings
     }
+
+
+{-| ColumnGroupDef
+
+Requires `headerName`, and `children` to be defined
+for each column.
+
+  - `headerName`: the name of the column group
+  - `children`: a list of column definitions
+
+-}
+type alias ColumnGroupDef dataType =
+    { headerName : String
+    , children : List (Column dataType)
+    }
+
+
+{-| Column dataType
+
+Represents a column in Aggird, this could be a normal or a group of columns
+
+-}
+type Column dataType
+    = Column (ColumnDef dataType)
+    | ColumnGroup (ColumnGroupDef dataType)
+
+
+columnField : Column dataType -> String
+columnField col =
+    case col of
+        Column { field } ->
+            field
+
+        ColumnGroup { headerName } ->
+            headerName
 
 
 {-| Column configuration settings.
@@ -795,14 +831,14 @@ defaultSidebar =
     grid gridConfig events columns data
 
 -}
-grid : GridConfig dataType -> List (Html.Attribute msg) -> List (ColumnDef dataType) -> List dataType -> Html msg
-grid gridConfig events columnDefs data =
+grid : GridConfig dataType -> List (Html.Attribute msg) -> List (Column dataType) -> List dataType -> Html msg
+grid gridConfig events columns data =
     let
-        columns =
-            columnDefs
+        columnsPrepared =
+            columns
                 |> prepareColumns gridConfig
                 |> applyColumnState gridConfig
-                |> Json.Encode.list (columnDefEncoder gridConfig)
+                |> Json.Encode.list (encodeColumn gridConfig)
                 |> Json.Encode.encode 0
 
         configAttributes =
@@ -810,13 +846,13 @@ grid gridConfig events columnDefs data =
     in
     node "ag-grid"
         ([ id "ag-grid"
-         , attribute "columnDefs" columns
+         , attribute "columnDefs" columnsPrepared
          ]
             ++ configAttributes
             ++ events
             -- The rowData attribute needs to set at the last position to make sure
             -- that every other attribute is set / transformed.
-            ++ [ attribute "rowData" (encodeData gridConfig columnDefs data) ]
+            ++ [ attribute "rowData" (encodeData gridConfig columns data) ]
         )
         []
 
@@ -829,8 +865,8 @@ to the order in the column state. New columns, that don't exist in the column st
 **This function is mainly exposed to allow unit-testing, as this is automatically applied to ColumnDefs passed to the `grid`.**
 
 -}
-applyColumnState : GridConfig dataType -> List (ColumnDef dataType) -> List (ColumnDef dataType)
-applyColumnState gridConfig columnDefs =
+applyColumnState : GridConfig dataType -> List (Column dataType) -> List (Column dataType)
+applyColumnState gridConfig columns =
     let
         indexedStorage : Dict.Dict String ( Int, ColumnState )
         indexedStorage =
@@ -838,25 +874,6 @@ applyColumnState gridConfig columnDefs =
                 |> List.indexedMap Tuple.pair
                 |> List.map (\( index, col ) -> ( col.colId, ( index, col ) ))
                 |> Dict.fromList
-
-        applyCache : ColumnDef dataType -> ColumnState -> ColumnDef dataType
-        applyCache ({ settings } as column) cachedState =
-            { column
-                | settings =
-                    { settings
-                        | aggFunc = toAggregation cachedState.aggFunc
-                        , flex = cachedState.flex
-                        , hide = Maybe.withDefault settings.hide cachedState.hide
-                        , pinned = toPinningType cachedState.pinned
-                        , pivot = Maybe.withDefault settings.pivot cachedState.pivot
-                        , pivotIndex = cachedState.pivotIndex
-                        , rowGroup = Maybe.withDefault settings.rowGroup cachedState.rowGroup
-                        , rowGroupIndex = cachedState.rowGroupIndex
-                        , sort = toSorting cachedState.sort
-                        , sortIndex = cachedState.sortIndex
-                        , width = Just cachedState.width
-                    }
-            }
 
         sorter : ( Maybe Int, any ) -> ( Maybe Int, any ) -> Order
         sorter ( position1, _ ) ( position2, _ ) =
@@ -873,10 +890,10 @@ applyColumnState gridConfig columnDefs =
                 ( Nothing, Nothing ) ->
                     EQ
     in
-    columnDefs
+    columns
         |> List.map
             (\column ->
-                case Dict.get column.field indexedStorage of
+                case Dict.get (columnField column) indexedStorage of
                     Just ( position, cachedState ) ->
                         ( Just position, applyCache column cachedState )
 
@@ -887,16 +904,43 @@ applyColumnState gridConfig columnDefs =
         |> List.map Tuple.second
 
 
-prepareColumns : GridConfig dataType -> List (ColumnDef dataType) -> List (ColumnDef dataType)
-prepareColumns gridConfig columnDefs =
+applyCache : Column dataType -> ColumnState -> Column dataType
+applyCache column cachedState =
+    case column of
+        Column ({ settings } as columnDef) ->
+            Column
+                { columnDef
+                    | settings =
+                        { settings
+                            | aggFunc = toAggregation cachedState.aggFunc
+                            , flex = cachedState.flex
+                            , hide = Maybe.withDefault settings.hide cachedState.hide
+                            , pinned = toPinningType cachedState.pinned
+                            , pivot = Maybe.withDefault settings.pivot cachedState.pivot
+                            , pivotIndex = cachedState.pivotIndex
+                            , rowGroup = Maybe.withDefault settings.rowGroup cachedState.rowGroup
+                            , rowGroupIndex = cachedState.rowGroupIndex
+                            , sort = toSorting cachedState.sort
+                            , sortIndex = cachedState.sortIndex
+                            , width = Just cachedState.width
+                        }
+                }
+
+        ColumnGroup _ ->
+            column
+
+
+prepareColumns : GridConfig dataType -> List (Column dataType) -> List (Column dataType)
+prepareColumns gridConfig columns =
     if not gridConfig.autoSizeColumns then
         -- If columns are not automatically sized, we insert another (empty) column that
         -- fills out the remaining width space of the table.
-        List.append columnDefs
-            [ { field = "table-filler-cell"
-              , renderer = NoRenderer
-              , headerName = ""
-              , settings =
+        List.append columns
+            [ Column
+                { field = "table-filler-cell"
+                , renderer = NoRenderer
+                , headerName = ""
+                , settings =
                     { defaultSettings
                         | enablePivot = False
                         , enableRowGroup = False
@@ -907,11 +951,11 @@ prepareColumns gridConfig columnDefs =
                         , suppressMenu = True
                         , suppressSizeToFit = False
                     }
-              }
+                }
             ]
 
     else
-        columnDefs
+        columns
 
 
 
@@ -1063,8 +1107,26 @@ cellEditorParamsEncoder params =
         ]
 
 
-columnDefEncoder : GridConfig dataType -> ColumnDef dataType -> Json.Encode.Value
-columnDefEncoder gridConfig columnDef =
+encodeColumn : GridConfig dataType -> Column dataType -> Json.Encode.Value
+encodeColumn gridConfig column =
+    case column of
+        Column columnDef ->
+            encodeColumnDef gridConfig columnDef
+
+        ColumnGroup columnGroupDef ->
+            encodeColumnGroupDef gridConfig columnGroupDef
+
+
+encodeColumnGroupDef : GridConfig dataType -> ColumnGroupDef dataType -> Json.Encode.Value
+encodeColumnGroupDef gridConfig columnGroupDef =
+    Json.Encode.object
+        [ ( "headerName", Json.Encode.string columnGroupDef.headerName )
+        , ( "children", Json.Encode.list (encodeColumn gridConfig) columnGroupDef.children )
+        ]
+
+
+encodeColumnDef : GridConfig dataType -> ColumnDef dataType -> Json.Encode.Value
+encodeColumnDef gridConfig columnDef =
     let
         { encodedFilter, encodedFilterValueGetter } =
             encodeFilterProperties columnDef
@@ -1732,14 +1794,14 @@ encodeSidebarType sidebarType =
                 "filters"
 
 
-rowEncoder : GridConfig dataType -> List (ColumnDef dataType) -> dataType -> Json.Encode.Value
-rowEncoder gridConfig columns data =
+encodeRow : GridConfig dataType -> List (Column dataType) -> dataType -> Json.Encode.Value
+encodeRow gridConfig columns data =
     let
         rowCallbackValues =
             ( "rowCallbackValues", rowCallbackValuesEncoder gridConfig data )
 
         encodedAttributes =
-            List.map (encoder data) columns
+            List.concatMap (encodeRenderer data) columns
     in
     Json.Encode.object (rowCallbackValues :: encodedAttributes)
 
@@ -1759,80 +1821,86 @@ rowCallbackValuesEncoder gridConfig data =
         ]
 
 
-encoder : dataType -> ColumnDef dataType -> ( String, Json.Encode.Value )
-encoder data column =
-    ( column.field
-    , case column.renderer of
-        AppRenderer _ valueGetter ->
-            Json.Encode.string (valueGetter data)
+encodeRenderer : dataType -> Column dataType -> List ( String, Json.Encode.Value )
+encodeRenderer data column =
+    case column of
+        ColumnGroup columnGroupDef ->
+            List.concatMap (encodeRenderer data) columnGroupDef.children
 
-        BoolRenderer valueGetter ->
-            Json.Encode.bool (valueGetter data)
+        Column columnDef ->
+            [ ( columnDef.field
+              , case columnDef.renderer of
+                    AppRenderer _ valueGetter ->
+                        Json.Encode.string (valueGetter data)
 
-        CurrencyRenderer _ valueGetter ->
-            encodeMaybe Json.Encode.string (valueGetter data)
+                    BoolRenderer valueGetter ->
+                        Json.Encode.bool (valueGetter data)
 
-        DateRenderer valueGetter ->
-            Json.Encode.string (valueGetter data)
+                    CurrencyRenderer _ valueGetter ->
+                        encodeMaybe Json.Encode.string (valueGetter data)
 
-        DecimalRenderer _ valueGetter ->
-            encodeMaybe Json.Encode.string (valueGetter data)
+                    DateRenderer valueGetter ->
+                        Json.Encode.string (valueGetter data)
 
-        FloatRenderer valueGetter ->
-            Json.Encode.float (valueGetter data)
+                    DecimalRenderer _ valueGetter ->
+                        encodeMaybe Json.Encode.string (valueGetter data)
 
-        GroupRenderer valueGetter ->
-            Json.Encode.string (valueGetter data)
+                    FloatRenderer valueGetter ->
+                        Json.Encode.float (valueGetter data)
 
-        IntRenderer valueGetter ->
-            Json.Encode.int (valueGetter data)
+                    GroupRenderer valueGetter ->
+                        Json.Encode.string (valueGetter data)
 
-        MaybeFloatRenderer valueGetter ->
-            case valueGetter data of
-                Just value ->
-                    Json.Encode.float value
+                    IntRenderer valueGetter ->
+                        Json.Encode.int (valueGetter data)
 
-                Nothing ->
-                    Json.Encode.null
+                    MaybeFloatRenderer valueGetter ->
+                        case valueGetter data of
+                            Just value ->
+                                Json.Encode.float value
 
-        MaybeIntRenderer valueGetter ->
-            case valueGetter data of
-                Just value ->
-                    Json.Encode.int value
+                            Nothing ->
+                                Json.Encode.null
 
-                Nothing ->
-                    Json.Encode.null
+                    MaybeIntRenderer valueGetter ->
+                        case valueGetter data of
+                            Just value ->
+                                Json.Encode.int value
 
-        MaybeStringRenderer valueGetter ->
-            case valueGetter data of
-                Just value ->
-                    Json.Encode.string value
+                            Nothing ->
+                                Json.Encode.null
 
-                Nothing ->
-                    Json.Encode.null
+                    MaybeStringRenderer valueGetter ->
+                        case valueGetter data of
+                            Just value ->
+                                Json.Encode.string value
 
-        NoRenderer ->
-            Json.Encode.null
+                            Nothing ->
+                                Json.Encode.null
 
-        PercentRenderer _ valueGetter ->
-            encodeMaybe Json.Encode.string (valueGetter data)
+                    NoRenderer ->
+                        Json.Encode.null
 
-        SelectionRenderer valueGetter _ ->
-            Json.Encode.string (valueGetter data)
+                    PercentRenderer _ valueGetter ->
+                        encodeMaybe Json.Encode.string (valueGetter data)
 
-        StringRenderer valueGetter ->
-            Json.Encode.string (valueGetter data)
-    )
+                    SelectionRenderer valueGetter _ ->
+                        Json.Encode.string (valueGetter data)
+
+                    StringRenderer valueGetter ->
+                        Json.Encode.string (valueGetter data)
+              )
+            ]
 
 
-encodeData : GridConfig dataType -> List (ColumnDef dataType) -> List dataType -> String
+encodeData : GridConfig dataType -> List (Column dataType) -> List dataType -> String
 encodeData gridConfig columns data =
     if List.isEmpty data then
         Json.Encode.null |> Json.Encode.encode 0
 
     else
         data
-            |> Json.Encode.list (rowEncoder gridConfig columns)
+            |> Json.Encode.list (encodeRow gridConfig columns)
             |> Json.Encode.encode 0
 
 

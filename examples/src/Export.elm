@@ -91,31 +91,36 @@ viewGrid model =
             }
 
         columns =
-            [ { field = "id"
-              , renderer = IntRenderer .id
-              , headerName = "ID"
-              , settings = defaultSettings
-              }
-            , { field = "country"
-              , renderer = StringRenderer .country
-              , headerName = "Country"
-              , settings = defaultSettings
-              }
-            , { field = "year"
-              , renderer = IntRenderer .year
-              , headerName = "Year"
-              , settings = defaultSettings
-              }
-            , { field = "name"
-              , renderer = StringRenderer .name
-              , headerName = "Athlete"
-              , settings = defaultSettings
-              }
-            , { field = "sport"
-              , renderer = StringRenderer .sport
-              , headerName = "Sport"
-              , settings = defaultSettings
-              }
+            [ AgGrid.Column
+                { field = "id"
+                , renderer = IntRenderer .id
+                , headerName = "ID"
+                , settings = defaultSettings
+                }
+            , AgGrid.Column
+                { field = "country"
+                , renderer = StringRenderer .country
+                , headerName = "Country"
+                , settings = defaultSettings
+                }
+            , AgGrid.Column
+                { field = "year"
+                , renderer = IntRenderer .year
+                , headerName = "Year"
+                , settings = defaultSettings
+                }
+            , AgGrid.Column
+                { field = "name"
+                , renderer = StringRenderer .name
+                , headerName = "Athlete"
+                , settings = defaultSettings
+                }
+            , AgGrid.Column
+                { field = "sport"
+                , renderer = StringRenderer .sport
+                , headerName = "Sport"
+                , settings = defaultSettings
+                }
             ]
     in
     node "export-grid"

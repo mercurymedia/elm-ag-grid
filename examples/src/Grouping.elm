@@ -106,31 +106,36 @@ viewGrid model =
             defaultSettings
 
         columns =
-            [ { field = "id"
-              , renderer = IntRenderer .id
-              , headerName = "ID"
-              , settings = { gridSettings | hide = True }
-              }
-            , { field = "country"
-              , renderer = StringRenderer .country
-              , headerName = "Country"
-              , settings = { gridSettings | rowGroup = True }
-              }
-            , { field = "year"
-              , renderer = IntRenderer .year
-              , headerName = "Year"
-              , settings = { gridSettings | rowGroup = True, hide = True }
-              }
-            , { field = "name"
-              , renderer = StringRenderer .name
-              , headerName = "Athlete"
-              , settings = gridSettings
-              }
-            , { field = "sport"
-              , renderer = StringRenderer .sport
-              , headerName = "Sport"
-              , settings = gridSettings
-              }
+            [ AgGrid.Column
+                { field = "id"
+                , renderer = IntRenderer .id
+                , headerName = "ID"
+                , settings = { gridSettings | hide = True }
+                }
+            , AgGrid.Column
+                { field = "country"
+                , renderer = StringRenderer .country
+                , headerName = "Country"
+                , settings = { gridSettings | rowGroup = True }
+                }
+            , AgGrid.Column
+                { field = "year"
+                , renderer = IntRenderer .year
+                , headerName = "Year"
+                , settings = { gridSettings | rowGroup = True, hide = True }
+                }
+            , AgGrid.Column
+                { field = "name"
+                , renderer = StringRenderer .name
+                , headerName = "Athlete"
+                , settings = gridSettings
+                }
+            , AgGrid.Column
+                { field = "sport"
+                , renderer = StringRenderer .sport
+                , headerName = "Sport"
+                , settings = gridSettings
+                }
             ]
     in
     node "grouping-grid"
