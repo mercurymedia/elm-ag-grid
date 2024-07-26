@@ -1,5 +1,9 @@
 # NPM Changelog
 
+## [4.1.0]
+
+- Add support for column groups
+
 ## [4.0.2]
 
 - Use AgGrid default bool renderer
