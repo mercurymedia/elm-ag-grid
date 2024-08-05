@@ -1895,13 +1895,9 @@ encodeRenderer data column =
 
 encodeData : GridConfig dataType -> List (Column dataType) -> List dataType -> String
 encodeData gridConfig columns data =
-    if List.isEmpty data then
-        Json.Encode.null |> Json.Encode.encode 0
-
-    else
-        data
-            |> Json.Encode.list (encodeRow gridConfig columns)
-            |> Json.Encode.encode 0
+    data
+        |> Json.Encode.list (encodeRow gridConfig columns)
+        |> Json.Encode.encode 0
 
 
 cellUpdateDecoder : Decoder Decode.Value
