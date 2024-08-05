@@ -1,5 +1,9 @@
 # Elm Changelog
 
+## [28.0.1]
+
+- Fix: Update table with empty row data
+
 ## [28.0.0]
 
 - Add `Column` custom type to differentiate between columns and column groups
