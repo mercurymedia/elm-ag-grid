@@ -306,7 +306,10 @@ class AgGrid extends HTMLElement {
         newData[e.column.colId] = e.newValue;
         const editEvent = new CustomEvent("editRequest", {
           detail: {
-            data: newData
+            data: newData,
+            oldValue: e.oldValue,
+            newValue: e.newValue,
+            field: e.colDef.field
           }
         });
         self.dispatchEvent(editEvent);

@@ -1,5 +1,12 @@
 # NPM Changelog
 
+## [4.1.1]
+
+- Add the following properties to the `editRequest` event:
+  - `field` the name of the actual changed field
+  - `newValue` the new value of the field
+  - `oldValue` the old value of the field
+
 ## [4.1.0]
 
 - Add support for column groups
