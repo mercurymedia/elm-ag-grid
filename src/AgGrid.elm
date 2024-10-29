@@ -241,18 +241,18 @@ type Sorting
 {-| CellEditor
 
   - `DefaultEditor` will set an editor derived from the renderer
+  - `LargeTextEditor` will use the agLargeTextCellEditor
+  - `SelectionEditor` will use the agRichSelectCellEditor
   - `PredefinedEditor` allows to use an existing ag-grid editor
   - `AppEditor` allows to use an Elm app as custom editor
 
 -}
 type CellEditor
     = AppEditor { componentName : String, componentParams : Maybe Json.Encode.Value }
+    | LargeTextEditor { maxLength : Int, rows : Int, cols : Int }
+    | SelectionEditor { values : List String }
     | PredefinedEditor String
     | DefaultEditor
-
-
-type alias CellEditorParams =
-    { values : List String }
 
 
 {-| Column definition.
@@ -1100,11 +1100,89 @@ onSelectionChange nodeDecoder toMsg =
 -- Encoding/Decoding
 
 
-cellEditorParamsEncoder : CellEditorParams -> Json.Encode.Value
-cellEditorParamsEncoder params =
-    Json.Encode.object
-        [ ( "values", Json.Encode.list Json.Encode.string params.values )
-        ]
+encodeEditor : CellEditor -> Renderer dataType -> Json.Encode.Value
+encodeEditor editor renderer =
+    case ( editor, renderer ) of
+        ( DefaultEditor, BoolRenderer _ ) ->
+            Json.Encode.string "agCheckboxCellEditor"
+
+        ( DefaultEditor, CurrencyRenderer _ _ ) ->
+            Json.Encode.string "decimalEditor"
+
+        ( DefaultEditor, DecimalRenderer _ _ ) ->
+            Json.Encode.string "decimalEditor"
+
+        ( DefaultEditor, PercentRenderer _ _ ) ->
+            Json.Encode.string "decimalEditor"
+
+        ( DefaultEditor, SelectionRenderer _ _ ) ->
+            Json.Encode.string "agRichSelectCellEditor"
+
+        ( LargeTextEditor _, _ ) ->
+            Json.Encode.string "agLargeTextCellEditor"
+
+        ( SelectionEditor _, _ ) ->
+            Json.Encode.string "agRichSelectCellEditor"
+
+        ( PredefinedEditor editorType, _ ) ->
+            Json.Encode.string editorType
+
+        ( AppEditor _, _ ) ->
+            Json.Encode.string "appEditor"
+
+        _ ->
+            Json.Encode.null
+
+
+encodeEditorParams : CellEditor -> Renderer dataType -> Json.Encode.Value
+encodeEditorParams editor renderer =
+    case editor of
+        AppEditor params ->
+            Json.Encode.object
+                [ ( "componentName", Json.Encode.string params.componentName )
+                , ( "componentParams", Maybe.withDefault Json.Encode.null params.componentParams )
+                ]
+
+        DefaultEditor ->
+            case renderer of
+                CurrencyRenderer { countryCode } _ ->
+                    Json.Encode.object
+                        [ ( "countryCode", Json.Encode.string countryCode )
+                        , ( "decimalPlaces", Json.Encode.int 2 )
+                        ]
+
+                DecimalRenderer { countryCode, decimalPlaces } _ ->
+                    Json.Encode.object
+                        [ ( "countryCode", Json.Encode.string countryCode )
+                        , ( "decimalPlaces", Json.Encode.int decimalPlaces )
+                        ]
+
+                PercentRenderer { countryCode, decimalPlaces } _ ->
+                    Json.Encode.object
+                        [ ( "countryCode", Json.Encode.string countryCode )
+                        , ( "decimalPlaces", Json.Encode.int decimalPlaces )
+                        ]
+
+                SelectionRenderer _ collection ->
+                    encodeEditorParams (SelectionEditor { values = collection }) renderer
+
+                _ ->
+                    Json.Encode.null
+
+        SelectionEditor { values } ->
+            Json.Encode.object
+                [ ( "values", Json.Encode.list Json.Encode.string values )
+                ]
+
+        LargeTextEditor { maxLength, rows, cols } ->
+            Json.Encode.object
+                [ ( "maxLength", Json.Encode.int maxLength )
+                , ( "rows", Json.Encode.int rows )
+                , ( "cols", Json.Encode.int cols )
+                ]
+
+        PredefinedEditor predefinedEditor ->
+            Json.Encode.string predefinedEditor
 
 
 encodeColumn : GridConfig dataType -> Column dataType -> Json.Encode.Value
@@ -1164,64 +1242,8 @@ encodeColumnDef gridConfig columnDef =
                 _ ->
                     Json.Encode.null
           )
-        , ( "cellEditor"
-          , case ( columnDef.settings.customCellEditor, columnDef.renderer ) of
-                ( DefaultEditor, BoolRenderer _ ) ->
-                    Json.Encode.string "agCheckboxCellEditor"
-
-                ( DefaultEditor, CurrencyRenderer _ _ ) ->
-                    Json.Encode.string "decimalEditor"
-
-                ( DefaultEditor, DecimalRenderer _ _ ) ->
-                    Json.Encode.string "decimalEditor"
-
-                ( DefaultEditor, PercentRenderer _ _ ) ->
-                    Json.Encode.string "decimalEditor"
-
-                ( DefaultEditor, SelectionRenderer _ _ ) ->
-                    Json.Encode.string "agRichSelectCellEditor"
-
-                ( PredefinedEditor editorName, _ ) ->
-                    Json.Encode.string editorName
-
-                ( AppEditor _, _ ) ->
-                    Json.Encode.string "appEditor"
-
-                _ ->
-                    Json.Encode.null
-          )
-        , ( "cellEditorParams"
-          , case ( columnDef.settings.customCellEditor, columnDef.renderer ) of
-                ( DefaultEditor, CurrencyRenderer { countryCode } _ ) ->
-                    Json.Encode.object
-                        [ ( "countryCode", Json.Encode.string countryCode )
-                        , ( "decimalPlaces", Json.Encode.int 2 )
-                        ]
-
-                ( DefaultEditor, DecimalRenderer { countryCode, decimalPlaces } _ ) ->
-                    Json.Encode.object
-                        [ ( "countryCode", Json.Encode.string countryCode )
-                        , ( "decimalPlaces", Json.Encode.int decimalPlaces )
-                        ]
-
-                ( DefaultEditor, PercentRenderer { countryCode, decimalPlaces } _ ) ->
-                    Json.Encode.object
-                        [ ( "countryCode", Json.Encode.string countryCode )
-                        , ( "decimalPlaces", Json.Encode.int decimalPlaces )
-                        ]
-
-                ( DefaultEditor, SelectionRenderer _ collection ) ->
-                    cellEditorParamsEncoder { values = collection }
-
-                ( AppEditor params, _ ) ->
-                    Json.Encode.object
-                        [ ( "componentName", Json.Encode.string params.componentName )
-                        , ( "componentParams", Maybe.withDefault Json.Encode.null params.componentParams )
-                        ]
-
-                _ ->
-                    Json.Encode.null
-          )
+        , ( "cellEditor", encodeEditor columnDef.settings.customCellEditor columnDef.renderer )
+        , ( "cellEditorParams", encodeEditorParams columnDef.settings.customCellEditor columnDef.renderer )
         , ( "editable", Expression.encode Json.Encode.bool columnDef.settings.editable )
         , ( "enablePivot", Json.Encode.bool columnDef.settings.enablePivot )
         , ( "enableRowGroup", Json.Encode.bool columnDef.settings.enableRowGroup )

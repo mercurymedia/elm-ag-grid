@@ -1,5 +1,10 @@
 # Elm Changelog
 
+## [29.0.0]
+
+- Add `LargeTextEditor` to enable more options for predefined editors like `agLargeTextCellEditor`
+- Moved `SelectionEdtior` to the `CellEditor` type.
+
 ## [28.0.1]
 
 - Fix: Update table with empty row data
