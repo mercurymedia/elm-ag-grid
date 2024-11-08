@@ -116,7 +116,17 @@ viewGrid model =
                 { field = "name"
                 , renderer = StringRenderer .name
                 , headerName = "Athlete"
-                , settings = { defaultSettings | editable = Expression.Const True, customCellEditor = AgGrid.PredefinedEditor "agLargeTextCellEditor" }
+                , settings =
+                    { defaultSettings
+                        | editable = Expression.Const True
+                        , customCellEditor =
+                                (AgGrid.LargeTextEditor
+                                    { maxLength = 500
+                                    , rows = 10
+                                    , cols = 50
+                                    }
+                                )
+                    }
                 }
             , AgGrid.Column
                 { field = "sport"
