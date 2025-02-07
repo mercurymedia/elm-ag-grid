@@ -1,5 +1,9 @@
 # Elm Changelog
 
+## [29.0.1]
+
+- Change type of `filter` of `NumberFilterAttrs` from `Int` to `Float` to prevent losing decimal values after reloading.
+
 ## [29.0.0]
 
 - Add `LargeTextEditor` to enable more options for predefined editors like `agLargeTextCellEditor`
