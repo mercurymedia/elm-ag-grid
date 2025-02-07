@@ -450,7 +450,7 @@ type alias TextFilterCondition =
 
 
 type alias NumberFilterAttrs =
-    { filter : Maybe Int
+    { filter : Maybe Float
     , type_ : Maybe String
     , operator : Maybe String
     , condition1 : Maybe NumberFilterCondition
@@ -460,7 +460,7 @@ type alias NumberFilterAttrs =
 
 type alias NumberFilterCondition =
     { type_ : String
-    , filter : Int
+    , filter : Float
     }
 
 
@@ -1421,7 +1421,7 @@ textFilterConditionDecoder =
 numberFilterDecoder : Decoder NumberFilterAttrs
 numberFilterDecoder =
     Decode.succeed NumberFilterAttrs
-        |> DecodePipeline.optional "filter" (Decode.nullable Decode.int) Nothing
+        |> DecodePipeline.optional "filter" (Decode.nullable Decode.float) Nothing
         |> DecodePipeline.optional "type" (Decode.nullable Decode.string) Nothing
         |> DecodePipeline.optional "operator" (Decode.nullable Decode.string) Nothing
         |> DecodePipeline.optional "condition1" (Decode.nullable numberFilterConditionDecoder) Nothing
@@ -1432,7 +1432,7 @@ numberFilterConditionDecoder : Decoder NumberFilterCondition
 numberFilterConditionDecoder =
     Decode.succeed NumberFilterCondition
         |> DecodePipeline.required "type" Decode.string
-        |> DecodePipeline.required "filter" Decode.int
+        |> DecodePipeline.required "filter" Decode.float
 
 
 dateFilterDecoder : Decoder DateFilterAttrs
@@ -1525,7 +1525,7 @@ filterStateEncoder filterState =
         NumberFilterState attrs ->
             Json.Encode.object
                 [ ( "filterType", Json.Encode.string "number" )
-                , ( "filter", encodeMaybe Json.Encode.int attrs.filter )
+                , ( "filter", encodeMaybe Json.Encode.float attrs.filter )
                 , ( "type", encodeMaybe Json.Encode.string attrs.type_ )
                 , ( "operator", encodeMaybe Json.Encode.string attrs.operator )
                 , ( "condition1", encodeMaybe numberFilterConditionEncoder attrs.condition1 )
@@ -1573,7 +1573,7 @@ numberFilterConditionEncoder condition =
     Json.Encode.object
         [ ( "filterType", Json.Encode.string "number" )
         , ( "type", Json.Encode.string condition.type_ )
-        , ( "filter", Json.Encode.int condition.filter )
+        , ( "filter", Json.Encode.float condition.filter )
         ]
 
 
