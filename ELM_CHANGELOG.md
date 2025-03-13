@@ -1,4 +1,7 @@
 # Elm Changelog
+## [29.0.2]
+
+- Add custom event `visibleRowsUpdated` on each model update, containing the currently visible Row Ids
 
 ## [29.0.1]
 
