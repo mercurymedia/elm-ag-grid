@@ -324,20 +324,20 @@ class AgGrid extends HTMLElement {
       },
 
       onModelUpdated: function(params) {
-        let visibleRows = []
+        let visibleRowIds = []
         params.api.forEachLeafNode((node) => {
-          if (node.displayed == true && !isNaN(parseInt(node.data.id))) {
-          visibleRows.push(parseInt(node.data.id));
+          if (node.displayed == true && node.id) {
+            visibleRowIds.push(node.id);
           }
         })
 
-        const visibleRowsUpdated = new CustomEvent("visibleRowsUpdated", {
+        const visibleRowIdsUpdated = new CustomEvent("visibleRowIdsUpdated", {
           detail: {
-              visibleRows: visibleRows
+              visibleRowIds: visibleRowIds
           }
         });
         
-        self.dispatchEvent(visibleRowsUpdated);
+        self.dispatchEvent(visibleRowIdsUpdated);
       },
     };
 

@@ -8,6 +8,7 @@ module AgGrid exposing
     , FilterState(..), onFilterStateChanged, filterStatesEncoder, filterStatesDecoder
     , Sidebar, SidebarType(..), SidebarPosition(..), defaultSidebar
     , aggregationToString, pinningTypeToString, sortingToString, toAggregation, toPinningType, toSorting
+    , onModelDataUpdated
     )
 
 {-| AgGrid integration for elm.
@@ -1094,6 +1095,16 @@ onSelectionChange nodeDecoder toMsg =
             |> Decode.map (Decode.decodeValue nodesDecoder)
             |> Decode.map toMsg
         )
+
+
+{-| Detect row click events.
+-}
+onModelDataUpdated : (Result Decode.Error (List String) -> msg) -> Html.Attribute msg
+onModelDataUpdated toMsg =
+    Decode.field "detail" Decode.value
+        |> Decode.map (Decode.decodeValue (Decode.field "visibleRowIds" (Decode.list Decode.string)))
+        |> Decode.map toMsg
+        |> Html.Events.on "visibleRowIdsUpdated"
 
 
 
