@@ -3,6 +3,7 @@ import { createGrid, ComponentUtil } from "@ag-grid-community/core";
 import cellEditor from "./cell_editor";
 import appRenderer from "./app_renderer";
 import appEditor from "./app_editor";
+import dateRangeFilter from "./date_range_filter";
 import expression from "./expression";
 
 let CUSTOM_AGGREGATIONS = {};
@@ -266,6 +267,7 @@ class AgGrid extends HTMLElement {
       components: {
         ...cellEditor,
         appRenderer,
+        dateRangeFilter,
         appEditor,
       },
 
