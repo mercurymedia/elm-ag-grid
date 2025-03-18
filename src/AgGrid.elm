@@ -3,12 +3,11 @@ module AgGrid exposing
     , RowGroupPanelVisibility(..), RowSelection(..), Sorting(..), StateChange, CsvExportParams, ExcelExportParams
     , GridConfig, grid
     , defaultGridConfig, defaultSettings
-    , onCellChanged, onCellDoubleClicked, onCellClicked, onSelectionChange, onContextMenu
+    , onCellChanged, onCellDoubleClicked, onCellClicked, onSelectionChange, onContextMenu, onModelDataUpdated
     , ColumnState, onColumnStateChanged, columnStatesDecoder, columnStatesEncoder, applyColumnState
     , FilterState(..), onFilterStateChanged, filterStatesEncoder, filterStatesDecoder
     , Sidebar, SidebarType(..), SidebarPosition(..), defaultSidebar
     , aggregationToString, pinningTypeToString, sortingToString, toAggregation, toPinningType, toSorting
-    , onModelDataUpdated
     )
 
 {-| AgGrid integration for elm.
@@ -32,7 +31,7 @@ module AgGrid exposing
 
 # Events
 
-@docs onCellChanged, onCellDoubleClicked, onCellClicked, onSelectionChange, onContextMenu
+@docs onCellChanged, onCellDoubleClicked, onCellClicked, onSelectionChange, onContextMenu, onModelDataUpdated
 
 
 # ColumnState
@@ -1097,7 +1096,7 @@ onSelectionChange nodeDecoder toMsg =
         )
 
 
-{-| Detect row click events.
+{-| Detect model update events, like changing filter values or sorting.
 -}
 onModelDataUpdated : (Result Decode.Error (List String) -> msg) -> Html.Attribute msg
 onModelDataUpdated toMsg =

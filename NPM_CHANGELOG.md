@@ -1,5 +1,9 @@
 # NPM Changelog
 
+## [4.2.0]
+
+- Add `onModelDataUpdated` event, which fires the `visibleRowIdsUpdated` event, containing the currently visible row ids.
+
 ## [4.1.1]
 
 - Add the following properties to the `editRequest` event:
