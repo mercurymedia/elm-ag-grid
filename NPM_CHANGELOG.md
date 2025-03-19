@@ -1,5 +1,9 @@
 # NPM Changelog
 
+## [4.2.0]
+
+- Add custom filter `date_range_filter` which filters dateRanges through a single date entry.
+
 ## [4.1.1]
 
 - Add the following properties to the `editRequest` event:

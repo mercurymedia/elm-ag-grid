@@ -1,4 +1,7 @@
 # Elm Changelog
+## [29.1.0]
+
+- Add `dateRangeFilter` for filtering dateRanges with a custom filter.
 
 ## [29.0.1]
 
