@@ -331,7 +331,7 @@ class AgGrid extends HTMLElement {
           }
         })
 
-        const visibleRowIdsUpdated = new CustomEvent("visibleRowIdsUpdated", {
+        const visibleRowIdsUpdated = new CustomEvent("modelUpdated", {
           detail: {
               visibleRowIds: visibleRowIds
           }
