@@ -15,7 +15,10 @@
     "start": "parcel serve examples/index.html"
   },
   "author": "",
-  "repository": "git://github.com/mercurymedia/elm-ag-grid.git",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/mercurymedia/elm-ag-grid.git"
+  },
   "license": "MIT",
   "peerDependencies": {
     "@ag-grid-community/core": "^31.1.0"
