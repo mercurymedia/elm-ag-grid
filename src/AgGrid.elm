@@ -3,7 +3,7 @@ module AgGrid exposing
     , RowGroupPanelVisibility(..), RowSelection(..), Sorting(..), StateChange, CsvExportParams, ExcelExportParams
     , GridConfig, grid
     , defaultGridConfig, defaultSettings
-    , onCellChanged, onCellDoubleClicked, onCellClicked, onSelectionChange, onContextMenu
+    , onCellChanged, onCellDoubleClicked, onCellClicked, onSelectionChange, onContextMenu, onVisibleRowIdsChanged
     , ColumnState, onColumnStateChanged, columnStatesDecoder, columnStatesEncoder, applyColumnState
     , FilterState(..), onFilterStateChanged, filterStatesEncoder, filterStatesDecoder
     , Sidebar, SidebarType(..), SidebarPosition(..), defaultSidebar
@@ -31,7 +31,7 @@ module AgGrid exposing
 
 # Events
 
-@docs onCellChanged, onCellDoubleClicked, onCellClicked, onSelectionChange, onContextMenu
+@docs onCellChanged, onCellDoubleClicked, onCellClicked, onSelectionChange, onContextMenu, onVisibleRowIdsChanged
 
 
 # ColumnState
@@ -1094,6 +1094,16 @@ onSelectionChange nodeDecoder toMsg =
             |> Decode.map (Decode.decodeValue nodesDecoder)
             |> Decode.map toMsg
         )
+
+
+{-| Detect model update events, like changing filter values or sorting.
+-}
+onVisibleRowIdsChanged : (Result Decode.Error (List String) -> msg) -> Html.Attribute msg
+onVisibleRowIdsChanged toMsg =
+    Decode.field "detail" Decode.value
+        |> Decode.map (Decode.decodeValue (Decode.field "visibleRowIds" (Decode.list Decode.string)))
+        |> Decode.map toMsg
+        |> Html.Events.on "modelUpdated"
 
 
 
