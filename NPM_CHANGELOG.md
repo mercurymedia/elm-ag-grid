@@ -3,6 +3,7 @@
 ## [4.2.0]
 
 - Add custom filter `date_range_filter` which filters dateRanges through a single date entry.
+- Add `onModelDataUpdated` event, which fires the `visibleRowIdsUpdated` event, containing the currently visible row ids.
 
 ## [4.1.1]
 

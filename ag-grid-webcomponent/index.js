@@ -271,6 +271,7 @@ class AgGrid extends HTMLElement {
         appEditor,
       },
 
+
       aggFuncs: CUSTOM_AGGREGATIONS,
       getMainMenuItems: (params) => {
         // Override the default resetColumns actions to additionally trigger an explicit column state change event on the webcomponent
@@ -298,7 +299,6 @@ class AgGrid extends HTMLElement {
 
         return defaultItems;
       },
-
       isRowSelectable: (params) => {
         return !!params.data && params.data.rowCallbackValues.isRowSelectable;
       },
@@ -323,6 +323,23 @@ class AgGrid extends HTMLElement {
           detail: { nodes },
         });
         self.dispatchEvent(selectionEvent);
+      },
+
+      onModelUpdated: function(params) {
+        let visibleRowIds = []
+        params.api.forEachLeafNode((node) => {
+          if (node.displayed == true && node.id) {
+            visibleRowIds.push(node.id);
+          }
+        })
+
+        const visibleRowIdsUpdated = new CustomEvent("modelUpdated", {
+          detail: {
+              visibleRowIds: visibleRowIds
+          }
+        });
+        
+        self.dispatchEvent(visibleRowIdsUpdated);
       },
     };
 
