@@ -354,18 +354,18 @@ AgGrid.ContextMenu.contextAction
 
 ## StatusBar
 
-To add statusBar Panels, add the `StatusBarModule` to the Registry and initialize ElmAgGrid with the panels you want displayed. Check [here]https://www.ag-grid.com/javascript-data-grid/status-bar/ for a bunch of options.
+To add statusBar Panels, add the `StatusBarModule` to the Registry and add the StatusBarPanels you want to the gridConfig. Check [here]https://www.ag-grid.com/javascript-data-grid/status-bar/ for a bunch of options.
 
-```js
-new ElmAgGrid({
-    statusPanels: [
-      { statusPanel: 'agTotalAndFilteredRowCountComponent', align: 'left' },
-      { statusPanel: 'agTotalRowCountComponent' },
-      { statusPanel: 'agFilteredRowCountComponent' },
-      { statusPanel: 'agSelectedRowCountComponent' },
-      { statusPanel: 'agAggregationComponent' },
-    ],
-});
+```elm
+gridConfig =
+    { defaultGridConfig
+        | statusBarPanels =
+            [ { statusPanel = "agTotalAndFilteredRowCountComponent"
+              , key = Nothing
+              , align = Just "left"
+              }
+            ]
+        }
 ```
 
 ## Examples
