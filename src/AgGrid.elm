@@ -539,6 +539,7 @@ type alias GridConfig dataType =
     , suppressRowClickSelection : Bool
     , suppressRowDeselection : Bool
     , themeClasses : Maybe String
+    , statusBarPanels : List StatusBarPanel
     }
 
 
@@ -556,6 +557,15 @@ type alias Sidebar =
     { panels : List SidebarType
     , defaultToolPanel : Maybe SidebarType
     , position : SidebarPosition
+    }
+
+
+{-| StatusBarPanel configuration.
+-}
+type alias StatusBarPanel =
+    { statusPanel : String
+    , align : Maybe String
+    , key : Maybe String
     }
 
 
@@ -770,6 +780,7 @@ defaultGridConfig =
     , suppressRowClickSelection = False
     , suppressRowDeselection = False
     , themeClasses = Nothing
+    , statusBarPanels = []
     }
 
 
@@ -1750,6 +1761,13 @@ generateGridConfigAttributes gridConfig =
             , ( "suppressMenuHide", Json.Encode.bool gridConfig.suppressMenuHide )
             , ( "suppressRowClickSelection", Json.Encode.bool gridConfig.suppressRowClickSelection )
             , ( "suppressRowDeselection", Json.Encode.bool gridConfig.suppressRowDeselection )
+            , ( "statusBar"
+              , Json.Encode.object
+                    [ ( "statusPanels"
+                      , encodeStatusBarPanels gridConfig.statusBarPanels
+                      )
+                    ]
+              )
             ]
 
         createConfigAttribute ( key, value ) =
@@ -1762,6 +1780,19 @@ generateGridConfigAttributes gridConfig =
     , style "height" gridConfig.size
     ]
         ++ configAttributes
+
+
+encodeStatusBarPanels : List StatusBarPanel -> Json.Encode.Value
+encodeStatusBarPanels panels =
+    Json.Encode.list
+        (\panel ->
+            Json.Encode.object
+                [ ( "statusPanel", Json.Encode.string panel.statusPanel )
+                , ( "align", encodeMaybe Json.Encode.string panel.align )
+                , ( "key", encodeMaybe Json.Encode.string panel.key )
+                ]
+        )
+        panels
 
 
 encodeClassRules : List ClassRule -> Json.Encode.Value

@@ -6,7 +6,6 @@ import appEditor from "./app_editor";
 import expression from "./expression";
 
 let CUSTOM_AGGREGATIONS = {};
-let STATUS_PANELS = [];
 
 class AgGrid extends HTMLElement {
   constructor() {
@@ -270,9 +269,6 @@ class AgGrid extends HTMLElement {
         appEditor,
       },
 
-      statusBar: {
-        statusPanels: STATUS_PANELS
-      },
 
       aggFuncs: CUSTOM_AGGREGATIONS,
       getMainMenuItems: (params) => {
@@ -433,10 +429,9 @@ function objectMap(obj, fn) {
 }
 
 export default class ElmAgGrid {
-  constructor({ apps = {}, aggregations = {}, statusPanels = [] } = {}) {
+  constructor({ apps = {}, aggregations = {} } = {}) {
     window.ElmAgGridComponentRegistry = apps;
     CUSTOM_AGGREGATIONS = aggregations;
-    STATUS_PANELS = statusPanels
 
     customElements.define("ag-grid", AgGrid);
   }
