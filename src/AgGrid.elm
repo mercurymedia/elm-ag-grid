@@ -541,13 +541,13 @@ type alias GridConfig dataType =
     , sideBar : Sidebar
     , size : String
     , sizeToFitAfterFirstDataRendered : Bool
+    , statusBarPanels : List StatusBarPanel
     , stopEditingWhenCellsLoseFocus : Bool
     , suppressAggFuncInHeader : Bool
     , suppressMenuHide : Bool
     , suppressRowClickSelection : Bool
     , suppressRowDeselection : Bool
     , themeClasses : Maybe String
-    , statusBarPanels : List StatusBarPanel
     }
 
 
@@ -781,13 +781,13 @@ defaultGridConfig =
     , sideBar = defaultSidebar
     , size = "65vh"
     , sizeToFitAfterFirstDataRendered = True
+    , statusBarPanels = []
     , stopEditingWhenCellsLoseFocus = True
     , suppressAggFuncInHeader = False
     , suppressMenuHide = False
     , suppressRowClickSelection = False
     , suppressRowDeselection = False
     , themeClasses = Nothing
-    , statusBarPanels = []
     }
 
 
@@ -1763,11 +1763,6 @@ generateGridConfigAttributes gridConfig =
                     ]
               )
             , ( "sizeToFitAfterFirstDataRendered", Json.Encode.bool gridConfig.sizeToFitAfterFirstDataRendered )
-            , ( "stopEditingWhenCellsLoseFocus", Json.Encode.bool gridConfig.stopEditingWhenCellsLoseFocus )
-            , ( "suppressAggFuncInHeader", Json.Encode.bool gridConfig.suppressAggFuncInHeader )
-            , ( "suppressMenuHide", Json.Encode.bool gridConfig.suppressMenuHide )
-            , ( "suppressRowClickSelection", Json.Encode.bool gridConfig.suppressRowClickSelection )
-            , ( "suppressRowDeselection", Json.Encode.bool gridConfig.suppressRowDeselection )
             , ( "statusBar"
               , Json.Encode.object
                     [ ( "statusPanels"
@@ -1775,6 +1770,11 @@ generateGridConfigAttributes gridConfig =
                       )
                     ]
               )
+            , ( "stopEditingWhenCellsLoseFocus", Json.Encode.bool gridConfig.stopEditingWhenCellsLoseFocus )
+            , ( "suppressAggFuncInHeader", Json.Encode.bool gridConfig.suppressAggFuncInHeader )
+            , ( "suppressMenuHide", Json.Encode.bool gridConfig.suppressMenuHide )
+            , ( "suppressRowClickSelection", Json.Encode.bool gridConfig.suppressRowClickSelection )
+            , ( "suppressRowDeselection", Json.Encode.bool gridConfig.suppressRowDeselection )
             ]
 
         createConfigAttribute ( key, value ) =

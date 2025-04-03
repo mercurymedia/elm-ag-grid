@@ -152,6 +152,11 @@ viewGrid model =
                                     ]
                             }
                         ]
+                , statusBarPanels =
+                    [ { statusPanel = "agTotalAndFilteredRowCountComponent"
+                      , align = AgGrid.Left
+                      }
+                    ]
             }
 
         gridSettings =

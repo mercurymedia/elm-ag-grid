@@ -361,8 +361,7 @@ gridConfig =
     { defaultGridConfig
         | statusBarPanels =
             [ { statusPanel = "agTotalAndFilteredRowCountComponent"
-              , key = Nothing
-              , align = Just "left"
+              , align = AgGrid.Left
               }
             ]
         }

@@ -15,6 +15,7 @@ import { RangeSelectionModule } from '@ag-grid-enterprise/range-selection'
 import { RichSelectModule } from '@ag-grid-enterprise/rich-select'
 import { RowGroupingModule } from '@ag-grid-enterprise/row-grouping'
 import { SideBarModule } from '@ag-grid-enterprise/side-bar'
+import { StatusBarModule } from '@ag-grid-enterprise/status-bar'
 
 // For AG Grid Enterprise features set your license key here:
 // LicenseManager.setLicenseKey("YOUR LICENSE KEY");
@@ -27,7 +28,8 @@ ModuleRegistry.registerModules([
   RangeSelectionModule,
   RichSelectModule,
   RowGroupingModule,
-  SideBarModule
+  SideBarModule,
+  StatusBarModule
 ]);
 
 import "@ag-grid-community/styles/ag-grid.css";
