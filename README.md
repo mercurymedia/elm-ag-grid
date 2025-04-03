@@ -360,9 +360,8 @@ To add statusBar Panels, add the `StatusBarModule` to the Registry and add the S
 gridConfig =
     { defaultGridConfig
         | statusBarPanels =
-            [ { statusPanel = AgGrid.TotalAndFilteredRowCount
-              , align = AgGrid.Left
-              }
+            [ AgGrid.Aggregation AgGrid.Left [ AgGrid.Sum, AgGrid.Avg ]
+            , AgGrid.TotalRowCount AgGrid.Left
             ]
         }
 ```

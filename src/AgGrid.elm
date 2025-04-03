@@ -1,5 +1,5 @@
 module AgGrid exposing
-    ( Aggregation(..), Alignment(..), CellEditor(..), Column(..), ColumnSettings, EventType(..), FilterType(..), LockPosition(..), PinningType(..), Renderer(..), StatusPanel(..)
+    ( Aggregation(..), Alignment(..), CellEditor(..), Column(..), ColumnSettings, EventType(..), FilterType(..), LockPosition(..), PinningType(..), Renderer(..), StatusBarPanel(..), StatusPanelAggregation(..)
     , RowGroupPanelVisibility(..), RowSelection(..), Sorting(..), StateChange, CsvExportParams, ExcelExportParams
     , GridConfig, grid
     , defaultGridConfig, defaultSettings
@@ -15,7 +15,7 @@ module AgGrid exposing
 
 # Data Types
 
-@docs Aggregation, Alignment, CellEditor, Column, ColumnSettings, EventType, FilterType, LockPosition, PinningType, Renderer, StatusPanel
+@docs Aggregation, Alignment, CellEditor, Column, ColumnSettings, EventType, FilterType, LockPosition, PinningType, Renderer, StatusBarPanel, StatusPanelAggregation
 @docs RowGroupPanelVisibility, RowSelection, Sorting, StateChange, CsvExportParams, ExcelExportParams
 
 
@@ -160,11 +160,22 @@ type Alignment
 
 {-| Possible options for the status bar panels.
 -}
-type StatusPanel
-    = TotalRowCount
-    | TotalAndFilteredRowCount
-    | FilteredRowCount
-    | SelectedRowCount
+type StatusBarPanel
+    = TotalRowCount Alignment
+    | TotalAndFilteredRowCount Alignment
+    | FilteredRowCount Alignment
+    | SelectedRowCount Alignment
+    | Aggregation Alignment (List StatusPanelAggregation)
+
+
+{-| Possible options for the status panel aggregations.
+-}
+type StatusPanelAggregation
+    = Count
+    | Sum
+    | Min
+    | Max
+    | Avg
 
 
 type alias ClassRule =
@@ -574,14 +585,6 @@ type alias Sidebar =
     { panels : List SidebarType
     , defaultToolPanel : Maybe SidebarType
     , position : SidebarPosition
-    }
-
-
-{-| StatusBarPanel configuration.
--}
-type alias StatusBarPanel =
-    { statusPanel : StatusPanel
-    , align : Alignment
     }
 
 
@@ -1802,41 +1805,97 @@ encodeStatusBarPanels : List StatusBarPanel -> Json.Encode.Value
 encodeStatusBarPanels panels =
     Json.Encode.list
         (\panel ->
-            Json.Encode.object
-                [ ( "statusPanel", encodeStatusPanel panel.statusPanel )
-                , ( "align", encodeAlignment panel.align )
-                ]
+            encodeStatusBarPanel panel
         )
         panels
 
 
-encodeStatusPanel : StatusPanel -> Json.Encode.Value
-encodeStatusPanel statusPanel =
+encodeStatusBarPanel : StatusBarPanel -> Json.Encode.Value
+encodeStatusBarPanel statusPanel =
+    let
+        baseValues alignment =
+            [ ( "statusPanel", Json.Encode.string (statusPanelToString statusPanel) )
+            , ( "align", Json.Encode.string (alignmentToString alignment) )
+            ]
+    in
     case statusPanel of
-        TotalRowCount ->
-            Json.Encode.string "agTotalRowCountComponent"
+        Aggregation alignment aggFuncs ->
+            Json.Encode.object
+                (baseValues alignment
+                    ++ [ ( "statusPanelParams"
+                         , Json.Encode.object [ ( "aggFuncs", encodeAggFuncs aggFuncs ) ]
+                         )
+                       ]
+                )
 
-        TotalAndFilteredRowCount ->
-            Json.Encode.string "agTotalAndFilteredRowCountComponent"
+        TotalRowCount alignment ->
+            Json.Encode.object (baseValues alignment)
 
-        FilteredRowCount ->
-            Json.Encode.string "agFilteredRowCountComponent"
+        TotalAndFilteredRowCount alignment ->
+            Json.Encode.object (baseValues alignment)
 
-        SelectedRowCount ->
-            Json.Encode.string "agSelectedRowCountComponent"
+        FilteredRowCount alignment ->
+            Json.Encode.object (baseValues alignment)
+
+        SelectedRowCount alignment ->
+            Json.Encode.object (baseValues alignment)
 
 
-encodeAlignment : Alignment -> Json.Encode.Value
-encodeAlignment alignment =
+encodeAggFuncs : List StatusPanelAggregation -> Json.Encode.Value
+encodeAggFuncs aggFuncs =
+    List.map (\agg -> aggFuncToString agg) aggFuncs
+        |> Json.Encode.list Json.Encode.string
+
+
+aggFuncToString : StatusPanelAggregation -> String
+aggFuncToString aggFunc =
+    case aggFunc of
+        Avg ->
+            "avg"
+
+        Count ->
+            "count"
+
+        Max ->
+            "max"
+
+        Min ->
+            "min"
+
+        Sum ->
+            "sum"
+
+
+statusPanelToString : StatusBarPanel -> String
+statusPanelToString statusPanel =
+    case statusPanel of
+        TotalRowCount _ ->
+            "agTotalRowCountComponent"
+
+        TotalAndFilteredRowCount _ ->
+            "agTotalAndFilteredRowCountComponent"
+
+        FilteredRowCount _ ->
+            "agFilteredRowCountComponent"
+
+        SelectedRowCount _ ->
+            "agSelectedRowCountComponent"
+
+        Aggregation _ _ ->
+            "agAggregationComponent"
+
+
+alignmentToString : Alignment -> String
+alignmentToString alignment =
     case alignment of
         Left ->
-            Json.Encode.string "left"
+            "left"
 
         Center ->
-            Json.Encode.string "center"
+            "center"
 
         Right ->
-            Json.Encode.string "right"
+            "right"
 
 
 encodeClassRules : List ClassRule -> Json.Encode.Value
