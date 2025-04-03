@@ -1,4 +1,8 @@
 # Elm Changelog
+## [30.0.0]
+
+- Add `statusBarPanels` to `GridConfig`
+
 ## [29.1.0]
 
 - Add event `visibleRowIdsUpdated` on each model update, containing the currently visible Row Ids

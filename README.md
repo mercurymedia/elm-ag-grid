@@ -352,6 +352,21 @@ AgGrid.ContextMenu.contextAction
     }
 ```
 
+## StatusBar
+
+To add statusBar Panels, add the `StatusBarModule` to the Registry and add the StatusBarPanels you want to the gridConfig. Check [here]https://www.ag-grid.com/javascript-data-grid/status-bar/ for a bunch of options.
+
+```elm
+gridConfig =
+    { defaultGridConfig
+        | statusBarPanels =
+            [ { statusPanel = AgGrid.TotalAndFilteredRowCount
+              , align = AgGrid.Left
+              }
+            ]
+        }
+```
+
 ## Examples
 
 To run the examples in the browser clone the repo and run:

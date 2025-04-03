@@ -1,5 +1,5 @@
 module AgGrid exposing
-    ( Aggregation(..), CellEditor(..), Column(..), ColumnSettings, EventType(..), FilterType(..), LockPosition(..), PinningType(..), Renderer(..)
+    ( Aggregation(..), Alignment(..), CellEditor(..), Column(..), ColumnSettings, EventType(..), FilterType(..), LockPosition(..), PinningType(..), Renderer(..), StatusPanel(..)
     , RowGroupPanelVisibility(..), RowSelection(..), Sorting(..), StateChange, CsvExportParams, ExcelExportParams
     , GridConfig, grid
     , defaultGridConfig, defaultSettings
@@ -15,7 +15,7 @@ module AgGrid exposing
 
 # Data Types
 
-@docs Aggregation, CellEditor, Column, ColumnSettings, EventType, FilterType, LockPosition, PinningType, Renderer
+@docs Aggregation, Alignment, CellEditor, Column, ColumnSettings, EventType, FilterType, LockPosition, PinningType, Renderer, StatusPanel
 @docs RowGroupPanelVisibility, RowSelection, Sorting, StateChange, CsvExportParams, ExcelExportParams
 
 
@@ -148,6 +148,23 @@ type PinningType
     = PinnedToLeft
     | PinnedToRight
     | Unpinned
+
+
+{-| Possible options for aligning status panels.
+-}
+type Alignment
+    = Left
+    | Center
+    | Right
+
+
+{-| Possible options for the status bar panels.
+-}
+type StatusPanel
+    = TotalRowCount
+    | TotalAndFilteredRowCount
+    | FilteredRowCount
+    | SelectedRowCount
 
 
 type alias ClassRule =
@@ -533,6 +550,7 @@ type alias GridConfig dataType =
     , sideBar : Sidebar
     , size : String
     , sizeToFitAfterFirstDataRendered : Bool
+    , statusBarPanels : List StatusBarPanel
     , stopEditingWhenCellsLoseFocus : Bool
     , suppressAggFuncInHeader : Bool
     , suppressMenuHide : Bool
@@ -556,6 +574,14 @@ type alias Sidebar =
     { panels : List SidebarType
     , defaultToolPanel : Maybe SidebarType
     , position : SidebarPosition
+    }
+
+
+{-| StatusBarPanel configuration.
+-}
+type alias StatusBarPanel =
+    { statusPanel : StatusPanel
+    , align : Alignment
     }
 
 
@@ -764,6 +790,7 @@ defaultGridConfig =
     , sideBar = defaultSidebar
     , size = "65vh"
     , sizeToFitAfterFirstDataRendered = True
+    , statusBarPanels = []
     , stopEditingWhenCellsLoseFocus = True
     , suppressAggFuncInHeader = False
     , suppressMenuHide = False
@@ -1745,6 +1772,13 @@ generateGridConfigAttributes gridConfig =
                     ]
               )
             , ( "sizeToFitAfterFirstDataRendered", Json.Encode.bool gridConfig.sizeToFitAfterFirstDataRendered )
+            , ( "statusBar"
+              , Json.Encode.object
+                    [ ( "statusPanels"
+                      , encodeStatusBarPanels gridConfig.statusBarPanels
+                      )
+                    ]
+              )
             , ( "stopEditingWhenCellsLoseFocus", Json.Encode.bool gridConfig.stopEditingWhenCellsLoseFocus )
             , ( "suppressAggFuncInHeader", Json.Encode.bool gridConfig.suppressAggFuncInHeader )
             , ( "suppressMenuHide", Json.Encode.bool gridConfig.suppressMenuHide )
@@ -1762,6 +1796,47 @@ generateGridConfigAttributes gridConfig =
     , style "height" gridConfig.size
     ]
         ++ configAttributes
+
+
+encodeStatusBarPanels : List StatusBarPanel -> Json.Encode.Value
+encodeStatusBarPanels panels =
+    Json.Encode.list
+        (\panel ->
+            Json.Encode.object
+                [ ( "statusPanel", encodeStatusPanel panel.statusPanel )
+                , ( "align", encodeAlignment panel.align )
+                ]
+        )
+        panels
+
+
+encodeStatusPanel : StatusPanel -> Json.Encode.Value
+encodeStatusPanel statusPanel =
+    case statusPanel of
+        TotalRowCount ->
+            Json.Encode.string "agTotalRowCountComponent"
+
+        TotalAndFilteredRowCount ->
+            Json.Encode.string "agTotalAndFilteredRowCountComponent"
+
+        FilteredRowCount ->
+            Json.Encode.string "agFilteredRowCountComponent"
+
+        SelectedRowCount ->
+            Json.Encode.string "agSelectedRowCountComponent"
+
+
+encodeAlignment : Alignment -> Json.Encode.Value
+encodeAlignment alignment =
+    case alignment of
+        Left ->
+            Json.Encode.string "left"
+
+        Center ->
+            Json.Encode.string "center"
+
+        Right ->
+            Json.Encode.string "right"
 
 
 encodeClassRules : List ClassRule -> Json.Encode.Value
