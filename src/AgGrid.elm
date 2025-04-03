@@ -1,5 +1,5 @@
 module AgGrid exposing
-    ( Aggregation(..), Alignment(..), CellEditor(..), Column(..), ColumnSettings, EventType(..), FilterType(..), LockPosition(..), PinningType(..), Renderer(..)
+    ( Aggregation(..), Alignment(..), CellEditor(..), Column(..), ColumnSettings, EventType(..), FilterType(..), LockPosition(..), PinningType(..), Renderer(..), StatusPanel(..)
     , RowGroupPanelVisibility(..), RowSelection(..), Sorting(..), StateChange, CsvExportParams, ExcelExportParams
     , GridConfig, grid
     , defaultGridConfig, defaultSettings
@@ -15,7 +15,7 @@ module AgGrid exposing
 
 # Data Types
 
-@docs Aggregation, Alignment, CellEditor, Column, ColumnSettings, EventType, FilterType, LockPosition, PinningType, Renderer
+@docs Aggregation, Alignment, CellEditor, Column, ColumnSettings, EventType, FilterType, LockPosition, PinningType, Renderer, StatusPanel
 @docs RowGroupPanelVisibility, RowSelection, Sorting, StateChange, CsvExportParams, ExcelExportParams
 
 
@@ -156,6 +156,15 @@ type Alignment
     = Left
     | Center
     | Right
+
+
+{-| Possible options for the status bar panels.
+-}
+type StatusPanel
+    = TotalRowCount
+    | TotalAndFilteredRowCount
+    | FilteredRowCount
+    | SelectedRowCount
 
 
 type alias ClassRule =
@@ -571,7 +580,7 @@ type alias Sidebar =
 {-| StatusBarPanel configuration.
 -}
 type alias StatusBarPanel =
-    { statusPanel : String
+    { statusPanel : StatusPanel
     , align : Alignment
     }
 
@@ -1794,11 +1803,27 @@ encodeStatusBarPanels panels =
     Json.Encode.list
         (\panel ->
             Json.Encode.object
-                [ ( "statusPanel", Json.Encode.string panel.statusPanel )
+                [ ( "statusPanel", encodeStatusPanel panel.statusPanel )
                 , ( "align", encodeAlignment panel.align )
                 ]
         )
         panels
+
+
+encodeStatusPanel : StatusPanel -> Json.Encode.Value
+encodeStatusPanel statusPanel =
+    case statusPanel of
+        TotalRowCount ->
+            Json.Encode.string "agTotalRowCountComponent"
+
+        TotalAndFilteredRowCount ->
+            Json.Encode.string "agTotalAndFilteredRowCountComponent"
+
+        FilteredRowCount ->
+            Json.Encode.string "agFilteredRowCountComponent"
+
+        SelectedRowCount ->
+            Json.Encode.string "agSelectedRowCountComponent"
 
 
 encodeAlignment : Alignment -> Json.Encode.Value
