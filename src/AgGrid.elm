@@ -1,5 +1,5 @@
 module AgGrid exposing
-    ( Aggregation(..), CellEditor(..), Column(..), ColumnSettings, EventType(..), FilterType(..), LockPosition(..), PinningType(..), Renderer(..)
+    ( Aggregation(..), Alignment(..), CellEditor(..), Column(..), ColumnSettings, EventType(..), FilterType(..), LockPosition(..), PinningType(..), Renderer(..)
     , RowGroupPanelVisibility(..), RowSelection(..), Sorting(..), StateChange, CsvExportParams, ExcelExportParams
     , GridConfig, grid
     , defaultGridConfig, defaultSettings
@@ -15,7 +15,7 @@ module AgGrid exposing
 
 # Data Types
 
-@docs Aggregation, CellEditor, Column, ColumnSettings, EventType, FilterType, LockPosition, PinningType, Renderer
+@docs Aggregation, Alignment, CellEditor, Column, ColumnSettings, EventType, FilterType, LockPosition, PinningType, Renderer
 @docs RowGroupPanelVisibility, RowSelection, Sorting, StateChange, CsvExportParams, ExcelExportParams
 
 
@@ -148,6 +148,14 @@ type PinningType
     = PinnedToLeft
     | PinnedToRight
     | Unpinned
+
+
+{-| Possible options for aligning status panels.
+-}
+type Alignment
+    = Left
+    | Center
+    | Right
 
 
 type alias ClassRule =
@@ -564,8 +572,7 @@ type alias Sidebar =
 -}
 type alias StatusBarPanel =
     { statusPanel : String
-    , align : Maybe String
-    , key : Maybe String
+    , align : Alignment
     }
 
 
@@ -1788,11 +1795,23 @@ encodeStatusBarPanels panels =
         (\panel ->
             Json.Encode.object
                 [ ( "statusPanel", Json.Encode.string panel.statusPanel )
-                , ( "align", encodeMaybe Json.Encode.string panel.align )
-                , ( "key", encodeMaybe Json.Encode.string panel.key )
+                , ( "align", encodeAlignment panel.align )
                 ]
         )
         panels
+
+
+encodeAlignment : Alignment -> Json.Encode.Value
+encodeAlignment alignment =
+    case alignment of
+        Left ->
+            Json.Encode.string "left"
+
+        Center ->
+            Json.Encode.string "center"
+
+        Right ->
+            Json.Encode.string "right"
 
 
 encodeClassRules : List ClassRule -> Json.Encode.Value
