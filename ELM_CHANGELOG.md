@@ -1,4 +1,9 @@
 # Elm Changelog
+
+## [31.0.0]
+
+- Add `Aggregation` Panel to `statusBarPanels` options.
+
 ## [30.0.0]
 
 - Add `statusBarPanels` to `GridConfig`
