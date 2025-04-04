@@ -1,5 +1,5 @@
 module AgGrid exposing
-    ( Aggregation(..), Alignment(..), CellEditor(..), Column(..), ColumnSettings, EventType(..), FilterType(..), LockPosition(..), PinningType(..), Renderer(..), StatusBarPanel(..), StatusPanelAggregation(..)
+    ( Aggregation(..), Alignment(..), CellEditor(..), Column(..), ColumnSettings, EventType(..), FilterType(..), LockPosition(..), PinningType(..), Renderer(..), StatusPanelAggregation(..)
     , RowGroupPanelVisibility(..), RowSelection(..), Sorting(..), StateChange, CsvExportParams, ExcelExportParams
     , GridConfig, grid
     , defaultGridConfig, defaultSettings
@@ -8,6 +8,7 @@ module AgGrid exposing
     , FilterState(..), onFilterStateChanged, filterStatesEncoder, filterStatesDecoder
     , Sidebar, SidebarType(..), SidebarPosition(..), defaultSidebar
     , aggregationToString, pinningTypeToString, sortingToString, toAggregation, toPinningType, toSorting
+    , StatusPanel(..)
     )
 
 {-| AgGrid integration for elm.
@@ -160,22 +161,28 @@ type Alignment
 
 {-| Possible options for the status bar panels.
 -}
-type StatusBarPanel
-    = TotalRowCount Alignment
-    | TotalAndFilteredRowCount Alignment
-    | FilteredRowCount Alignment
-    | SelectedRowCount Alignment
-    | Aggregation Alignment (List StatusPanelAggregation)
+type StatusPanel
+    = TotalRowCount
+    | TotalAndFilteredRowCount
+    | FilteredRowCount
+    | SelectedRowCount
+    | Aggregation (List StatusPanelAggregation)
 
 
 {-| Possible options for the status panel aggregations.
 -}
 type StatusPanelAggregation
-    = Count
-    | Sum
-    | Min
-    | Max
-    | Avg
+    = CountPanelAggregation
+    | SumPanelAggregation
+    | MinPanelAggregation
+    | MaxPanelAggregation
+    | AvgPanelAggregation
+
+
+type alias StatusBarPanel =
+    { statusPanel : StatusPanel
+    , align : Alignment
+    }
 
 
 type alias ClassRule =
@@ -1811,34 +1818,25 @@ encodeStatusBarPanels panels =
 
 
 encodeStatusBarPanel : StatusBarPanel -> Json.Encode.Value
-encodeStatusBarPanel statusPanel =
+encodeStatusBarPanel statusBarPanel =
     let
-        baseValues alignment =
-            [ ( "statusPanel", Json.Encode.string (statusPanelToString statusPanel) )
-            , ( "align", Json.Encode.string (alignmentToString alignment) )
+        baseValues =
+            [ ( "statusPanel", Json.Encode.string (statusPanelToString statusBarPanel.statusPanel) )
+            , ( "align", Json.Encode.string (alignmentToString statusBarPanel.align) )
             ]
     in
-    case statusPanel of
-        Aggregation alignment aggFuncs ->
+    case statusBarPanel.statusPanel of
+        Aggregation aggFuncs ->
             Json.Encode.object
-                (baseValues alignment
+                (baseValues
                     ++ [ ( "statusPanelParams"
                          , Json.Encode.object [ ( "aggFuncs", encodeAggFuncs aggFuncs ) ]
                          )
                        ]
                 )
 
-        TotalRowCount alignment ->
-            Json.Encode.object (baseValues alignment)
-
-        TotalAndFilteredRowCount alignment ->
-            Json.Encode.object (baseValues alignment)
-
-        FilteredRowCount alignment ->
-            Json.Encode.object (baseValues alignment)
-
-        SelectedRowCount alignment ->
-            Json.Encode.object (baseValues alignment)
+        _ ->
+            Json.Encode.object baseValues
 
 
 encodeAggFuncs : List StatusPanelAggregation -> Json.Encode.Value
@@ -1850,38 +1848,38 @@ encodeAggFuncs aggFuncs =
 aggFuncToString : StatusPanelAggregation -> String
 aggFuncToString aggFunc =
     case aggFunc of
-        Avg ->
+        AvgPanelAggregation ->
             "avg"
 
-        Count ->
+        CountPanelAggregation ->
             "count"
 
-        Max ->
+        MaxPanelAggregation ->
             "max"
 
-        Min ->
+        MinPanelAggregation ->
             "min"
 
-        Sum ->
+        SumPanelAggregation ->
             "sum"
 
 
-statusPanelToString : StatusBarPanel -> String
+statusPanelToString : StatusPanel -> String
 statusPanelToString statusPanel =
     case statusPanel of
-        TotalRowCount _ ->
+        TotalRowCount ->
             "agTotalRowCountComponent"
 
-        TotalAndFilteredRowCount _ ->
+        TotalAndFilteredRowCount ->
             "agTotalAndFilteredRowCountComponent"
 
-        FilteredRowCount _ ->
+        FilteredRowCount ->
             "agFilteredRowCountComponent"
 
-        SelectedRowCount _ ->
+        SelectedRowCount ->
             "agSelectedRowCountComponent"
 
-        Aggregation _ _ ->
+        Aggregation _ ->
             "agAggregationComponent"
 
 
