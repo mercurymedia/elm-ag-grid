@@ -153,9 +153,8 @@ viewGrid model =
                             }
                         ]
                 , statusBarPanels =
-                    [ { statusPanel = AgGrid.TotalAndFilteredRowCount
-                      , align = AgGrid.Left
-                      }
+                    [ { statusPanel = AgGrid.Aggregation [ AgGrid.SumPanelAggregation, AgGrid.AvgPanelAggregation ], align = AgGrid.Left }
+                    , { statusPanel = AgGrid.TotalRowCount, align = AgGrid.Left }
                     ]
             }
 
