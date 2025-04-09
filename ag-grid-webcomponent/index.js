@@ -3,10 +3,10 @@ import { createGrid, ComponentUtil } from "@ag-grid-community/core";
 import cellEditor from "./cell_editor";
 import appRenderer from "./app_renderer";
 import appEditor from "./app_editor";
-import dateRangeFilter from "./date_range_filter";
 import expression from "./expression";
 
 let CUSTOM_AGGREGATIONS = {};
+let CUSTOM_COMPONENTS = {};
 
 class AgGrid extends HTMLElement {
   constructor() {
@@ -267,8 +267,8 @@ class AgGrid extends HTMLElement {
       components: {
         ...cellEditor,
         appRenderer,
-        dateRangeFilter,
         appEditor,
+        ...CUSTOM_COMPONENTS
       },
 
 
@@ -431,9 +431,10 @@ function objectMap(obj, fn) {
 }
 
 export default class ElmAgGrid {
-  constructor({ apps = {}, aggregations = {} } = {}) {
+  constructor({ apps = {}, aggregations = {}, jsComponents = {} } = {}) {
     window.ElmAgGridComponentRegistry = apps;
     CUSTOM_AGGREGATIONS = aggregations;
+    CUSTOM_COMPONENTS = jsComponents
 
     customElements.define("ag-grid", AgGrid);
   }

@@ -45,7 +45,11 @@ class DateRangeFilter {
         });
       }
     doesFilterPass(params) {
-        const runtimeArray = this.valueGetter(params)
+        const getterFn = this.params.colDef.filterValueGetter 
+            ? new Function("data", this.params.colDef.filterValueGetter) 
+            : this.defaultValueGetter.bind(this);
+            
+        const runtimeArray = getterFn(params.data);
 
         // Looks like: [ [dateFrom1,dateTo1], [dateFrom2,dateTo2] ]
         const filterDate = new Date(this.filterDate);
@@ -83,8 +87,8 @@ class DateRangeFilter {
     getGui() {
         return this.eGui;
     }
-    valueGetter(params) {
-        const rawDataString = params.data[this.params.column.colId];
+    defaultValueGetter(params) {
+        const rawDataString = params[this.params.column.colId];
     
         if (!rawDataString) {
             return null;
