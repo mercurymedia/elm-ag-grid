@@ -1,4 +1,18 @@
+/**
+ * A custom date range filter for AG Grid that filters rows based on a single date input.
+ * The filter determines if the provided date falls within any of the date ranges in the row data.
+ * 
+ * ## Notes:
+ * - By default, supports date range strings in the format: `"dateFrom1 - dateTo1, dateFrom2 - dateTo2"`.
+ * - Allows custom extraction of date ranges using the `filterValueGetter` attribute in the column definition, 
+ *   which should return an array like this: `[ [dateFrom1, dateTo1], [dateFrom2, dateTo2] ]`.
+ * 
+ */
 class DateRangeFilter {
+    /**
+     * Initializes the filter with the provided parameters.
+     * @param {Object} params - The parameters provided by AG Grid.
+     */
     init(params) {
         this.params = params;
         this.eGui = document.createElement('div');
@@ -43,7 +57,13 @@ class DateRangeFilter {
             this.eGui.querySelector('#filterDate').value = '';
             this.updateFilter();
         });
-      }
+    }
+
+    /**
+     * Determines whether a row passes the filter.
+     * @param {Object} params - The parameters for the row being evaluated.
+     * @returns {boolean} - True if the row passes the filter, false otherwise.
+     */
     doesFilterPass(params) {
         const getterFn = this.params.colDef.filterValueGetter 
             ? new Function("data", this.params.colDef.filterValueGetter) 
@@ -69,24 +89,54 @@ class DateRangeFilter {
         }
 
     }
+
+    /**
+     * Checks if the filter is currently active.
+     * @returns {boolean} - True if the filter is active, false otherwise.
+     */
     isFilterActive() {
         return this.filterDate !== null && this.filterDate !== '';
     }
+
+    /**
+     * Notifies AG Grid that the filter has changed.
+     */
     updateFilter() {
         this.params.filterChangedCallback();
     }
+
+    /**
+     * Retrieves the current filter model.
+     * @returns {Object|null} - The filter model or null if no filter is applied.
+     */
     getModel() {
         return this.filterDate ? { filterDate: this.filterDate, filterType: 'dateRange' } : null;
     }
+
+    /**
+     * Sets the filter model.
+     * @param {Object} model - The filter model to apply.
+     */
     setModel(model) {
         if (model) {
             this.filterDate = model.filterDate;
             this.eGui.querySelector('#filterDate').value = model.filterDate;
         }
     }
+
+    /**
+     * Returns the GUI element for the filter.
+     * @returns {HTMLElement} - The root element of the filter's GUI.
+     */
     getGui() {
         return this.eGui;
     }
+
+    /**
+     * Default function to extract date ranges from row data if no `filterValueGetter` is provided.
+     * @param {Object} params - The row data.
+     * @returns {Array|null} - An array of date ranges or null if no data is available.
+     */
     defaultValueGetter(params) {
         const rawDataString = params[this.params.column.colId];
     
@@ -106,4 +156,3 @@ class DateRangeFilter {
 }
 
 export default DateRangeFilter;
-  
