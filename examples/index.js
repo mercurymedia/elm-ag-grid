@@ -39,9 +39,6 @@ import ButtonRenderer from "./src/Components/Button.elm";
 import LinkRenderer from "./src/Components/Link.elm";
 import Editor from "./src/Components/Editor.elm";
 
-// JS Component import
-import DateRangeFilter from "./date_range_filter.js"
-
 let app;
 
 window.AgGrid = {
@@ -50,9 +47,6 @@ window.AgGrid = {
 
     new ElmAgGrid({
       app: app,
-      jsComponents: {
-        dateRangeFilter: DateRangeFilter,
-      },
       apps: {
         // You can simply provide the usual Elm object to register your component.
         // Or, to use ports for communication between your component and main application

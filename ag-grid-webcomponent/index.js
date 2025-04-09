@@ -5,8 +5,9 @@ import appRenderer from "./app_renderer";
 import appEditor from "./app_editor";
 import expression from "./expression";
 
+import dateRangeFilter from './date_range_filter.js'
+
 let CUSTOM_AGGREGATIONS = {};
-let CUSTOM_COMPONENTS = {};
 
 class AgGrid extends HTMLElement {
   constructor() {
@@ -268,7 +269,7 @@ class AgGrid extends HTMLElement {
         ...cellEditor,
         appRenderer,
         appEditor,
-        ...CUSTOM_COMPONENTS
+        dateRangeFilter
       },
 
 
@@ -431,10 +432,9 @@ function objectMap(obj, fn) {
 }
 
 export default class ElmAgGrid {
-  constructor({ apps = {}, aggregations = {}, jsComponents = {} } = {}) {
+  constructor({ apps = {}, aggregations = {} } = {}) {
     window.ElmAgGridComponentRegistry = apps;
     CUSTOM_AGGREGATIONS = aggregations;
-    CUSTOM_COMPONENTS = jsComponents
 
     customElements.define("ag-grid", AgGrid);
   }
