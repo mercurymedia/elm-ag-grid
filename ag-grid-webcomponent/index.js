@@ -5,6 +5,8 @@ import appRenderer from "./app_renderer";
 import appEditor from "./app_editor";
 import expression from "./expression";
 
+import dateRangeFilter from './date_range_filter.js'
+
 let CUSTOM_AGGREGATIONS = {};
 
 class AgGrid extends HTMLElement {
@@ -267,6 +269,7 @@ class AgGrid extends HTMLElement {
         ...cellEditor,
         appRenderer,
         appEditor,
+        dateRangeFilter
       },
 
 
