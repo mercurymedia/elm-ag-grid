@@ -1,5 +1,12 @@
 # Elm Changelog
 
+## [32.0.0]
+
+- Updated `ag-grid-community` packages.
+- `SelectAll` now supports `MultipleRowSelection` options (`selectAll`, `checkboxes`, `groupSelects`, `headerCheckbox`).
+- The options (`checkboxes`, `headerCheckbox`, and `groupSelects`) have moved from the main settings object to the `MultipleRowSelection` options.
+
+
 ## [31.0.0]
 
 - Add `Aggregation` Panel to `statusBarPanels` options.

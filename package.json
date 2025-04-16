@@ -1,6 +1,6 @@
 {
   "name": "@mercurymedia/elm-ag-grid",
-  "version": "4.2.0",
+  "version": "4.2.1",
   "description": "",
   "main": "ag-grid-webcomponent/index.js",
   "files": [
@@ -21,20 +21,20 @@
   },
   "license": "MIT",
   "peerDependencies": {
-    "@ag-grid-community/core": "^31.1.0"
+    "@ag-grid-community/core": "^32.3.2"
   },
   "devDependencies": {
+    "@ag-grid-community/client-side-row-model": "^32.3.2",
+    "@ag-grid-community/styles": "^32.3.2",
+    "@ag-grid-enterprise/column-tool-panel": "^32.3.2",
+    "@ag-grid-enterprise/filter-tool-panel": "^32.3.2",
+    "@ag-grid-enterprise/menu": "^32.3.2",
+    "@ag-grid-enterprise/range-selection": "^32.3.2",
+    "@ag-grid-enterprise/rich-select": "^32.3.2",
+    "@ag-grid-enterprise/row-grouping": "^32.3.2",
+    "@ag-grid-enterprise/side-bar": "^32.3.2",
+    "@ag-grid-enterprise/status-bar": "^32.3.2",
     "@parcel/transformer-elm": "^2.3.2",
-    "@ag-grid-community/styles": "^31.1.0",
-    "@ag-grid-community/client-side-row-model": "^31.1.0",
-    "@ag-grid-enterprise/column-tool-panel": "^31.1.0",
-    "@ag-grid-enterprise/filter-tool-panel": "^31.1.0",
-    "@ag-grid-enterprise/menu": "^31.1.0",
-    "@ag-grid-enterprise/range-selection": "^31.1.0",
-    "@ag-grid-enterprise/rich-select": "^31.1.0",
-    "@ag-grid-enterprise/row-grouping": "^31.1.0",
-    "@ag-grid-enterprise/side-bar": "^31.1.0",
-    "@ag-grid-enterprise/status-bar": "^31.1.0",
     "@webcomponents/custom-elements": "^1.5.0",
     "elm": "^0.19.1-5",
     "elm-format": "^0.8.7",

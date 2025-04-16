@@ -1,5 +1,9 @@
 # NPM Changelog
 
+## [4.2.1]
+
+- Removed the unsupported `getLocaleTextFunc()` from the `Reset Columns` custom action
+
 ## [4.2.0]
 
 - Add `onModelDataUpdated` event, which fires the `visibleRowIdsUpdated` event, containing the currently visible row ids.

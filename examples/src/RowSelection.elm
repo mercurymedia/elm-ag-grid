@@ -118,12 +118,18 @@ viewGrid model selection =
         defaultAutoGroupColumnDef =
             defaultGridConfig.autoGroupColumnDef
 
+        multiRowSettings =
+            { selectAll = AgGrid.SelectAllFiltered
+            , groupSelects = AgGrid.GroupSelectDescendants
+            , headerCheckbox = True
+            , checkboxes = True
+            }
+
         gridConfig =
             { defaultGridConfig
                 | themeClasses = Just "ag-theme-balham"
-                , rowSelection = AgGrid.MultipleRowSelection
+                , rowSelection = AgGrid.MultipleRowSelection multiRowSettings
                 , groupDefaultExpanded = 1
-                , groupSelectsChildren = True
                 , selectedIds = selection
                 , isRowSelectable = .year >> (<=) 2000
                 , rowId = Just (.id >> String.fromInt)
@@ -146,9 +152,7 @@ viewGrid model selection =
                 , headerName = "ID"
                 , settings =
                     { gridSettings
-                        | headerCheckboxSelection = True
-                        , checkboxSelection = True
-                        , lockPosition = AgGrid.LockToLeft
+                        | lockPosition = AgGrid.LockToLeft
                     }
                 }
             , AgGrid.Column
