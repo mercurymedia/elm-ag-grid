@@ -1,5 +1,5 @@
 module AgGrid exposing
-    ( Aggregation(..), Alignment(..), CellEditor(..), Column(..), ColumnSettings, EventType(..), FilterType(..), GroupSelects(..), LockPosition(..), PinningType(..), Renderer(..), StatusPanel(..), StatusPanelAggregation(..)
+    ( Aggregation(..), Alignment(..), CellEditor(..), Column(..), ColumnSettings, EventType(..), FilterType(..), GroupSelects(..), LockPosition(..), PinningType(..), Renderer(..), SelectAllType(..), StatusPanel(..), StatusPanelAggregation(..)
     , RowGroupPanelVisibility(..), RowSelection(..), Sorting(..), StateChange, CsvExportParams, ExcelExportParams
     , GridConfig, grid
     , defaultGridConfig, defaultSettings
@@ -15,7 +15,7 @@ module AgGrid exposing
 
 # Data Types
 
-@docs Aggregation, Alignment, CellEditor, Column, ColumnSettings, EventType, FilterType, GroupSelects, LockPosition, PinningType, Renderer, StatusPanel, StatusPanelAggregation
+@docs Aggregation, Alignment, CellEditor, Column, ColumnSettings, EventType, FilterType, GroupSelects, LockPosition, PinningType, Renderer, SelectAllType, StatusPanel, StatusPanelAggregation
 @docs RowGroupPanelVisibility, RowSelection, Sorting, StateChange, CsvExportParams, ExcelExportParams
 
 
@@ -190,6 +190,12 @@ type GroupSelects
     | GroupSelectFilteredDescendants
 
 
+type SelectAllType
+    = SelectAll
+    | SelectAllFiltered
+    | SelectAllCurrentPage
+
+
 type alias ClassRule =
     ( String, Expression.Eval Bool )
 
@@ -251,9 +257,17 @@ type RowGroupPanelVisibility
 
 -}
 type RowSelection
-    = MultipleRowSelection
+    = MultipleRowSelection MultiRowSettings
     | NoRowSelection
     | SingleRowSelection
+
+
+type alias MultiRowSettings =
+    { selectAll : SelectAllType
+    , groupSelects : GroupSelects
+    , headerCheckbox : Bool
+    , checkboxes : Bool
+    }
 
 
 {-| Possible options for displayed sidebars.
@@ -556,8 +570,6 @@ type alias GridConfig dataType =
     , groupDefaultExpanded : Int
     , groupIncludeFooter : Bool
     , groupIncludeTotalFooter : Bool
-    , groupSelects : GroupSelects
-    , headerCheckbox : Bool
     , isRowSelectable : dataType -> Bool
     , maintainColumnOrder : Bool
     , pagination : Bool
@@ -793,8 +805,6 @@ defaultGridConfig =
     , groupDefaultExpanded = 0
     , groupIncludeFooter = False
     , groupIncludeTotalFooter = False
-    , groupSelects = GroupSelectSelf
-    , headerCheckbox = True
     , isRowSelectable = always True
     , maintainColumnOrder = False
     , pagination = False
@@ -805,7 +815,13 @@ defaultGridConfig =
     , rowId = Nothing
     , rowMultiSelectWithClick = False
     , rowHoverHighlight = True
-    , rowSelection = MultipleRowSelection
+    , rowSelection =
+        MultipleRowSelection
+            { selectAll = SelectAll
+            , groupSelects = GroupSelectSelf
+            , headerCheckbox = True
+            , checkboxes = True
+            }
     , selectedIds = []
     , selectionColumnDef =
         { width = defaultSettings.width
@@ -1769,13 +1785,13 @@ generateGridConfigAttributes gridConfig =
             , ( "rowMultiSelectWithClick", Json.Encode.bool gridConfig.rowMultiSelectWithClick )
             , ( "rowSelection"
               , case gridConfig.rowSelection of
-                    MultipleRowSelection ->
+                    MultipleRowSelection settings ->
                         Json.Encode.object
                             [ ( "mode", Json.Encode.string "multiRow" )
-                            , ( "selectAll", Json.Encode.string "filtered" )
-                            , ( "checkboxes", Json.Encode.bool True )
-                            , ( "groupSelects", Json.Encode.string (groupSelectsToString gridConfig.groupSelects) )
-                            , ( "headerCheckbox", Json.Encode.bool gridConfig.headerCheckbox )
+                            , ( "selectAll", Json.Encode.string (selectAllTypesToString settings.selectAll) )
+                            , ( "checkboxes", Json.Encode.bool settings.checkboxes )
+                            , ( "groupSelects", Json.Encode.string (groupSelectsToString settings.groupSelects) )
+                            , ( "headerCheckbox", Json.Encode.bool settings.headerCheckbox )
                             ]
 
                     SingleRowSelection ->
@@ -1937,6 +1953,19 @@ groupSelectsToString groupSelect =
 
         GroupSelectFilteredDescendants ->
             "filteredDescendants"
+
+
+selectAllTypesToString : SelectAllType -> String
+selectAllTypesToString selectAll =
+    case selectAll of
+        SelectAll ->
+            "all"
+
+        SelectAllFiltered ->
+            "filtered"
+
+        SelectAllCurrentPage ->
+            "currentPage"
 
 
 encodeClassRules : List ClassRule -> Json.Encode.Value
