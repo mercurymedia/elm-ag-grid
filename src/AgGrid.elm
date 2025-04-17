@@ -1756,7 +1756,13 @@ generateGridConfigAttributes gridConfig =
             , ( "rowSelection"
               , case gridConfig.rowSelection of
                     MultipleRowSelection ->
-                        Json.Encode.string "multiple"
+                        Json.Encode.object
+                            [ ( "mode", Json.Encode.string "multiRow" )
+                            , ( "selectAll", Json.Encode.string "filtered" )
+                            , ( "headerCheckbox", Json.Encode.bool False )
+                            , ( "checkboxes", Json.Encode.bool False )
+                            , ( "groupSelects", Json.Encode.string "all" )
+                            ]
 
                     SingleRowSelection ->
                         Json.Encode.string "single"
@@ -1793,6 +1799,7 @@ generateGridConfigAttributes gridConfig =
             , ( "suppressMenuHide", Json.Encode.bool gridConfig.suppressMenuHide )
             , ( "suppressRowClickSelection", Json.Encode.bool gridConfig.suppressRowClickSelection )
             , ( "suppressRowDeselection", Json.Encode.bool gridConfig.suppressRowDeselection )
+            , ( "columnMenu", Json.Encode.string "legacy" )
             ]
 
         createConfigAttribute ( key, value ) =
