@@ -3,6 +3,10 @@
   "version": "4.2.1",
   "description": "",
   "main": "ag-grid-webcomponent/index.js",
+  "default": "ag-grid-webcomponent/index.js",
+  "targets": {
+    "main": false
+  },
   "files": [
     "ag-grid-webcomponent/",
     "LICENSE"
