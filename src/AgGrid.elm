@@ -1,5 +1,5 @@
 module AgGrid exposing
-    ( Aggregation(..), Alignment(..), CellEditor(..), Column(..), ColumnSettings, EventType(..), FilterType(..), LockPosition(..), PinningType(..), Renderer(..), StatusPanel(..), StatusPanelAggregation(..)
+    ( Aggregation(..), Alignment(..), CellEditor(..), Column(..), ColumnSettings, EventType(..), FilterType(..), GroupSelects(..), LockPosition(..), PinningType(..), Renderer(..), SelectAllType(..), StatusPanel(..), StatusPanelAggregation(..)
     , RowGroupPanelVisibility(..), RowSelection(..), Sorting(..), StateChange, CsvExportParams, ExcelExportParams
     , GridConfig, grid
     , defaultGridConfig, defaultSettings
@@ -15,7 +15,7 @@ module AgGrid exposing
 
 # Data Types
 
-@docs Aggregation, Alignment, CellEditor, Column, ColumnSettings, EventType, FilterType, LockPosition, PinningType, Renderer, StatusPanel, StatusPanelAggregation
+@docs Aggregation, Alignment, CellEditor, Column, ColumnSettings, EventType, FilterType, GroupSelects, LockPosition, PinningType, Renderer, SelectAllType, StatusPanel, StatusPanelAggregation
 @docs RowGroupPanelVisibility, RowSelection, Sorting, StateChange, CsvExportParams, ExcelExportParams
 
 
@@ -184,6 +184,22 @@ type alias StatusBarPanel =
     }
 
 
+{-| Possible Options for the group selection.
+-}
+type GroupSelects
+    = GroupSelectSelf
+    | GroupSelectDescendants
+    | GroupSelectFilteredDescendants
+
+
+{-| Possible options for the row selection.
+-}
+type SelectAllType
+    = SelectAll
+    | SelectAllFiltered
+    | SelectAllCurrentPage
+
+
 type alias ClassRule =
     ( String, Expression.Eval Bool )
 
@@ -245,9 +261,17 @@ type RowGroupPanelVisibility
 
 -}
 type RowSelection
-    = MultipleRowSelection
+    = MultipleRowSelection MultiRowSettings
     | NoRowSelection
     | SingleRowSelection
+
+
+type alias MultiRowSettings =
+    { selectAll : SelectAllType
+    , groupSelects : GroupSelects
+    , headerCheckbox : Bool
+    , checkboxes : Bool
+    }
 
 
 {-| Possible options for displayed sidebars.
@@ -397,7 +421,6 @@ type alias ColumnSettings =
     , filterValueGetter : Maybe String
     , flex : Maybe Int
     , floatingFilter : Bool
-    , headerCheckboxSelection : Bool
     , hide : Bool
     , lockPosition : LockPosition
     , minWidth : Maybe Int
@@ -551,7 +574,6 @@ type alias GridConfig dataType =
     , groupDefaultExpanded : Int
     , groupIncludeFooter : Bool
     , groupIncludeTotalFooter : Bool
-    , groupSelectsChildren : Bool
     , isRowSelectable : dataType -> Bool
     , maintainColumnOrder : Bool
     , pagination : Bool
@@ -564,6 +586,11 @@ type alias GridConfig dataType =
     , rowClassRules : List ClassRule
     , rowHoverHighlight : Bool
     , selectedIds : List String
+    , selectionColumnDef :
+        { width : Maybe Float
+        , pinned : PinningType
+        , minWidth : Maybe Int
+        }
     , sideBar : Sidebar
     , size : String
     , sizeToFitAfterFirstDataRendered : Bool
@@ -675,7 +702,6 @@ defaultSettings =
     , filterValueGetter = Nothing
     , flex = Nothing
     , floatingFilter = False
-    , headerCheckboxSelection = False
     , hide = False
     , lockPosition = NoPositionLock
     , minWidth = Nothing
@@ -783,7 +809,6 @@ defaultGridConfig =
     , groupDefaultExpanded = 0
     , groupIncludeFooter = False
     , groupIncludeTotalFooter = False
-    , groupSelectsChildren = False
     , isRowSelectable = always True
     , maintainColumnOrder = False
     , pagination = False
@@ -794,8 +819,19 @@ defaultGridConfig =
     , rowId = Nothing
     , rowMultiSelectWithClick = False
     , rowHoverHighlight = True
-    , rowSelection = MultipleRowSelection
+    , rowSelection =
+        MultipleRowSelection
+            { selectAll = SelectAll
+            , groupSelects = GroupSelectSelf
+            , headerCheckbox = True
+            , checkboxes = True
+            }
     , selectedIds = []
+    , selectionColumnDef =
+        { width = defaultSettings.width
+        , pinned = PinnedToLeft
+        , minWidth = defaultSettings.minWidth
+        }
     , sideBar = defaultSidebar
     , size = "65vh"
     , sizeToFitAfterFirstDataRendered = True
@@ -1304,7 +1340,6 @@ encodeColumnDef gridConfig columnDef =
         , ( "filterValueGetter", encodedFilterValueGetter )
         , ( "flex", encodeMaybe Json.Encode.int columnDef.settings.flex )
         , ( "floatingFilter", Json.Encode.bool columnDef.settings.floatingFilter )
-        , ( "headerCheckboxSelection", Json.Encode.bool columnDef.settings.headerCheckboxSelection )
         , ( "headerName", Json.Encode.string columnDef.headerName )
         , ( "hide", Json.Encode.bool columnDef.settings.hide )
         , ( "lockPosition"
@@ -1729,7 +1764,6 @@ generateGridConfigAttributes gridConfig =
             , ( "groupDefaultExpanded", Json.Encode.int gridConfig.groupDefaultExpanded )
             , ( "groupIncludeFooter", Json.Encode.bool gridConfig.groupIncludeFooter )
             , ( "groupIncludeTotalFooter", Json.Encode.bool gridConfig.groupIncludeTotalFooter )
-            , ( "groupSelectsChildren", Json.Encode.bool gridConfig.groupSelectsChildren )
             , ( "maintainColumnOrder", Json.Encode.bool gridConfig.maintainColumnOrder )
             , ( "masterDetail"
               , Json.Encode.bool <|
@@ -1755,14 +1789,30 @@ generateGridConfigAttributes gridConfig =
             , ( "rowMultiSelectWithClick", Json.Encode.bool gridConfig.rowMultiSelectWithClick )
             , ( "rowSelection"
               , case gridConfig.rowSelection of
-                    MultipleRowSelection ->
-                        Json.Encode.string "multiple"
+                    MultipleRowSelection settings ->
+                        Json.Encode.object
+                            [ ( "mode", Json.Encode.string "multiRow" )
+                            , ( "selectAll", Json.Encode.string (selectAllTypesToString settings.selectAll) )
+                            , ( "checkboxes", Json.Encode.bool settings.checkboxes )
+                            , ( "groupSelects", Json.Encode.string (groupSelectsToString settings.groupSelects) )
+                            , ( "headerCheckbox", Json.Encode.bool settings.headerCheckbox )
+                            ]
 
                     SingleRowSelection ->
                         Json.Encode.string "single"
 
                     NoRowSelection ->
                         Json.Encode.null
+              )
+            , ( "selectionColumnDef"
+              , Json.Encode.object
+                    [ ( "pinned", encodeMaybe Json.Encode.string (pinningTypeToString gridConfig.selectionColumnDef.pinned) )
+                    , ( "width"
+                      , encodeMaybe Json.Encode.float gridConfig.selectionColumnDef.width
+                      )
+                    , ( "minWidth", encodeMaybe Json.Encode.int gridConfig.selectionColumnDef.minWidth )
+                    , ( "headerClass", Json.Encode.string "checkboxColumn" )
+                    ]
               )
             , ( "selectedIds", Json.Encode.list Json.Encode.string gridConfig.selectedIds )
             , ( "sideBar"
@@ -1793,6 +1843,7 @@ generateGridConfigAttributes gridConfig =
             , ( "suppressMenuHide", Json.Encode.bool gridConfig.suppressMenuHide )
             , ( "suppressRowClickSelection", Json.Encode.bool gridConfig.suppressRowClickSelection )
             , ( "suppressRowDeselection", Json.Encode.bool gridConfig.suppressRowDeselection )
+            , ( "columnMenu", Json.Encode.string "legacy" )
             ]
 
         createConfigAttribute ( key, value ) =
@@ -1893,6 +1944,32 @@ alignmentToString alignment =
 
         Right ->
             "right"
+
+
+groupSelectsToString : GroupSelects -> String
+groupSelectsToString groupSelect =
+    case groupSelect of
+        GroupSelectSelf ->
+            "self"
+
+        GroupSelectDescendants ->
+            "descendants"
+
+        GroupSelectFilteredDescendants ->
+            "filteredDescendants"
+
+
+selectAllTypesToString : SelectAllType -> String
+selectAllTypesToString selectAll =
+    case selectAll of
+        SelectAll ->
+            "all"
+
+        SelectAllFiltered ->
+            "filtered"
+
+        SelectAllCurrentPage ->
+            "currentPage"
 
 
 encodeClassRules : List ClassRule -> Json.Encode.Value

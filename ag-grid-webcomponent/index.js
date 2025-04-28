@@ -277,13 +277,10 @@ class AgGrid extends HTMLElement {
           (item) => item != "resetColumns"
         );
 
-        const localeTextFunc =
-          params.api.navigationService.localeService.getLocaleTextFunc();
-
         // Original implemenation of the "resetColumns" actions
         // https://github.com/ag-grid/ag-grid/blob/latest/grid-enterprise-modules/menu/src/menu/menuItemMapper.ts#L155
         defaultItems.push({
-          name: localeTextFunc("resetColumns", "Reset Columns"),
+          name : "Reset Columns",
           action: function() {
             const changeEvent = columnStateChangedEvent(
               { type: "resetColumns" },
