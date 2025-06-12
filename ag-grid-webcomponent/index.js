@@ -1,4 +1,7 @@
-import { createGrid, ComponentUtil } from "@ag-grid-community/core";
+import { _GET_ALL_GRID_OPTIONS, createGrid, provideGlobalGridOptions } from "ag-grid-community";
+
+const ALL_PROPERTIES = _GET_ALL_GRID_OPTIONS();
+
 
 import cellEditor from "./cell_editor";
 import appRenderer from "./app_renderer";
@@ -17,7 +20,7 @@ class AgGrid extends HTMLElement {
   }
 
   _createPropertyMap() {
-    return ComponentUtil.ALL_PROPERTIES.concat(setterProperties).reduce(
+    return ALL_PROPERTIES.concat(setterProperties).reduce(
       (map, property) => {
         map[property.toLowerCase()] = property;
         return map;
@@ -55,6 +58,7 @@ class AgGrid extends HTMLElement {
 
 
   set gridOptions(options) {
+    provideGlobalGridOptions({ theme: "legacy" });
     let globalEventListener = this.globalEventListener.bind(this);
 
     let mergedOptions = Object.assign(options, this._preInitAgGridAttributes)
@@ -89,7 +93,7 @@ class AgGrid extends HTMLElement {
   }
 
   static get observedAttributes() {
-    return ComponentUtil.ALL_PROPERTIES.concat(setterProperties).map(
+    return ALL_PROPERTIES.concat(setterProperties).map(
       (property) => property.toLowerCase()
     );
   }
