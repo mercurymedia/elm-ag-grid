@@ -5,17 +5,9 @@ import "@webcomponents/custom-elements";
 import ElmAgGrid from "../ag-grid-webcomponent";
 import { Elm } from "./src/Main.elm";
 
-import { ModuleRegistry } from '@ag-grid-community/core'
-import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model'
-import { LicenseManager } from '@ag-grid-enterprise/core'
-import { ColumnsToolPanelModule } from '@ag-grid-enterprise/column-tool-panel'
-import { FiltersToolPanelModule } from '@ag-grid-enterprise/filter-tool-panel'
-import { MenuModule } from '@ag-grid-enterprise/menu'
-import { RangeSelectionModule } from '@ag-grid-enterprise/range-selection'
-import { RichSelectModule } from '@ag-grid-enterprise/rich-select'
-import { RowGroupingModule } from '@ag-grid-enterprise/row-grouping'
-import { SideBarModule } from '@ag-grid-enterprise/side-bar'
-import { StatusBarModule } from '@ag-grid-enterprise/status-bar'
+import { ModuleRegistry, ClientSideRowModelModule, RowSelectionModule, PaginationModule, CellSpanModule, ColumnApiModule, RowStyleModule, CellStyleModule, TextEditorModule, NumberFilterModule, TextFilterModule, CheckboxEditorModule, ClientSideRowModelApiModule, ColumnAutoSizeModule } from 'ag-grid-community';
+import { LicenseManager, ColumnsToolPanelModule, FiltersToolPanelModule, MenuModule, RangeSelectionModule, RichSelectModule, RowGroupingModule, RowGroupingModule, SideBarModule, StatusBarModule, RowGroupingPanelModule, PivotModule, SetFilterModule  } from 'ag-grid-enterprise';
+
 
 // For AG Grid Enterprise features set your license key here:
 // LicenseManager.setLicenseKey("YOUR LICENSE KEY");
@@ -27,13 +19,28 @@ ModuleRegistry.registerModules([
   MenuModule,
   RangeSelectionModule,
   RichSelectModule,
+  TextEditorModule,
   RowGroupingModule,
+  TextFilterModule,
   SideBarModule,
-  StatusBarModule
+  ColumnAutoSizeModule,
+  RowGroupingPanelModule,
+  ClientSideRowModelApiModule,
+  StatusBarModule,
+  CellStyleModule,
+  CellSpanModule,
+  NumberFilterModule,
+  CheckboxEditorModule,
+  PaginationModule,
+  PivotModule,
+  RowStyleModule,
+  SetFilterModule,
+  ColumnApiModule,
+  RowSelectionModule
 ]);
 
-import "@ag-grid-community/styles/ag-grid.css";
-import "@ag-grid-community/styles/ag-theme-balham.css";
+import "ag-grid-community/styles/ag-grid.css";
+import "ag-grid-community/styles/ag-theme-balham.css";
 import "./styles/ag_grid_custom.css";
 
 // Component import

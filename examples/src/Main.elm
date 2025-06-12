@@ -5,6 +5,7 @@ import Basic
 import Browser exposing (Document)
 import Browser.Navigation as Nav
 import ClickEvents
+import RowSpan
 import ColumnState
 import Css
 import Css.Global
@@ -51,6 +52,7 @@ type Page
     | Export Export.Model
     | CustomEditor CustomEditor.Model
     | ColumnState ColumnState.Model
+    | RowSpan RowSpan.Model
     | NotFound
 
 
@@ -115,6 +117,9 @@ subscriptions model =
 
         FilterState filterStateModel ->
             Sub.map FilterStateMsg (FilterState.subscriptions filterStateModel)
+
+        RowSpan _ ->
+            Sub.none
 
 
 
@@ -249,6 +254,7 @@ viewNavigation =
         , viewPageLink "Custom Editor" "/custom-editor"
         , viewPageLink "Column State" "/column-state"
         , viewPageLink "Filter State" "/filter-state"
+        , viewPageLink "Row Span" "/row-span"
         ]
 
 
@@ -303,6 +309,9 @@ viewPage page =
 
             FilterState pageModel ->
                 toPage FilterStateMsg (FilterState.view pageModel)
+
+            RowSpan pageModel ->
+                toPage (always NoOp) (RowSpan.view pageModel)
         ]
 
 
@@ -327,6 +336,7 @@ changePageTo url model =
                 , Parser.map ( { model | page = CustomEditor CustomEditor.init }, Cmd.none ) (Parser.s "custom-editor")
                 , Parser.map (ColumnState.init |> toPage ColumnState ColumnStateMsg) (Parser.s "column-state")
                 , Parser.map (FilterState.init |> toPage FilterState FilterStateMsg) (Parser.s "filter-state")
+                , Parser.map ( { model | page = RowSpan RowSpan.init }, Cmd.none ) (Parser.s "row-span")
                 ]
     in
     Parser.parse parser url

@@ -25,19 +25,10 @@
   },
   "license": "MIT",
   "peerDependencies": {
-    "@ag-grid-community/core": "^32.3.2"
+    "ag-grid-community": "~33.3.0"
   },
   "devDependencies": {
-    "@ag-grid-community/client-side-row-model": "^32.3.2",
-    "@ag-grid-community/styles": "^32.3.2",
-    "@ag-grid-enterprise/column-tool-panel": "^32.3.2",
-    "@ag-grid-enterprise/filter-tool-panel": "^32.3.2",
-    "@ag-grid-enterprise/menu": "^32.3.2",
-    "@ag-grid-enterprise/range-selection": "^32.3.2",
-    "@ag-grid-enterprise/rich-select": "^32.3.2",
-    "@ag-grid-enterprise/row-grouping": "^32.3.2",
-    "@ag-grid-enterprise/side-bar": "^32.3.2",
-    "@ag-grid-enterprise/status-bar": "^32.3.2",
+    "ag-grid-enterprise": "~33.3.0",
     "@parcel/transformer-elm": "^2.3.2",
     "@webcomponents/custom-elements": "^1.5.0",
     "elm": "^0.19.1-5",
