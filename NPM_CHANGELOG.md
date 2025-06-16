@@ -11,8 +11,7 @@
   - Example of importing only the required modules:
     ```js
     import { ModuleRegistry, ClientSideRowModelModule } from '@ag-grid-community'
-    import { LicenseManager } from '@ag-grid-enterprise/core'
-    import { ColumnsToolPanelModule, FiltersToolPanelModule, MenuModule, RangeSelectionModule, RichSelectModule, RowGroupingModule, SideBarModule } from '@ag-grid-enterprise'
+    import { LicenseManager, ColumnsToolPanelModule, FiltersToolPanelModule, MenuModule, RangeSelectionModule, RichSelectModule, RowGroupingModule, SideBarModule } from '@ag-grid-enterprise'
 
     ModuleRegistry.registerModules([
       ClientSideRowModelModule,
