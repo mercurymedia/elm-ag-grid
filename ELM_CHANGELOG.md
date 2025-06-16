@@ -1,5 +1,10 @@
 # Elm Changelog
 
+## [33.0.0]
+
+- Added `rowSpan` option to `ColumnDefs` for configuring row spanning.
+- Added `enableCellSpan` option to `GridConfig` to enable cell spanning functionality.
+
 ## [32.0.0]
 
 - Updated `ag-grid-community` packages.
