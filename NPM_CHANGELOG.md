@@ -1,5 +1,32 @@
 # NPM Changelog
 
+## [5.0.0]
+
+- Updates AG Grid to 33.3.0
+- Dependencies are now added as their whole module, but you can import only the ones you need (as explained [here](https://www.ag-grid.com/javascript-data-grid/upgrading-to-ag-grid-33/#migrating-from-modules)):
+  ```json
+    "ag-grid-community": "^33.3.0",
+    "ag-grid-enterprise": "^33.3.0",
+    ```
+  - Example of importing only the required modules:
+    ```js
+    import { ModuleRegistry, ClientSideRowModelModule } from '@ag-grid-community'
+    import { LicenseManager } from '@ag-grid-enterprise/core'
+    import { ColumnsToolPanelModule, FiltersToolPanelModule, MenuModule, RangeSelectionModule, RichSelectModule, RowGroupingModule, SideBarModule } from '@ag-grid-enterprise'
+
+    ModuleRegistry.registerModules([
+      ClientSideRowModelModule,
+      ColumnsToolPanelModule,
+      FiltersToolPanelModule,
+      MenuModule,
+      RangeSelectionModule,
+      RichSelectModule,
+      RowGroupingModule,
+      SideBarModule
+    ]);
+    ```
+  ```
+
 ## [4.2.1]
 
 - Removed the unsupported `getLocaleTextFunc()` from the `Reset Columns` custom action
