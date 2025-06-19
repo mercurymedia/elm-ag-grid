@@ -5,6 +5,10 @@
 - Added `rowSpan` option to `ColumnDefs` for configuring row spanning.
 - Added `enableCellSpan` option to `GridConfig` to enable cell spanning functionality.
 
+## [32.0.1]
+
+- Updated the `filterState` model structure. Previously, it used `{condition1: Condition, condition2: Condition}`; now it adopts a more flexible `{conditions: List Condition}` structure.
+
 ## [32.0.0]
 
 - Updated `ag-grid-community` packages.

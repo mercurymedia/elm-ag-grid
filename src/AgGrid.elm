@@ -496,8 +496,7 @@ type alias TextFilterAttrs =
     { filter : Maybe String
     , type_ : Maybe String
     , operator : Maybe String
-    , condition1 : Maybe TextFilterCondition
-    , condition2 : Maybe TextFilterCondition
+    , conditions : List TextFilterCondition
     }
 
 
@@ -511,8 +510,7 @@ type alias NumberFilterAttrs =
     { filter : Maybe Float
     , type_ : Maybe String
     , operator : Maybe String
-    , condition1 : Maybe NumberFilterCondition
-    , condition2 : Maybe NumberFilterCondition
+    , conditions : List NumberFilterCondition
     }
 
 
@@ -527,8 +525,7 @@ type alias DateFilterAttrs =
     , dateTo : Maybe String
     , type_ : Maybe String
     , operator : Maybe String
-    , condition1 : Maybe DateFilterCondition
-    , condition2 : Maybe DateFilterCondition
+    , conditions : List DateFilterCondition
     }
 
 
@@ -1493,8 +1490,7 @@ textFilterDecoder =
         |> DecodePipeline.optional "filter" (Decode.nullable Decode.string) Nothing
         |> DecodePipeline.optional "type" (Decode.nullable Decode.string) Nothing
         |> DecodePipeline.optional "operator" (Decode.nullable Decode.string) Nothing
-        |> DecodePipeline.optional "condition1" (Decode.nullable textFilterConditionDecoder) Nothing
-        |> DecodePipeline.optional "condition2" (Decode.nullable textFilterConditionDecoder) Nothing
+        |> DecodePipeline.optional "conditions" (Decode.list textFilterConditionDecoder) []
 
 
 textFilterConditionDecoder : Decoder TextFilterCondition
@@ -1510,8 +1506,7 @@ numberFilterDecoder =
         |> DecodePipeline.optional "filter" (Decode.nullable Decode.float) Nothing
         |> DecodePipeline.optional "type" (Decode.nullable Decode.string) Nothing
         |> DecodePipeline.optional "operator" (Decode.nullable Decode.string) Nothing
-        |> DecodePipeline.optional "condition1" (Decode.nullable numberFilterConditionDecoder) Nothing
-        |> DecodePipeline.optional "condition2" (Decode.nullable numberFilterConditionDecoder) Nothing
+        |> DecodePipeline.optional "conditions" (Decode.list numberFilterConditionDecoder) []
 
 
 numberFilterConditionDecoder : Decoder NumberFilterCondition
@@ -1528,8 +1523,7 @@ dateFilterDecoder =
         |> DecodePipeline.optional "dateTo" (Decode.nullable Decode.string) Nothing
         |> DecodePipeline.optional "type" (Decode.nullable Decode.string) Nothing
         |> DecodePipeline.optional "operator" (Decode.nullable Decode.string) Nothing
-        |> DecodePipeline.optional "condition1" (Decode.nullable dateFilterConditionDecoder) Nothing
-        |> DecodePipeline.optional "condition2" (Decode.nullable dateFilterConditionDecoder) Nothing
+        |> DecodePipeline.optional "conditions" (Decode.list dateFilterConditionDecoder) []
 
 
 dateFilterConditionDecoder : Decoder DateFilterCondition
@@ -1604,8 +1598,7 @@ filterStateEncoder filterState =
                 , ( "dateTo", encodeMaybe Json.Encode.string attrs.dateTo )
                 , ( "type", encodeMaybe Json.Encode.string attrs.type_ )
                 , ( "operator", encodeMaybe Json.Encode.string attrs.operator )
-                , ( "condition1", encodeMaybe dateFilterConditionEncoder attrs.condition1 )
-                , ( "condition2", encodeMaybe dateFilterConditionEncoder attrs.condition2 )
+                , ( "conditions", Json.Encode.list dateFilterConditionEncoder attrs.conditions )
                 ]
 
         NumberFilterState attrs ->
@@ -1614,8 +1607,7 @@ filterStateEncoder filterState =
                 , ( "filter", encodeMaybe Json.Encode.float attrs.filter )
                 , ( "type", encodeMaybe Json.Encode.string attrs.type_ )
                 , ( "operator", encodeMaybe Json.Encode.string attrs.operator )
-                , ( "condition1", encodeMaybe numberFilterConditionEncoder attrs.condition1 )
-                , ( "condition2", encodeMaybe numberFilterConditionEncoder attrs.condition2 )
+                , ( "conditions", Json.Encode.list numberFilterConditionEncoder attrs.conditions )
                 ]
 
         SetFilterState attrs ->
@@ -1630,8 +1622,7 @@ filterStateEncoder filterState =
                 , ( "filter", encodeMaybe Json.Encode.string attrs.filter )
                 , ( "type", encodeMaybe Json.Encode.string attrs.type_ )
                 , ( "operator", encodeMaybe Json.Encode.string attrs.operator )
-                , ( "condition1", encodeMaybe textFilterConditionEncoder attrs.condition1 )
-                , ( "condition2", encodeMaybe textFilterConditionEncoder attrs.condition2 )
+                , ( "conditions", Json.Encode.list textFilterConditionEncoder attrs.conditions )
                 ]
 
 
