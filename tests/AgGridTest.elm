@@ -1,7 +1,9 @@
 module AgGridTest exposing (suite)
 
 import AgGrid exposing (Aggregation(..), PinningType(..), Sorting(..), defaultGridConfig)
+import Dict
 import Expect
+import Json.Decode
 import Test exposing (..)
 
 
@@ -209,5 +211,89 @@ suite =
                             , AgGrid.Column { defaultColumn | field = "bar" }
                             , AgGrid.Column { defaultColumn | field = "bazz" }
                             ]
+            ]
+        , describe "filterState roundtrip"
+            [ test "should stringify and parse TextFilterState properly" <|
+                \_ ->
+                    let
+                        input =
+                            [ ( "text"
+                              , AgGrid.TextFilterState
+                                    { filter = Nothing
+                                    , type_ = Just "contains"
+                                    , operator = Just "AND"
+                                    , conditions =
+                                        [ { type_ = "contains", filter = "test" }
+                                        , { type_ = "startsWith", filter = "foo" }
+                                        ]
+                                    }
+                              )
+                            ]
+
+                        result =
+                            AgGrid.filterStatesEncoder (input |> Dict.fromList)
+                    in
+                    Expect.equal input
+                        (Json.Decode.decodeValue AgGrid.filterStatesDecoder result |> Result.withDefault Dict.empty |> Dict.toList)
+            , test "should stringify and parse NumberFilterState properly" <|
+                \_ ->
+                    let
+                        input =
+                            [ ( "number"
+                              , AgGrid.NumberFilterState
+                                    { filter = Just 42.5
+                                    , type_ = Just "greaterThan"
+                                    , operator = Just "OR"
+                                    , conditions =
+                                        [ { type_ = "equals", filter = 10.0 }
+                                        , { type_ = "lessThan", filter = 100.0 }
+                                        ]
+                                    }
+                              )
+                            ]
+
+                        result =
+                            AgGrid.filterStatesEncoder (input |> Dict.fromList)
+                    in
+                    Expect.equal input
+                        (Json.Decode.decodeValue AgGrid.filterStatesDecoder result |> Result.withDefault Dict.empty |> Dict.toList)
+            , test "should stringify and parse DateFilterState properly" <|
+                \_ ->
+                    let
+                        input =
+                            [ ( "date"
+                              , AgGrid.DateFilterState
+                                    { dateFrom = Just "2023-01-01"
+                                    , dateTo = Just "2023-12-31"
+                                    , type_ = Just "inRange"
+                                    , operator = Just "AND"
+                                    , conditions =
+                                        [ { type_ = "equals", dateFrom = Just "2023-06-01", dateTo = Just "2023-06-01" }
+                                        , { type_ = "greaterThan", dateFrom = Just "2023-01-01", dateTo = Just "2023-01-01" }
+                                        ]
+                                    }
+                              )
+                            ]
+
+                        result =
+                            AgGrid.filterStatesEncoder (input |> Dict.fromList)
+                    in
+                    Expect.equal input
+                        (Json.Decode.decodeValue AgGrid.filterStatesDecoder result |> Result.withDefault Dict.empty |> Dict.toList)
+            , test "should stringify and parse SetFilterState properly" <|
+                \_ ->
+                    let
+                        input =
+                            [ ( "set"
+                              , AgGrid.SetFilterState
+                                    { values = [ "option1", "option2", "option3" ] }
+                              )
+                            ]
+
+                        result =
+                            AgGrid.filterStatesEncoder (input |> Dict.fromList)
+                    in
+                    Expect.equal input
+                        (Json.Decode.decodeValue AgGrid.filterStatesDecoder result |> Result.withDefault Dict.empty |> Dict.toList)
             ]
         ]
