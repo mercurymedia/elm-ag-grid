@@ -1,9 +1,9 @@
 module AgGrid exposing
-    ( Aggregation(..), Alignment(..), CellEditor(..), Column(..), ColumnSettings, EventType(..), FilterType(..), GroupSelects(..), LockPosition(..), PinningType(..), Renderer(..), SelectAllType(..), StatusPanel(..), StatusPanelAggregation(..)
+    ( Aggregation(..), Alignment(..), CellEditor(..), Column(..), CopyEvent, ColumnSettings, EventType(..), FilterType(..), GroupSelects(..), LockPosition(..), PinningType(..), Renderer(..), SelectAllType(..), StatusPanel(..), StatusPanelAggregation(..)
     , RowGroupPanelVisibility(..), RowSelection(..), Sorting(..), StateChange, CsvExportParams, ExcelExportParams
     , GridConfig, grid
     , defaultGridConfig, defaultSettings
-    , onCellChanged, onCellDoubleClicked, onCellClicked, onSelectionChange, onContextMenu, onVisibleRowIdsChanged
+    , onCellChanged, onCellDoubleClicked, onCellClicked, onCellCopy, onSelectionChange, onContextMenu, onVisibleRowIdsChanged
     , ColumnState, onColumnStateChanged, columnStatesDecoder, columnStatesEncoder, applyColumnState
     , FilterState(..), onFilterStateChanged, filterStatesEncoder, filterStatesDecoder
     , Sidebar, SidebarType(..), SidebarPosition(..), defaultSidebar
@@ -15,7 +15,7 @@ module AgGrid exposing
 
 # Data Types
 
-@docs Aggregation, Alignment, CellEditor, Column, ColumnSettings, EventType, FilterType, GroupSelects, LockPosition, PinningType, Renderer, SelectAllType, StatusPanel, StatusPanelAggregation
+@docs Aggregation, Alignment, CellEditor, Column, CopyEvent, ColumnSettings, EventType, FilterType, GroupSelects, LockPosition, PinningType, Renderer, SelectAllType, StatusPanel, StatusPanelAggregation
 @docs RowGroupPanelVisibility, RowSelection, Sorting, StateChange, CsvExportParams, ExcelExportParams
 
 
@@ -31,7 +31,7 @@ module AgGrid exposing
 
 # Events
 
-@docs onCellChanged, onCellDoubleClicked, onCellClicked, onSelectionChange, onContextMenu, onVisibleRowIdsChanged
+@docs onCellChanged, onCellDoubleClicked, onCellClicked, onCellCopy, onSelectionChange, onContextMenu, onVisibleRowIdsChanged
 
 
 # ColumnState
@@ -80,6 +80,15 @@ type Aggregation
     | MinAggregation
     | NoAggregation
     | SumAggregation
+
+
+{-| Returned data on cell copy events. See `onCellCopy`.
+-}
+type alias CopyEvent =
+    { column : String
+    , row : Int
+    , value : Maybe String
+    }
 
 
 {-| Possible configuration for the CSV export.
@@ -1173,6 +1182,25 @@ onVisibleRowIdsChanged toMsg =
         |> Decode.map (Decode.decodeValue (Decode.field "visibleRowIds" (Decode.list Decode.string)))
         |> Decode.map toMsg
         |> Html.Events.on "modelUpdated"
+
+
+{-| Detect copy events on cells.
+
+Whenever a user attempts to copy a cell (e.g. via Ctrl+C or context menu), the cell information is sent
+to the `toMsg` function.
+
+The value is not added to the clipboard automatically and needs to be implemented yourself.
+
+-}
+onCellCopy : (CopyEvent -> msg) -> Html.Attribute msg
+onCellCopy toMsg =
+    Html.Events.on "cellCopy"
+        (Decode.map3 CopyEvent
+            (Decode.at [ "detail", "column", "colId" ] Decode.string)
+            (Decode.at [ "detail", "node", "rowIndex" ] Decode.int)
+            (Decode.at [ "detail", "value" ] (Decode.maybe Decode.string))
+            |> Decode.map toMsg
+        )
 
 
 
