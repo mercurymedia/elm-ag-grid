@@ -1,5 +1,9 @@
 # NPM Changelog
 
+## [4.3.0]
+
+- Sending cell information on a copy event to enable processing of cell values ​​and handling custom copy-to-clipboard behavior in Elm.
+
 ## [4.2.1]
 
 - Removed the unsupported `getLocaleTextFunc()` from the `Reset Columns` custom action
