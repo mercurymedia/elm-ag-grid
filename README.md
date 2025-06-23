@@ -30,8 +30,7 @@ Elm.Main.init({ node: document.getElementById("app") });
 For most features of AG Grid it is necessary to install modules and register them:
 
 ```js
-import { ModuleRegistry } from '@ag-grid-community/core'
-import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model'
+import { ModuleRegistry, ClientSideRowModelModule } from 'ag-grid-community'
 
 ModuleRegistry.registerModules([
   ClientSideRowModelModule
@@ -59,8 +58,12 @@ The latest [Elm package version](https://package.elm-lang.org/packages/mercuryme
 | 19.0.0 - 22.0.0 |       3.5.0        |
 | 23.0.0 - 23.1.0 |       3.6.0        |
 | 24.0.0 - 27.0.2 |   3.7.0 - 4.0.2    |
-| 28.0.0 - 32.0.1 |   3.7.0 - 4.1.1    |
-|   32.1.0 - *    |     4.3.0 - *      |
+| 28.0.0 - 29.0.0 |   3.7.0 - 4.1.1    |
+| 29.1.0 - 31.0.0 |       4.2.0        |
+| 32.0.0 - 32.0.1 |       4.2.1        |
+|     32.1.0      |       4.3.0        |
+|     33.0.0      |       5.0.0        |
+
 
 ## Ag Grid Enterprise
 

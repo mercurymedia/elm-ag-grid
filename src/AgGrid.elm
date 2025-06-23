@@ -444,6 +444,7 @@ type alias ColumnSettings =
     , sortable : Bool
     , sort : Sorting
     , sortIndex : Maybe Int
+    , spanRows : Bool
     , suppressColumnsToolPanel : Bool
     , suppressFiltersToolPanel : Bool
     , suppressMenu : Bool
@@ -576,6 +577,7 @@ type alias GridConfig dataType =
             }
     , disableResizeOnScroll : Bool
     , excelExport : Maybe ExcelExportParams
+    , enableCellSpan : Bool
     , filterStates : Dict.Dict String FilterState
     , groupDefaultExpanded : Int
     , groupIncludeFooter : Bool
@@ -722,6 +724,7 @@ defaultSettings =
     , sortable = True
     , sort = NoSorting
     , sortIndex = Nothing
+    , spanRows = False
     , suppressColumnsToolPanel = False
     , suppressFiltersToolPanel = False
     , suppressMenu = False
@@ -810,6 +813,7 @@ defaultGridConfig =
     , csvExport = Nothing
     , detailRenderer = Nothing
     , disableResizeOnScroll = False
+    , enableCellSpan = False
     , excelExport = Nothing
     , filterStates = Dict.empty
     , groupDefaultExpanded = 0
@@ -1390,6 +1394,7 @@ encodeColumnDef gridConfig columnDef =
         , ( "sort", encodeMaybe Json.Encode.string (sortingToString columnDef.settings.sort) )
         , ( "sortIndex", encodeMaybe Json.Encode.int columnDef.settings.sortIndex )
         , ( "showDisabledCheckboxes", Json.Encode.bool columnDef.settings.showDisabledCheckboxes )
+        , ( "spanRows", Json.Encode.bool columnDef.settings.spanRows )
         , ( "suppressColumnsToolPanel", Json.Encode.bool columnDef.settings.suppressColumnsToolPanel )
         , ( "suppressFiltersToolPanel", Json.Encode.bool columnDef.settings.suppressFiltersToolPanel )
         , ( "suppressSizeToFit"
@@ -1768,6 +1773,7 @@ generateGridConfigAttributes gridConfig =
               )
             , ( "defaultExcelExportParams", encodeMaybe encodeExcelExportParams gridConfig.excelExport )
             , ( "defaultCsvExportParams", encodeMaybe encodeCsvExportParams gridConfig.csvExport )
+            , ( "enableCellSpan", Json.Encode.bool gridConfig.enableCellSpan )
             , ( "filterState", filterStatesEncoder gridConfig.filterStates )
             , ( "headerHeight", Json.Encode.int 48 )
             , ( "getContextMenuItems", encodeMaybe ContextMenu.encode gridConfig.contextMenu )

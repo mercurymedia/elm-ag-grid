@@ -162,6 +162,7 @@ viewGrid model =
                 , cacheQuickFilter = True
                 , rowClassRules = [ ( "apple", Expression.Expr isApple ) ]
                 , themeClasses = Just "ag-theme-balham ag-basic"
+
             }
 
         gridSettings =

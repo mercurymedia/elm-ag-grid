@@ -1,5 +1,10 @@
 # Elm Changelog
 
+## [33.0.0]
+
+- Added `rowSpan` option to `ColumnDefs` for configuring row spanning.
+- Added `enableCellSpan` option to `GridConfig` to enable cell spanning functionality.
+
 ## [32.1.0]
 
 - Added `onCellCopy` event handler to allow formatting cell values ​​before adding them to the clipboard.
