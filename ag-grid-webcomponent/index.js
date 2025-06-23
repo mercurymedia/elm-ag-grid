@@ -337,9 +337,19 @@ class AgGrid extends HTMLElement {
               visibleRowIds: visibleRowIds
           }
         });
-        
+
         self.dispatchEvent(visibleRowIdsUpdated);
       },
+
+      processCellForClipboard: function (params) {
+        const copyEvent = new CustomEvent("cellCopy", { detail: params });
+
+        setTimeout(function () {
+          self.dispatchEvent(copyEvent);
+        }, 0);
+
+        return params.value
+      }
     };
 
     if (this.loadAttribute("customRowId")) {
