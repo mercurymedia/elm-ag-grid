@@ -1,5 +1,9 @@
 # Elm Changelog
 
+## [33.0.0]
+
+- Added `comparator` to ColumnSettings to set a custom comparator. Custom comparators can be set on initilization of the Elm App.
+
 ## [32.1.0]
 
 - Added `onCellCopy` event handler to allow formatting cell values ​​before adding them to the clipboard.
