@@ -455,6 +455,7 @@ type alias ColumnSettings =
     , width : Maybe Float
     , wrapHeaderText : Bool
     , wrapText : Bool
+    , comparator : Maybe String
     }
 
 
@@ -733,6 +734,7 @@ defaultSettings =
     , width = Nothing
     , wrapHeaderText = False
     , wrapText = False
+    , comparator = Nothing
     }
 
 
@@ -1454,6 +1456,9 @@ encodeColumnDef gridConfig columnDef =
           )
         , ( "wrapHeaderText", Json.Encode.bool columnDef.settings.wrapHeaderText )
         , ( "wrapText", Json.Encode.bool columnDef.settings.wrapText )
+        , ( "comparator"
+          , Json.Encode.Extra.encodeMaybe Json.Encode.string columnDef.settings.comparator
+          )
         ]
 
 

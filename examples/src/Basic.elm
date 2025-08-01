@@ -42,20 +42,109 @@ initialModel =
               , offerUntil = "01/01/2022"
               , price = 3.2
               , title = "Apple"
+              , runtime = "01/01/2022 - 01/15/2022"
               }
             , { amountLeft = Just 15
               , category = Vegetable
               , description = Just "It's a pickle"
               , favorite = True
               , id = 2
-              , offerUntil = "31/12/2022"
+              , offerUntil = "12/31/2022"
               , price = 2.5
               , title = "Cucumber"
               , detailsUrl = "#/cucumber"
+              , runtime = "01/10/2022 - 01/25/2022"
+              }
+            , { amountLeft = Just 10
+              , category = Fruit
+              , description = Just "Sweet and juicy"
+              , favorite = True
+              , id = 3
+              , offerUntil = "01/15/2022"
+              , price = 1.8
+              , title = "Orange"
+              , detailsUrl = "#/orange"
+              , runtime = "01/05/2022 - 01/20/2022"
+              }
+            , { amountLeft = Just 5
+              , category = Vegetable
+              , description = Just "Fresh and crunchy"
+              , favorite = False
+              , id = 4
+              , offerUntil = "01/20/2022"
+              , price = 0.9
+              , title = "Carrot"
+              , detailsUrl = "#/carrot"
+              , runtime = "01/15/2023 - 01/30/2023"
+              }
+            , { amountLeft = Nothing
+              , category = Fruit
+              , description = Just "Tropical delight"
+              , favorite = True
+              , id = 5
+              , offerUntil = "01/25/2022"
+              , price = 2.3
+              , title = "Mango"
+              , detailsUrl = "#/mango"
+              , runtime = "01/20/2022 - 02/05/2022"
+              }
+            , { amountLeft = Just 20
+              , category = Vegetable
+              , description = Just "Leafy green"
+              , favorite = False
+              , id = 6
+              , offerUntil = "01/30/2022"
+              , price = 1.2
+              , title = "Spinach"
+              , detailsUrl = "#/spinach"
+              , runtime = "01/25/2023 - 02/10/2023"
+              }
+            , { amountLeft = Just 8
+              , category = Fruit
+              , description = Just "Berrylicious"
+              , favorite = True
+              , id = 7
+              , offerUntil = "02/05/2022"
+              , price = 4.0
+              , title = "Strawberry"
+              , detailsUrl = "#/strawberry"
+              , runtime = "02/01/2022 - 02/15/2022"
+              }
+            , { amountLeft = Just 12
+              , category = Vegetable
+              , description = Just "Perfect for salads"
+              , favorite = False
+              , id = 8
+              , offerUntil = "02/10/2022"
+              , price = 1.5
+              , title = "Tomato"
+              , detailsUrl = "#/tomato"
+              , runtime = "02/05/2022 - 02/20/2022"
+              }
+            , { amountLeft = Nothing
+              , category = Fruit
+              , description = Just "Great for smoothies"
+              , favorite = True
+              , id = 9
+              , offerUntil = "02/15/2022"
+              , price = 2.8
+              , title = "Banana"
+              , detailsUrl = "#/banana"
+              , runtime = "02/10/2022 - 02/25/2022"
+              }
+            , { amountLeft = Just 25
+              , category = Vegetable
+              , description = Just "Rich in nutrients"
+              , favorite = False
+              , id = 10
+              , offerUntil = "02/20/2022"
+              , price = 3.0
+              , title = "Broccoli"
+              , detailsUrl = "#/broccoli"
+              , runtime = "02/15/2022 - 03/01/2022"
               }
             ]
-                |> List.repeat 150
-                |> List.concat
+              
                 -- Provide unique index to simplify table updates
                 |> List.indexedMap (\index product -> ( index, { product | id = index } ))
                 |> Dict.fromList
@@ -99,6 +188,7 @@ type alias Product =
     , offerUntil : String
     , price : Float
     , title : String
+    , runtime : String
     }
 
 
@@ -187,13 +277,19 @@ viewGrid model =
                 { field = "title"
                 , renderer = StringRenderer .title
                 , headerName = "Product"
-                , settings = { gridSettings | editable = Expression.Const False, pinned = AgGrid.PinnedToLeft }
+                , settings = { gridSettings | editable = Expression.Const False, pinned = AgGrid.PinnedToLeft, comparator = Just "dateTimeComparator" }
                 }
             , AgGrid.Column
                 { field = "details"
                 , renderer = AppRenderer { componentName = "linkRenderer", componentParams = Nothing } encodeDetails
                 , headerName = "Details"
                 , settings = { gridSettings | editable = Expression.Const False }
+                }
+            , AgGrid.Column
+                { field = "runtime"
+                , renderer = StringRenderer .runtime
+                , headerName = "runtime"
+                , settings = { gridSettings | editable = Expression.Const False, comparator = Just "dateTimeComparator" }
                 }
             , AgGrid.Column
                 { field = "detailsUrl"
@@ -401,3 +497,4 @@ rowDecoder =
                 ]
             )
         |> DecodePipeline.required "title" Json.Decode.string
+        |> DecodePipeline.required "runtime" Json.Decode.string

@@ -41,6 +41,8 @@ import ButtonRenderer from "./src/Components/Button.elm";
 import LinkRenderer from "./src/Components/Link.elm";
 import Editor from "./src/Components/Editor.elm";
 
+import dateTimeComparator from "./date_time_comparator";
+
 let app;
 
 window.AgGrid = {
@@ -71,6 +73,22 @@ window.AgGrid = {
 
             return component;
           },
+        },
+      },
+
+      comparators: {
+        dateTimeComparator: (valueA, valueB, nodeA, nodeB, isDescending) => {
+            const parseDate = (date) => {
+                const [startDate] = date.split("-");
+                return new Date(startDate.trim());
+            };
+
+            const dateA = parseDate(valueA);
+            const dateB = parseDate(valueB);
+
+            if (dateA.getTime() === dateB.getTime()) return 0;
+
+            return dateA.getTime() > dateB.getTime() ? 1 : -1;
         },
       },
 

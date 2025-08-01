@@ -6,6 +6,7 @@ import appEditor from "./app_editor";
 import expression from "./expression";
 
 let CUSTOM_AGGREGATIONS = {};
+let CUSTOM_COMPARATORS = {};
 
 class AgGrid extends HTMLElement {
   constructor() {
@@ -142,6 +143,8 @@ class AgGrid extends HTMLElement {
   }
 
   set columnDefs(defs) {
+    var comparators = CUSTOM_COMPARATORS;
+
     function applyCallbacks(def) {
       // This is a group column def
       if (def.children) {
@@ -157,6 +160,7 @@ class AgGrid extends HTMLElement {
             def.cellClassRules,
             (v) => (params) => expression.apply(params.node.data, v)
           ),
+          comparator: comparators[def.comparator] || "",
         };
       }
     }
@@ -436,9 +440,10 @@ function objectMap(obj, fn) {
 }
 
 export default class ElmAgGrid {
-  constructor({ apps = {}, aggregations = {} } = {}) {
+  constructor({ apps = {}, aggregations = {}, comparators = {} } = {}) {
     window.ElmAgGridComponentRegistry = apps;
     CUSTOM_AGGREGATIONS = aggregations;
+    CUSTOM_COMPARATORS = comparators;
 
     customElements.define("ag-grid", AgGrid);
   }
