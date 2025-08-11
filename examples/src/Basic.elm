@@ -13,6 +13,7 @@ import Json.Decode
 import Json.Decode.Pipeline as DecodePipeline
 import Json.Encode
 import Result exposing (Result)
+import String.Interpolate
 
 
 port buttonClicked : (Int -> msg) -> Sub msg
@@ -42,6 +43,7 @@ initialModel =
               , offerUntil = "01/01/2022"
               , price = 3.2
               , title = "Apple"
+              , runtime = "1/02/2025 + 1/02/2026, 1/02/2027 + 1/02/2028"
               }
             , { amountLeft = Just 15
               , category = Vegetable
@@ -52,6 +54,7 @@ initialModel =
               , price = 2.5
               , title = "Cucumber"
               , detailsUrl = "#/cucumber"
+              , runtime = "5/02/2025 + 5/02/2026, 1/02/2027 + 5/02/2028"
               }
             ]
                 |> List.repeat 150
@@ -97,6 +100,7 @@ type alias Product =
     , favorite : Bool
     , id : Int
     , offerUntil : String
+    , runtime : String
     , price : Float
     , title : String
     }
@@ -149,6 +153,28 @@ view model =
         , div [] [ text "Also displays the possibility to search, sort, pin columns, and rendering Elm apps into cells for a custom view that also communicate with the Main app." ]
         , viewGrid model
         ]
+
+
+dateRangeFilterValueGetter : String -> String
+dateRangeFilterValueGetter field =
+    String.Interpolate.interpolate """
+        if (!data.{0}) { return null; }
+        const rawDataString = data.{0};
+            
+                if (!rawDataString) {
+                    return null;
+                }
+            
+                return rawDataString.split(',')
+                    .map(dateRange => dateRange.split(' + ')
+                        .map(dateString => {
+                            const date = new Date(dateString.trim());
+                            date.setHours(0, 0, 0, 0);
+                            return date;
+                        })
+                    );
+    
+    """ [ field ]
 
 
 viewGrid : Model -> Html Msg
@@ -224,6 +250,12 @@ viewGrid model =
                 , renderer = StringRenderer .offerUntil
                 , headerName = "Offer until"
                 , settings = gridSettings
+                }
+            , AgGrid.Column
+                { field = "runtime"
+                , renderer = StringRenderer .runtime
+                , headerName = "Runtime"
+                , settings = { gridSettings | filter = AgGrid.DateRangeFilter, filterValueGetter = Just (dateRangeFilterValueGetter "runtime") }
                 }
             , AgGrid.ColumnGroup
                 { headerName = "Prices"
@@ -394,6 +426,7 @@ rowDecoder =
         |> DecodePipeline.required "favorite" Json.Decode.bool
         |> DecodePipeline.required "id" Json.Decode.int
         |> DecodePipeline.required "offer-until" Json.Decode.string
+        |> DecodePipeline.required "runtime" Json.Decode.string
         |> DecodePipeline.required "price"
             (Json.Decode.oneOf
                 [ Json.Decode.float

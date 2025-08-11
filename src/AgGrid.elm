@@ -130,6 +130,7 @@ type FilterType
     | NumberFilter
     | StringFilter
     | SetFilter
+    | DateRangeFilter
     | NoFilter
 
 
@@ -497,6 +498,7 @@ type FilterState
     = TextFilterState TextFilterAttrs
     | NumberFilterState NumberFilterAttrs
     | DateFilterState DateFilterAttrs
+    | DateRangeFilterState DateRangeFilterAttrs
     | SetFilterState SetFilterAttrs
 
 
@@ -534,6 +536,11 @@ type alias DateFilterAttrs =
     , type_ : Maybe String
     , operator : Maybe String
     , conditions : List DateFilterCondition
+    }
+
+
+type alias DateRangeFilterAttrs =
+    { filterDate : Maybe String
     }
 
 
@@ -1502,6 +1509,9 @@ filterStateDecoder =
                     "text" ->
                         Decode.map TextFilterState textFilterDecoder
 
+                    "dateRange" ->
+                        Decode.map DateRangeFilterState dateRangeFilterDecoder
+
                     _ ->
                         Decode.fail <| "unknown filter state type: " ++ filterType
             )
@@ -1547,6 +1557,12 @@ dateFilterDecoder =
         |> DecodePipeline.optional "type" (Decode.nullable Decode.string) Nothing
         |> DecodePipeline.optional "operator" (Decode.nullable Decode.string) Nothing
         |> DecodePipeline.optional "conditions" (Decode.list dateFilterConditionDecoder) []
+
+
+dateRangeFilterDecoder : Decoder DateRangeFilterAttrs
+dateRangeFilterDecoder =
+    Decode.succeed DateRangeFilterAttrs
+        |> DecodePipeline.optional "filterDate" (Decode.nullable Decode.string) Nothing
 
 
 dateFilterConditionDecoder : Decoder DateFilterCondition
@@ -1622,6 +1638,12 @@ filterStateEncoder filterState =
                 , ( "type", encodeMaybe Json.Encode.string attrs.type_ )
                 , ( "operator", encodeMaybe Json.Encode.string attrs.operator )
                 , ( "conditions", Json.Encode.list dateFilterConditionEncoder attrs.conditions )
+                ]
+
+        DateRangeFilterState attrs ->
+            Json.Encode.object
+                [ ( "filterType", Json.Encode.string "dateRange" )
+                , ( "filterDate", encodeMaybe Json.Encode.string attrs.filterDate )
                 ]
 
         NumberFilterState attrs ->
@@ -2240,6 +2262,9 @@ encodeFilterProperties columnDef =
 
                 SetFilter ->
                     Json.Encode.string "agSetColumnFilter"
+
+                DateRangeFilter ->
+                    Json.Encode.string "dateRangeFilter"
 
                 NoFilter ->
                     Json.Encode.bool False
