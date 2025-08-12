@@ -170,7 +170,7 @@ viewGrid model =
                 }
             , AgGrid.Column
                 { field = "priceDE"
-                , renderer = CurrencyRenderer { currency = "EUR", countryCode = "de" } (.de >> .price)
+                , renderer = CurrencyRenderer { currency = "EUR", countryCode = "de", decimalPlaces = 2 } (.de >> .price)
                 , headerName = "Price DE"
                 , settings = { gridSettings | aggFunc = AgGrid.MinAggregation }
                 }
@@ -188,7 +188,7 @@ viewGrid model =
                 }
             , AgGrid.Column
                 { field = "priceUS"
-                , renderer = CurrencyRenderer { countryCode = "us", currency = "USD" } (.us >> .price)
+                , renderer = CurrencyRenderer { countryCode = "us", currency = "USD", decimalPlaces = 2 } (.us >> .price)
                 , headerName = "Price US"
                 , settings = { gridSettings | aggFunc = AgGrid.AvgAggregation }
                 }

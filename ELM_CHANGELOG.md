@@ -1,5 +1,9 @@
 # Elm Changelog
 
+## [33.0.0]
+
+- Added `decimalPlaces` parameter to `CurrencyRenderer`. This does not change the value formatter, but allows for editing with more precision.
+
 ## [32.1.0]
 
 - Added `onCellCopy` event handler to allow formatting cell values ​​before adding them to the clipboard.
