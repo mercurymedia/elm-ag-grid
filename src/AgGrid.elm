@@ -239,7 +239,7 @@ the `title` might be defined as:
 type Renderer dataType
     = AppRenderer { componentName : String, componentParams : Maybe Json.Encode.Value } (dataType -> String)
     | BoolRenderer (dataType -> Bool)
-    | CurrencyRenderer { countryCode : String, currency : String } (dataType -> Maybe String)
+    | CurrencyRenderer { countryCode : String, currency : String, decimalPlaces : Int } (dataType -> Maybe String)
     | DecimalRenderer { countryCode : String, decimalPlaces : Int } (dataType -> Maybe String)
     | FloatRenderer (dataType -> Float)
     | GroupRenderer (dataType -> String)
@@ -1252,10 +1252,10 @@ encodeEditorParams editor renderer =
 
         DefaultEditor ->
             case renderer of
-                CurrencyRenderer { countryCode } _ ->
+                CurrencyRenderer { countryCode, decimalPlaces } _ ->
                     Json.Encode.object
                         [ ( "countryCode", Json.Encode.string countryCode )
-                        , ( "decimalPlaces", Json.Encode.int 2 )
+                        , ( "decimalPlaces", Json.Encode.int decimalPlaces )
                         ]
 
                 DecimalRenderer { countryCode, decimalPlaces } _ ->
@@ -1407,7 +1407,7 @@ encodeColumnDef gridConfig columnDef =
                     Json.Encode.string overwrittenFormatter
 
                 ( Nothing, CurrencyRenderer config _ ) ->
-                    Json.Encode.string (ValueFormat.currencyValueFormatter config)
+                    Json.Encode.string (ValueFormat.currencyValueFormatter { currency = config.currency, countryCode = config.countryCode })
 
                 ( Nothing, DecimalRenderer config _ ) ->
                     Json.Encode.string (ValueFormat.decimalValueFormatter config)
