@@ -277,7 +277,7 @@ viewGrid model =
                 { field = "title"
                 , renderer = StringRenderer .title
                 , headerName = "Product"
-                , settings = { gridSettings | editable = Expression.Const False, pinned = AgGrid.PinnedToLeft, comparator = Just "dateTimeComparator" }
+                , settings = { gridSettings | editable = Expression.Const False, pinned = AgGrid.PinnedToLeft }
                 }
             , AgGrid.Column
                 { field = "details"

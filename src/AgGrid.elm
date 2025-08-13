@@ -413,6 +413,7 @@ type alias ColumnSettings =
     { aggFunc : Aggregation
     , allowedAggFuncs : Maybe (List Aggregation)
     , autoHeight : Bool
+    , comparator : Maybe String
     , defaultAggFunc : Aggregation
     , autoHeaderHeight : Bool
     , cellClassRules : List ClassRule
@@ -455,7 +456,6 @@ type alias ColumnSettings =
     , width : Maybe Float
     , wrapHeaderText : Bool
     , wrapText : Bool
-    , comparator : Maybe String
     }
 
 
@@ -692,6 +692,7 @@ defaultSettings =
     { aggFunc = NoAggregation
     , allowedAggFuncs = Nothing
     , autoHeight = False
+    , comparator = Nothing
     , defaultAggFunc = SumAggregation
     , autoHeaderHeight = False
     , cellClassRules = []
@@ -734,7 +735,6 @@ defaultSettings =
     , width = Nothing
     , wrapHeaderText = False
     , wrapText = False
-    , comparator = Nothing
     }
 
 
@@ -1353,6 +1353,9 @@ encodeColumnDef gridConfig columnDef =
           )
         , ( "cellEditor", encodeEditor columnDef.settings.customCellEditor columnDef.renderer )
         , ( "cellEditorParams", encodeEditorParams columnDef.settings.customCellEditor columnDef.renderer )
+        , ( "comparator"
+          , Json.Encode.Extra.encodeMaybe Json.Encode.string columnDef.settings.comparator
+          )
         , ( "editable", Expression.encode Json.Encode.bool columnDef.settings.editable )
         , ( "enablePivot", Json.Encode.bool columnDef.settings.enablePivot )
         , ( "enableRowGroup", Json.Encode.bool columnDef.settings.enableRowGroup )
@@ -1456,9 +1459,6 @@ encodeColumnDef gridConfig columnDef =
           )
         , ( "wrapHeaderText", Json.Encode.bool columnDef.settings.wrapHeaderText )
         , ( "wrapText", Json.Encode.bool columnDef.settings.wrapText )
-        , ( "comparator"
-          , Json.Encode.Extra.encodeMaybe Json.Encode.string columnDef.settings.comparator
-          )
         ]
 
 

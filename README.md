@@ -308,7 +308,7 @@ comparators: {
           return new Date(startDate.trim());
       
       const dateA = parseDate(valueA);
-      const dateB = parseDate(valueB
+      const dateB = parseDate(valueB);
       if (dateA.getTime() === dateB.getTime()) return 
       return dateA.getTime() > dateB.getTime() ? 1 : -1;
   },

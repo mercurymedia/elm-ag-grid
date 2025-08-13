@@ -41,8 +41,6 @@ import ButtonRenderer from "./src/Components/Button.elm";
 import LinkRenderer from "./src/Components/Link.elm";
 import Editor from "./src/Components/Editor.elm";
 
-import dateTimeComparator from "./date_time_comparator";
-
 let app;
 
 window.AgGrid = {
