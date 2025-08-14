@@ -1,5 +1,9 @@
 # NPM Changelog
 
+## [4.4.0]
+
+- Add `comparators` option to init function.
+
 ## [4.3.0]
 
 - Sending cell information on a copy event to enable processing of cell values ​​and handling custom copy-to-clipboard behavior in Elm.

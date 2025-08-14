@@ -296,6 +296,34 @@ This aggregation can be referenced in Elm by using the `CustomAggregation` type 
 { ..., settings = { defaultSettings | aggFunc = CustomAggregation "foo" }}
 ```
 
+### Custom Comparators
+
+Comparators are defined as JS functions and need to be passed to the ElmAgGrid class during instantiation. Like the aggregations, the key you set can be set in the colDefs to use that comparator then.
+
+```js
+comparators: {
+  dateTimeComparator: (valueA, valueB, nodeA, nodeB, isDescending) => {
+      const parseDate = (date) => {
+          const [startDate] = date.split("-");
+          return new Date(startDate.trim());
+      
+      const dateA = parseDate(valueA);
+      const dateB = parseDate(valueB);
+      if (dateA.getTime() === dateB.getTime()) return 
+      return dateA.getTime() > dateB.getTime() ? 1 : -1;
+  },
+},
+```
+
+```elm
+AgGrid.Column
+  { field = "runtime"
+  , renderer = StringRenderer .runtime
+  , headerName = "runtime"
+  , settings = { gridSettings | editable = Expression.Const False, comparator = Just "dateTimeComparator" }
+  }
+```
+
 ## ContextMenu
 
 **Requires AgGrid Enterprise**
