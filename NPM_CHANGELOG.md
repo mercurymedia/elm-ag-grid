@@ -1,5 +1,9 @@
 # NPM Changelog
 
+## [4.4.1]
+
+- Fix sort function by supplying `null` instead of an empty string, when no `comparator` is supplied.
+
 ## [4.4.0]
 
 - Add `comparators` option to init function.
