@@ -160,7 +160,7 @@ class AgGrid extends HTMLElement {
             def.cellClassRules,
             (v) => (params) => expression.apply(params.node.data, v)
           ),
-          comparator: comparators[def.comparator] || "",
+          comparator: comparators[def.comparator] || null,
         };
       }
     }
