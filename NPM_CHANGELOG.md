@@ -1,5 +1,9 @@
 # NPM Changelog
 
+## [4.4.2]
+
+- Fix `resetColumns` calling `columnApi` which is no longer available
+
 ## [4.4.1]
 
 - Fix sort function by supplying `null` instead of an empty string, when no `comparator` is supplied.

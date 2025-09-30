@@ -292,7 +292,7 @@ class AgGrid extends HTMLElement {
             );
 
             self.dispatchEvent(changeEvent);
-            return params.columnApi.columnModel.resetColumnState("contextMenu");
+            return params.api.resetColumnState("contextMenu");
           },
         });
 
