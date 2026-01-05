@@ -1,5 +1,9 @@
 # Elm Changelog
 
+## [34.0.1]
+
+- Added `cellDataType` for `DateRenderer` to make the excel export work for dates
+
 ## [34.0.0]
 
 - Added `comparator` to ColumnSettings to set a custom comparator. Custom comparators can be set on initilization of the Elm App.

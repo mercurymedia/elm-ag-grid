@@ -1340,6 +1340,14 @@ encodeColumnDef gridConfig columnDef =
                 _ ->
                     Json.Encode.null
           )
+        , ( "cellDataType"
+          , case columnDef.renderer of
+                DateRenderer _ ->
+                    Json.Encode.string "date"
+
+                _ ->
+                    Json.Encode.null
+          )
         , ( "cellRendererParams"
           , case columnDef.renderer of
                 AppRenderer params _ ->
