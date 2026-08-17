@@ -381,6 +381,83 @@ AgGrid.ContextMenu.contextAction
     }
 ```
 
+## Reducing the encoded row data
+
+The `rowData` attribute holds one value per column and row and is re-encoded on every
+Elm render. On a grid with many columns that encoding dominates the render cost, even
+though AgGrid only reads the columns it can actually reach.
+
+`rowDataColumns` narrows it down:
+
+```elm
+gridConfig =
+    { defaultGridConfig | rowDataColumns = AgGrid.UsedColumns { alsoEncode = [] } }
+```
+
+A column is encoded when any of the following holds, judged after applying
+`columnStates`:
+
+- it is displayed (`hide = False`),
+- it is grouped (`rowGroup`/`rowGroupIndex`) or pivoted (`pivot`/`pivotIndex`) - AgGrid
+  hides those columns itself but still reads their values,
+- it is aggregated (`aggFunc`) or sorted (`sort`/`sortIndex`),
+- it has an entry in `filterStates`,
+- it is listed in the `columnKeys` of `csvExport` or `excelExport`,
+- it is referenced by an `AgGrid.Expression` in `rowClassRules`, in the `contextMenu`,
+  or in the `cellClassRules`/`editable` of a column that is encoded anyway,
+- it is listed in `alsoEncode`.
+
+The whole row is encoded regardless when `quickFilterText` is set (the quick filter
+scans every field) or when a `detailRenderer` is configured (the master/detail
+component receives the full row). `columnDefs` is not affected - every column stays
+reachable in the columns tool panel.
+
+The default is `AgGrid.AllColumns`, which encodes every column as it always has.
+
+### What `alsoEncode` is for
+
+Some things read the row object in ways that cannot be seen in the column definitions.
+Their fields have to be named explicitly:
+
+- `valueGetter`, `filterValueGetter`, `valueFormatter`, `valueParser`, `valueSetter`
+  and `comparator` are raw Javascript strings evaluated against the row and may
+  reference any field.
+- An `AppRenderer`/`AppEditor` component receives the AgGrid params - including the
+  complete row - as flags, so it can decode fields other than its own.
+- The decoders passed to `onCellChanged`, `onCellClicked`, `onCellDoubleClicked`,
+  `onContextMenu` and `onSelectionChange` run against the row object. A decoder that
+  requires a field of a column that is not encoded fails, and the event is dropped.
+
+### Two assumptions
+
+- Empty `columnKeys` on `csvExport`/`excelExport` make AgGrid export the displayed
+  columns, which are encoded anyway. That holds as long as nothing turns on AgGrid's
+  `allColumns` export option.
+- The saving comes from `columnStates`. Until those are loaded a column falls back to
+  its own `hide` setting, so a grid whose columns default to visible still encodes all
+  of them on the first render.
+
+### Two things to expect
+
+Both are temporary and correct themselves within one render round trip, but they are
+visible:
+
+1. **Un-hiding a column** in the columns tool panel makes AgGrid render it before Elm
+   has supplied the values, so its cells are empty at first. They fill in once the
+   column-state event has travelled through your `update` and back into `columnStates`.
+2. **Filtering a hidden column** from the filters tool panel matches nothing at first,
+   for the same reason, and then re-filters correctly once the filter state has reached
+   `filterStates`.
+
+How long the gap lasts is up to the consumer, not the grid: one `update` cycle if the
+state lives in your model, a full network round trip if you persist it remotely first.
+Measured at a few dozen milliseconds in the former case and well over a second in the
+latter.
+
+Both depend on the state being fed back into the `GridConfig`; see
+[Saving/Restoring grid columns and filters](https://github.com/mercurymedia/elm-ag-grid/tree/main/#savingrestoring-grid-columns-and-filters).
+The `RowData` example demonstrates both.
+
 ## StatusBar
 
 To add statusBar Panels, add the `StatusBarModule` to the Registry and add the StatusBarPanels you want to the gridConfig. Check [here]https://www.ag-grid.com/javascript-data-grid/status-bar/ for a bunch of options.

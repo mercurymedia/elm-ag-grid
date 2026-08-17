@@ -1,6 +1,6 @@
 module AgGrid exposing
     ( Aggregation(..), Alignment(..), CellEditor(..), Column(..), CopyEvent, ColumnSettings, EventType(..), FilterType(..), GroupSelects(..), LockPosition(..), PinningType(..), Renderer(..), SelectAllType(..), StatusPanel(..), StatusPanelAggregation(..)
-    , RowGroupPanelVisibility(..), RowSelection(..), Sorting(..), StateChange, CsvExportParams, ExcelExportParams
+    , RowDataColumns(..), RowGroupPanelVisibility(..), RowSelection(..), Sorting(..), StateChange, CsvExportParams, ExcelExportParams
     , GridConfig, grid
     , defaultGridConfig, defaultSettings
     , onCellChanged, onCellDoubleClicked, onCellClicked, onCellCopy, onSelectionChange, onContextMenu, onVisibleRowIdsChanged
@@ -16,7 +16,7 @@ module AgGrid exposing
 # Data Types
 
 @docs Aggregation, Alignment, CellEditor, Column, CopyEvent, ColumnSettings, EventType, FilterType, GroupSelects, LockPosition, PinningType, Renderer, SelectAllType, StatusPanel, StatusPanelAggregation
-@docs RowGroupPanelVisibility, RowSelection, Sorting, StateChange, CsvExportParams, ExcelExportParams
+@docs RowDataColumns, RowGroupPanelVisibility, RowSelection, Sorting, StateChange, CsvExportParams, ExcelExportParams
 
 
 # Grid
@@ -66,6 +66,7 @@ import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline as DecodePipeline
 import Json.Encode
 import Json.Encode.Extra exposing (encodeMaybe)
+import Set
 
 
 {-| Variants to aggregate values for a grouped column.
@@ -252,6 +253,77 @@ type Renderer dataType
     | PercentRenderer { countryCode : String, decimalPlaces : Int } (dataType -> Maybe String)
     | SelectionRenderer (dataType -> String) (List String)
     | StringRenderer (dataType -> String)
+
+
+{-| Which columns get a value in the `rowData` attribute.
+
+Every render encodes the whole `rowData` attribute into a single string. On a grid
+with many columns that string dominates the render cost, even though AgGrid only
+ever reads a fraction of it.
+
+  - `AllColumns` encodes every column of every row. This is the default and the
+    behaviour of all previous versions.
+
+  - `UsedColumns` encodes only the fields AgGrid can actually read. A column is
+    encoded when it is displayed, grouped, pivoted, aggregated, sorted, filtered,
+    listed in the CSV/Excel `columnKeys`, or referenced by an `AgGrid.Expression`
+    in `rowClassRules`, in the `contextMenu`, or in the `cellClassRules`/`editable`
+    of a column that is encoded anyway.
+
+    The whole row is encoded regardless when `quickFilterText` is set (the quick
+    filter scans every field) or when a `detailRenderer` is configured (the
+    master/detail component receives the full row).
+
+    `columnDefs` is unaffected - every column stays reachable in the columns tool
+    panel.
+
+**`alsoEncode` is the escape hatch and you will need it.** These read the row
+object and cannot be detected by looking at the column definitions:
+
+  - `valueGetter`, `filterValueGetter`, `valueFormatter`, `valueParser`,
+    `valueSetter` and `comparator` are raw Javascript strings evaluated against the
+    row. They may reference any field.
+  - An `AppRenderer`/`AppEditor` component receives the AgGrid params -
+    including the complete row - as flags, so it can decode fields other than its own.
+  - The decoders passed to `onCellChanged`, `onCellClicked`, `onCellDoubleClicked`,
+    `onContextMenu` and `onSelectionChange` run against the row object. A decoder
+    that requires a field of a column that is not encoded fails, and the event is
+    dropped.
+
+The cost of `UsedColumns` is one pass over the column definitions per render, so it
+scales with the number of columns rather than the number of rows. On a 1435-column
+grid that is roughly 2.5ms, which a handful of rows already pays back. There is no
+way to memoise it inside the package - Elm has no cache primitive - so if you ever
+need it gone, wrap the grid in `Html.Lazy`.
+
+Two assumptions are worth stating:
+
+  - Empty `columnKeys` on `csvExport`/`excelExport` make AgGrid export the
+    displayed columns, which are encoded anyway. That holds as long as nothing
+    turns on AgGrid's `allColumns` export option.
+  - The saving comes from `columnStates`. Until those are loaded a column falls
+    back to its own `hide` setting, so a grid whose columns default to visible
+    still encodes all of them on the first render.
+
+Two behaviours are worth knowing about, both temporary and self-correcting:
+
+1.  Un-hiding a column in the columns tool panel makes AgGrid render it before Elm
+    has supplied the values, so its cells are briefly empty. They fill in once the
+    column-state event has travelled through your `update` and back into
+    `columnStates`.
+2.  Applying a filter to a hidden column from the filters tool panel matches
+    nothing at first, for the same reason. It recovers once the filter state
+    reaches `filterStates`.
+
+How long that takes is up to you, not to the grid: it is one `update` cycle if the
+state lives in your model, but a full network round trip if you persist it remotely
+before feeding it back. Measured at a few dozen milliseconds in the former case and
+well over a second in the latter.
+
+-}
+type RowDataColumns
+    = AllColumns
+    | UsedColumns { alsoEncode : List String }
 
 
 {-| Row Group Panel allows the users to control which columns the rows are grouped by.
@@ -591,6 +663,7 @@ type alias GridConfig dataType =
     , rowMultiSelectWithClick : Bool
     , rowSelection : RowSelection
     , rowClassRules : List ClassRule
+    , rowDataColumns : RowDataColumns
     , rowHoverHighlight : Bool
     , selectedIds : List String
     , selectionColumnDef :
@@ -765,6 +838,7 @@ Can be used when implementing the grid.
         , isRowSelectable = always True
         , pagination = False
         , quickFilterText = ""
+        , rowDataColumns = AllColumns
         , rowGroupPanelShow = NeverVisible
         , rowHeight = Nothing
         , rowHoverHighlight = True
@@ -822,6 +896,7 @@ defaultGridConfig =
     , pagination = False
     , quickFilterText = ""
     , rowClassRules = []
+    , rowDataColumns = AllColumns
     , rowGroupPanelShow = NeverVisible
     , rowHeight = Nothing
     , rowId = Nothing
@@ -987,27 +1062,36 @@ applyColumnState gridConfig columns =
 applyCache : Column dataType -> ColumnState -> Column dataType
 applyCache column cachedState =
     case column of
-        Column ({ settings } as columnDef) ->
-            Column
-                { columnDef
-                    | settings =
-                        { settings
-                            | aggFunc = toAggregation cachedState.aggFunc
-                            , flex = cachedState.flex
-                            , hide = Maybe.withDefault settings.hide cachedState.hide
-                            , pinned = toPinningType cachedState.pinned
-                            , pivot = Maybe.withDefault settings.pivot cachedState.pivot
-                            , pivotIndex = cachedState.pivotIndex
-                            , rowGroup = Maybe.withDefault settings.rowGroup cachedState.rowGroup
-                            , rowGroupIndex = cachedState.rowGroupIndex
-                            , sort = toSorting cachedState.sort
-                            , sortIndex = cachedState.sortIndex
-                            , width = Just cachedState.width
-                        }
-                }
+        Column columnDef ->
+            Column { columnDef | settings = applyStateToSettings cachedState columnDef.settings }
 
         ColumnGroup _ ->
             column
+
+
+{-| Overlay a `ColumnState` onto the `ColumnSettings` of a column.
+
+`hide`, `pivot` and `rowGroup` fall back to the column's own setting when the state
+leaves them undecided. The remaining values are taken from the state as they are -
+a column that is in the column state is not sorted, grouped or aggregated unless
+the state says so.
+
+-}
+applyStateToSettings : ColumnState -> ColumnSettings -> ColumnSettings
+applyStateToSettings columnState settings =
+    { settings
+        | aggFunc = toAggregation columnState.aggFunc
+        , flex = columnState.flex
+        , hide = Maybe.withDefault settings.hide columnState.hide
+        , pinned = toPinningType columnState.pinned
+        , pivot = Maybe.withDefault settings.pivot columnState.pivot
+        , pivotIndex = columnState.pivotIndex
+        , rowGroup = Maybe.withDefault settings.rowGroup columnState.rowGroup
+        , rowGroupIndex = columnState.rowGroupIndex
+        , sort = toSorting columnState.sort
+        , sortIndex = columnState.sortIndex
+        , width = Just columnState.width
+    }
 
 
 prepareColumns : GridConfig dataType -> List (Column dataType) -> List (Column dataType)
@@ -2066,14 +2150,14 @@ encodeSidebarType sidebarType =
                 "filters"
 
 
-encodeRow : GridConfig dataType -> List (Column dataType) -> dataType -> Json.Encode.Value
-encodeRow gridConfig columns data =
+encodeRow : GridConfig dataType -> List (ColumnDef dataType) -> dataType -> Json.Encode.Value
+encodeRow gridConfig columnDefs data =
     let
         rowCallbackValues =
             ( "rowCallbackValues", rowCallbackValuesEncoder gridConfig data )
 
         encodedAttributes =
-            List.concatMap (encodeRenderer data) columns
+            List.map (\columnDef -> ( columnDef.field, encodeRendererValue data columnDef.renderer )) columnDefs
     in
     Json.Encode.object (rowCallbackValues :: encodedAttributes)
 
@@ -2093,83 +2177,229 @@ rowCallbackValuesEncoder gridConfig data =
         ]
 
 
-encodeRenderer : dataType -> Column dataType -> List ( String, Json.Encode.Value )
-encodeRenderer data column =
-    case column of
-        ColumnGroup columnGroupDef ->
-            List.concatMap (encodeRenderer data) columnGroupDef.children
+flattenColumns : List (Column dataType) -> List (ColumnDef dataType)
+flattenColumns columns =
+    flattenColumnsHelp columns []
 
-        Column columnDef ->
-            [ ( columnDef.field
-              , case columnDef.renderer of
-                    AppRenderer _ valueGetter ->
-                        Json.Encode.string (valueGetter data)
 
-                    BoolRenderer valueGetter ->
-                        Json.Encode.bool (valueGetter data)
+flattenColumnsHelp : List (Column dataType) -> List (ColumnDef dataType) -> List (ColumnDef dataType)
+flattenColumnsHelp remaining acc =
+    case remaining of
+        [] ->
+            List.reverse acc
 
-                    CurrencyRenderer _ valueGetter ->
-                        encodeMaybe Json.Encode.string (valueGetter data)
+        first :: rest ->
+            case first of
+                ColumnGroup columnGroupDef ->
+                    flattenColumnsHelp (columnGroupDef.children ++ rest) acc
 
-                    DateRenderer valueGetter ->
-                        Json.Encode.string (valueGetter data)
+                Column columnDef ->
+                    flattenColumnsHelp rest (columnDef :: acc)
 
-                    DecimalRenderer _ valueGetter ->
-                        encodeMaybe Json.Encode.string (valueGetter data)
 
-                    FloatRenderer valueGetter ->
-                        Json.Encode.float (valueGetter data)
+encodeRendererValue : dataType -> Renderer dataType -> Json.Encode.Value
+encodeRendererValue data renderer =
+    case renderer of
+        AppRenderer _ valueGetter ->
+            Json.Encode.string (valueGetter data)
 
-                    GroupRenderer valueGetter ->
-                        Json.Encode.string (valueGetter data)
+        BoolRenderer valueGetter ->
+            Json.Encode.bool (valueGetter data)
 
-                    IntRenderer valueGetter ->
-                        Json.Encode.int (valueGetter data)
+        CurrencyRenderer _ valueGetter ->
+            encodeMaybe Json.Encode.string (valueGetter data)
 
-                    MaybeFloatRenderer valueGetter ->
-                        case valueGetter data of
-                            Just value ->
-                                Json.Encode.float value
+        DateRenderer valueGetter ->
+            Json.Encode.string (valueGetter data)
 
-                            Nothing ->
-                                Json.Encode.null
+        DecimalRenderer _ valueGetter ->
+            encodeMaybe Json.Encode.string (valueGetter data)
 
-                    MaybeIntRenderer valueGetter ->
-                        case valueGetter data of
-                            Just value ->
-                                Json.Encode.int value
+        FloatRenderer valueGetter ->
+            Json.Encode.float (valueGetter data)
 
-                            Nothing ->
-                                Json.Encode.null
+        GroupRenderer valueGetter ->
+            Json.Encode.string (valueGetter data)
 
-                    MaybeStringRenderer valueGetter ->
-                        case valueGetter data of
-                            Just value ->
-                                Json.Encode.string value
+        IntRenderer valueGetter ->
+            Json.Encode.int (valueGetter data)
 
-                            Nothing ->
-                                Json.Encode.null
+        MaybeFloatRenderer valueGetter ->
+            case valueGetter data of
+                Just value ->
+                    Json.Encode.float value
 
-                    NoRenderer ->
-                        Json.Encode.null
+                Nothing ->
+                    Json.Encode.null
 
-                    PercentRenderer _ valueGetter ->
-                        encodeMaybe Json.Encode.string (valueGetter data)
+        MaybeIntRenderer valueGetter ->
+            case valueGetter data of
+                Just value ->
+                    Json.Encode.int value
 
-                    SelectionRenderer valueGetter _ ->
-                        Json.Encode.string (valueGetter data)
+                Nothing ->
+                    Json.Encode.null
 
-                    StringRenderer valueGetter ->
-                        Json.Encode.string (valueGetter data)
-              )
-            ]
+        MaybeStringRenderer valueGetter ->
+            case valueGetter data of
+                Just value ->
+                    Json.Encode.string value
+
+                Nothing ->
+                    Json.Encode.null
+
+        NoRenderer ->
+            Json.Encode.null
+
+        PercentRenderer _ valueGetter ->
+            encodeMaybe Json.Encode.string (valueGetter data)
+
+        SelectionRenderer valueGetter _ ->
+            Json.Encode.string (valueGetter data)
+
+        StringRenderer valueGetter ->
+            Json.Encode.string (valueGetter data)
 
 
 encodeData : GridConfig dataType -> List (Column dataType) -> List dataType -> String
 encodeData gridConfig columns data =
+    let
+        -- Resolved once for the whole table instead of once per row.
+        encodedColumns =
+            rowDataColumnDefs gridConfig columns
+    in
     data
-        |> Json.Encode.list (encodeRow gridConfig columns)
+        |> Json.Encode.list (encodeRow gridConfig encodedColumns)
         |> Json.Encode.encode 0
+
+
+{-| The columns that contribute a value to the `rowData` attribute, in the order
+they appear in the column definitions.
+-}
+rowDataColumnDefs : GridConfig dataType -> List (Column dataType) -> List (ColumnDef dataType)
+rowDataColumnDefs gridConfig columns =
+    let
+        columnDefs =
+            flattenColumns columns
+    in
+    case gridConfig.rowDataColumns of
+        AllColumns ->
+            columnDefs
+
+        UsedColumns { alsoEncode } ->
+            if readsEveryField gridConfig then
+                columnDefs
+
+            else
+                let
+                    encodedFields =
+                        usedFields gridConfig alsoEncode columnDefs
+                in
+                List.filter (\columnDef -> Set.member columnDef.field encodedFields) columnDefs
+
+
+{-| Configurations under which AgGrid reads the row object as a whole, which makes
+narrowing down the encoded fields impossible.
+-}
+readsEveryField : GridConfig dataType -> Bool
+readsEveryField gridConfig =
+    -- The quick filter matches against every field of a row.
+    Basics.not (String.isEmpty gridConfig.quickFilterText)
+        -- The master/detail component receives the complete row.
+        || (case gridConfig.detailRenderer of
+                Just _ ->
+                    True
+
+                Nothing ->
+                    False
+           )
+
+
+usedFields : GridConfig dataType -> List String -> List (ColumnDef dataType) -> Set.Set String
+usedFields gridConfig alsoEncode columnDefs =
+    let
+        columnStates =
+            gridConfig.columnStates
+                |> List.map (\columnState -> ( columnState.colId, columnState ))
+                |> Dict.fromList
+
+        -- Fields that are read without the column itself having to be in a
+        -- particular state.
+        requestedFields =
+            Set.fromList
+                (alsoEncode
+                    ++ Dict.keys gridConfig.filterStates
+                    ++ exportColumnKeys gridConfig.csvExport
+                    ++ exportColumnKeys gridConfig.excelExport
+                )
+
+        usedColumnDefs =
+            List.filter
+                (\columnDef ->
+                    readsColumnValue columnDef.settings (Dict.get columnDef.field columnStates)
+                        || Set.member columnDef.field requestedFields
+                )
+                columnDefs
+
+        -- Expressions read the row directly, so a referenced field needs a value
+        -- even when its own column is not encoded. Expressions on a column that is
+        -- not encoded never run, hence only the used ones are inspected. The
+        -- referenced columns need no further inspection: an expression reads the
+        -- value of a field, never the expressions attached to it.
+        referencedFields =
+            List.concatMap (Tuple.second >> Expression.fieldReferences) gridConfig.rowClassRules
+                ++ (gridConfig.contextMenu |> Maybe.map ContextMenu.fieldReferences |> Maybe.withDefault [])
+                ++ List.concatMap columnExpressionFields usedColumnDefs
+    in
+    Set.union
+        (Set.fromList (List.map .field usedColumnDefs))
+        (Set.fromList referencedFields)
+
+
+{-| Whether AgGrid reads the value of a column, given the column's own settings and
+the entry of the column state that applies to it. Grouped, pivoted, aggregated and
+sorted columns are read even though AgGrid hides most of them from the table.
+
+This deliberately does not overlay the state through `applyStateToSettings` first.
+That copies the whole `ColumnSettings` record per column, which on a wide grid costs
+more than the encoding it is supposed to save - measured at roughly 10ms for 1435
+columns. The rules below have to stay in step with `applyStateToSettings`, which
+`RowDataColumnsTest` pins case by case.
+
+-}
+readsColumnValue : ColumnSettings -> Maybe ColumnState -> Bool
+readsColumnValue settings maybeColumnState =
+    case maybeColumnState of
+        Nothing ->
+            Basics.not settings.hide
+                || settings.rowGroup
+                || (settings.rowGroupIndex /= Nothing)
+                || settings.pivot
+                || (settings.pivotIndex /= Nothing)
+                || (settings.aggFunc /= NoAggregation)
+                || (settings.sort /= NoSorting)
+                || (settings.sortIndex /= Nothing)
+
+        Just columnState ->
+            Basics.not (Maybe.withDefault settings.hide columnState.hide)
+                || Maybe.withDefault settings.rowGroup columnState.rowGroup
+                || (columnState.rowGroupIndex /= Nothing)
+                || Maybe.withDefault settings.pivot columnState.pivot
+                || (columnState.pivotIndex /= Nothing)
+                || (toAggregation columnState.aggFunc /= NoAggregation)
+                || (toSorting columnState.sort /= NoSorting)
+                || (columnState.sortIndex /= Nothing)
+
+
+columnExpressionFields : ColumnDef dataType -> List String
+columnExpressionFields columnDef =
+    Expression.fieldReferences columnDef.settings.editable
+        ++ List.concatMap (Tuple.second >> Expression.fieldReferences) columnDef.settings.cellClassRules
+
+
+exportColumnKeys : Maybe { params | columnKeys : List String } -> List String
+exportColumnKeys exportParams =
+    exportParams |> Maybe.map .columnKeys |> Maybe.withDefault []
 
 
 cellUpdateDecoder : Decoder Decode.Value

@@ -14,6 +14,7 @@ import FilterState
 import Grouping
 import Html.Styled exposing (Html, a, div, span, text)
 import Html.Styled.Attributes exposing (css, href, target)
+import RowData
 import RowSelection
 import Url exposing (Url)
 import Url.Parser as Parser
@@ -51,6 +52,7 @@ type Page
     | Export Export.Model
     | CustomEditor CustomEditor.Model
     | ColumnState ColumnState.Model
+    | RowData RowData.Model
     | NotFound
 
 
@@ -63,6 +65,7 @@ type Msg
     | FilterStateMsg FilterState.Msg
     | RowSelectionMsg RowSelection.Msg
     | ColumnStateMsg ColumnState.Msg
+    | RowDataMsg RowData.Msg
     | NoOp
 
 
@@ -115,6 +118,9 @@ subscriptions model =
 
         FilterState filterStateModel ->
             Sub.map FilterStateMsg (FilterState.subscriptions filterStateModel)
+
+        RowData _ ->
+            Sub.none
 
 
 
@@ -180,6 +186,13 @@ update msg model =
                     FilterState.update subMsg filterStateModel
             in
             ( { model | page = FilterState updatedFilterStateModel }, Cmd.map FilterStateMsg pageCmd )
+
+        ( RowDataMsg subMsg, RowData rowDataModel ) ->
+            let
+                ( updatedRowDataModel, pageCmd ) =
+                    RowData.update subMsg rowDataModel
+            in
+            ( { model | page = RowData updatedRowDataModel }, Cmd.map RowDataMsg pageCmd )
 
         ( NoOp, _ ) ->
             ( model, Cmd.none )
@@ -249,6 +262,7 @@ viewNavigation =
         , viewPageLink "Custom Editor" "/custom-editor"
         , viewPageLink "Column State" "/column-state"
         , viewPageLink "Filter State" "/filter-state"
+        , viewPageLink "Row Data" "/row-data"
         ]
 
 
@@ -303,6 +317,9 @@ viewPage page =
 
             FilterState pageModel ->
                 toPage FilterStateMsg (FilterState.view pageModel)
+
+            RowData pageModel ->
+                toPage RowDataMsg (RowData.view pageModel)
         ]
 
 
@@ -327,6 +344,7 @@ changePageTo url model =
                 , Parser.map ( { model | page = CustomEditor CustomEditor.init }, Cmd.none ) (Parser.s "custom-editor")
                 , Parser.map (ColumnState.init |> toPage ColumnState ColumnStateMsg) (Parser.s "column-state")
                 , Parser.map (FilterState.init |> toPage FilterState FilterStateMsg) (Parser.s "filter-state")
+                , Parser.map ( { model | page = RowData RowData.init }, Cmd.none ) (Parser.s "row-data")
                 ]
     in
     Parser.parse parser url

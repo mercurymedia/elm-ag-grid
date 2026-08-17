@@ -5,6 +5,7 @@ module AgGrid.ContextMenu exposing
     , csvExportContextAction, cutContextAction, excelExportContextAction, expandAllContextAction, exportContextAction, pasteContextAction, pivotChartContextAction
     , resetColumnsContextAction, contextSeparator
     , encode
+    , fieldReferences
     )
 
 {-|
@@ -30,6 +31,11 @@ module AgGrid.ContextMenu exposing
 # Encoding
 
 @docs encode
+
+
+# Inspection
+
+@docs fieldReferences
 
 -}
 
@@ -264,6 +270,34 @@ Reference: <https://www.ag-grid.com/javascript-data-grid/context-menu/#built-in-
 contextSeparator : ContextAction
 contextSeparator =
     PredefinedMenuItem "separator"
+
+
+
+-- INSPECTION
+
+
+{-| Collect the row fields that the context menu reads.
+
+The `disabled` and `cssClasses` expressions of a context action are evaluated
+against the data of the row the menu was opened on. Any action can therefore read
+any field of the row, no matter which column is currently displayed.
+
+-}
+fieldReferences : ContextMenu -> List String
+fieldReferences contextMenu =
+    List.concatMap actionFieldReferences contextMenu
+
+
+actionFieldReferences : ContextAction -> List String
+actionFieldReferences action =
+    case action of
+        PredefinedMenuItem _ ->
+            []
+
+        CustomItem attributes ->
+            Expression.fieldReferences attributes.disabled
+                ++ List.concatMap (Tuple.second >> Expression.fieldReferences) attributes.cssClasses
+                ++ List.concatMap actionFieldReferences attributes.subMenu
 
 
 
