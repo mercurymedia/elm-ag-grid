@@ -1,5 +1,11 @@
 # Elm Changelog
 
+## [35.0.0]
+
+- Added `rowDataColumns` to the `GridConfig` to limit the `rowData` attribute to the columns AgGrid can actually read. Defaults to `AllColumns`, which encodes every column as before. `UsedColumns` leaves out the columns that are neither displayed, grouped, pivoted, aggregated, sorted, filtered, exported nor referenced by an expression. See "Reducing the encoded row data" in the README for the escape hatch you will need.
+- Added `AgGrid.Expression.fieldReferences` and `AgGrid.ContextMenu.fieldReferences` to collect the row fields that an expression reads.
+- The `UsedColumns` keep-set evaluates the column state directly rather than building the overlaid `ColumnSettings` per column. On a wide grid with a restored column state that record copy cost more than the encoding it saved.
+
 ## [34.0.1]
 
 - Added `cellDataType` for `DateRenderer` to make the excel export work for dates

@@ -4,6 +4,7 @@ module AgGrid.Expression exposing
     , bool, int, string, float, list
     , value
     , encode
+    , fieldReferences
     )
 
 {-| Integration of Expressions for AgGrid. A `Expression` will be encoded and evaluated in javascript.
@@ -34,6 +35,11 @@ For more information take a look at <https://github.com/mercurymedia/elm-ag-grid
 # Encoding
 
 @docs encode
+
+
+# Inspection
+
+@docs fieldReferences
 
 -}
 
@@ -148,6 +154,75 @@ encodeOperator operator =
 
         Not expr ->
             encodeExpression expr
+
+
+{-| Collect the row fields that an evaluation reads.
+
+Every `value` in an expression is a lookup on the row object that AgGrid evaluates
+the expression against. Collecting them upfront allows the grid to tell which
+fields it has to send along with the row data.
+
+    Expression.and (Expression.value "isActive") (Expression.value "isPaid")
+        |> Expression.Expr
+        |> Expression.fieldReferences
+
+    -- [ "isActive", "isPaid" ]
+
+References are returned in the order they appear in the expression. Duplicates are
+kept.
+
+-}
+fieldReferences : Eval a -> List String
+fieldReferences eval =
+    case eval of
+        Const _ ->
+            []
+
+        Expr expression ->
+            collectFieldReferences [ expression ] []
+
+
+collectFieldReferences : List Expression -> List String -> List String
+collectFieldReferences remaining acc =
+    case remaining of
+        [] ->
+            List.reverse acc
+
+        expression :: rest ->
+            case expression of
+                Value accessor ->
+                    collectFieldReferences rest (accessor :: acc)
+
+                Lit _ ->
+                    collectFieldReferences rest acc
+
+                Op operator ->
+                    collectFieldReferences (operands operator ++ rest) acc
+
+
+operands : Operator -> List Expression
+operands operator =
+    case operator of
+        And left right ->
+            [ left, right ]
+
+        Eq left right ->
+            [ left, right ]
+
+        Gte left right ->
+            [ left, right ]
+
+        Includes left right ->
+            [ left, right ]
+
+        Lte left right ->
+            [ left, right ]
+
+        Not expression ->
+            [ expression ]
+
+        Or left right ->
+            [ left, right ]
 
 
 encodeLiteral : Literal -> Encode.Value

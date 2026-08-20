@@ -19,3 +19,9 @@
 .ag-cell-wrapper.ag-checkbox-cell {
   justify-content: center;
 }
+
+/* Used by the RowData example to show a rowClassRule reading a hidden column. */
+.ag-theme-balham .ag-row.ag-row-before-1990 {
+  color: #999999;
+  font-style: italic;
+}
